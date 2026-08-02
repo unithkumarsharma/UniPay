@@ -4,6 +4,53 @@ import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 import { commissionSlabs as initialSlabs } from '@/data/mockData';
 
+// Specific Multi-Color Service Icons Map
+const serviceIconMap = {
+  'Mobile Prepaid': (
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <rect x="8" y="3" width="20" height="30" rx="4" fill="#2563EB" />
+      <rect x="10" y="6" width="16" height="20" rx="1.5" fill="#38BDF8" />
+      <circle cx="18" cy="29" r="1.5" fill="#FFFFFF" />
+      <path d="M14 11l3 3 5-5" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  'DTH Recharge': (
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" stroke="#9333EA" strokeWidth="3" strokeLinecap="round" />
+      <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" stroke="#A855F7" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="26" cy="26" r="4" fill="#F59E0B" />
+      <path d="M6 30l8-8" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  ),
+  'Electricity Bill': (
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <path d="M18 3C11.4 3 6 8.4 6 15c0 4.5 2.5 8.4 6.2 10.4V28c0 1.1.9 2 2 2h7.6c1.1 0 2-.9 2-2v-2.6C27.5 23.4 30 19.5 30 15c0-6.6-5.4-12-12-12z" fill="#F59E0B" />
+      <path d="M19 8l-5 8h4.5L16 23l6.5-8H18l2-7z" fill="#FFFFFF" />
+    </svg>
+  ),
+  'Money Transfer': (
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="8" width="28" height="20" rx="3" fill="#10B981" />
+      <circle cx="18" cy="18" r="5" fill="#047857" />
+      <path d="M18 15v6M16 16.5h4M16 19.5h4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  'AEPS Withdrawal': (
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" fill="#06B6D4" />
+      <path d="M18 10a7 7 0 0 0-7 7c0 3 1.5 5.5 3.5 7" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M18 14a3 3 0 0 0-3 3c0 2 1 3.5 2 4.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  ),
+  'PAN Card': (
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <rect x="3" y="6" width="30" height="24" rx="4" fill="#1E3A8A" />
+      <rect x="6" y="10" width="24" height="4" fill="#F59E0B" rx="1" />
+      <circle cx="11" cy="21" r="3.5" fill="#3B82F6" />
+    </svg>
+  ),
+};
+
 export default function AdminCommissionPage() {
   const [slabs, setSlabs] = useState(initialSlabs);
   const [showModal, setShowModal] = useState(false);
@@ -59,27 +106,31 @@ export default function AdminCommissionPage() {
     {
       key: 'service',
       label: 'Service Name',
-      render: (r) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: '8px',
-            background: 'rgba(139, 92, 246, 0.12)',
-            color: '#7C3AED',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="5" x2="5" y2="19" />
-              <circle cx="6.5" cy="6.5" r="2.5" />
-              <circle cx="17.5" cy="17.5" r="2.5" />
-            </svg>
+      render: (r) => {
+        const icon = serviceIconMap[r.service] || (
+          <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="14" fill="#2563EB" />
+          </svg>
+        );
+
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: '10px',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {icon}
+            </div>
+            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{r.service}</span>
           </div>
-          <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.service}</span>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'retailerComm',
