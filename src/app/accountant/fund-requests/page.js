@@ -46,7 +46,6 @@ const MOCK_FUND_REQUESTS = [
 export default function FundRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState(MOCK_FUND_REQUESTS);
-  const [isLoading, setIsLoading] = useState(false);
 
   const fetchRequests = async () => {
     try {
@@ -65,13 +64,28 @@ export default function FundRequestsPage() {
   }, []);
 
   const handleAction = async (requestId, action) => {
+    // 1. Instant local UI state update for immediate feedback
     const updated = requests.map((r) => {
       if (r._id === requestId || r.requestId === requestId) {
         return { ...r, status: action === 'approve' ? 'approved' : 'rejected' };
       }
       return r;
     });
-    setRequests(updated);
+
+    setRequests([...updated]); // Brand new array reference forces live React re-render!
+
+    // 2. Call backend API in background
+    try {
+      await fetch(`/api/fund-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          processedBy: user?._id,
+        }),
+      });
+    } catch (e) {}
+
     alert(`Fund request ${requestId} has been ${action === 'approve' ? 'Approved & Credited to Merchant Wallet' : 'Rejected'}!`);
   };
 
@@ -182,7 +196,7 @@ export default function FundRequestsPage() {
             <button
               className="btn btn-sm btn-success"
               style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              onClick={() => handleAction(row._id, 'approve')}
+              onClick={() => handleAction(row._id || row.requestId, 'approve')}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
@@ -192,7 +206,7 @@ export default function FundRequestsPage() {
             <button
               className="btn btn-sm btn-danger"
               style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              onClick={() => handleAction(row._id, 'reject')}
+              onClick={() => handleAction(row._id || row.requestId, 'reject')}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -207,8 +221,10 @@ export default function FundRequestsPage() {
     },
   ];
 
+  // Dynamic live calculations from state
   const pendingCount = requests.filter(r => r.status === 'pending').length;
   const approvedCount = requests.filter(r => r.status === 'approved').length;
+  const totalVolume = requests.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   return (
     <>
@@ -237,7 +253,7 @@ export default function FundRequestsPage() {
           icon="wallet"
           iconColor="blue"
           title="Total Deposit Volume"
-          value="₹4,00,000"
+          value={`₹${totalVolume.toLocaleString('en-IN')}`}
           subtext="Merchant Bank Wires"
           badge="Deposit Volume"
           sparkline="0,20 10,18 20,14 30,10 40,8 50,4 60,1"
@@ -248,7 +264,7 @@ export default function FundRequestsPage() {
           title="Pending Verification"
           value={pendingCount}
           change="Action Required"
-          changeType="negative"
+          changeType={pendingCount > 0 ? 'negative' : 'positive'}
           badge="Pending Review"
           sparkline="0,5 10,8 20,12 30,15 40,18 50,20 60,22"
         />

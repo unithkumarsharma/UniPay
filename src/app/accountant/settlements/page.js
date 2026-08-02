@@ -47,13 +47,13 @@ export default function SettlementsPage() {
 
   const handleProcessBatch = () => {
     const updated = settlementList.map((s) => ({ ...s, status: 'settled' }));
-    setSettlementList(updated);
+    setSettlementList([...updated]); // Brand new array reference for live instant React re-render
     alert('All pending commission settlements have been processed and dispatched to Escrow Bank Gateway!');
   };
 
   const handleSingleSettlement = (id) => {
     const updated = settlementList.map((s) => (s.id === id ? { ...s, status: 'settled' } : s));
-    setSettlementList(updated);
+    setSettlementList([...updated]); // Brand new array reference for live instant React re-render
     alert(`Settlement ${id} processed successfully!`);
   };
 
@@ -155,6 +155,7 @@ export default function SettlementsPage() {
     },
   ];
 
+  // Dynamic live calculations from state
   const pendingAmount = settlementList
     .filter((s) => s.status === 'pending')
     .reduce((acc, curr) => acc + curr.amount, 0);
