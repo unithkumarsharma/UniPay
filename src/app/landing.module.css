@@ -490,17 +490,31 @@
 
 .sectionHeader {
   text-align: center;
-  max-width: 840px;
+  max-width: 860px;
   margin: 0 auto 55px;
-  background: var(--bg-card);
+  background-image: url('https://images.unsplash.com/photo-1556742049-0a67af6a20f7?w=1600&auto=format&fit=crop&q=85');
+  background-size: cover;
+  background-position: center;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 34px 40px;
-  box-shadow: var(--shadow-md);
+  padding: 38px 42px;
+  box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+}
+
+.sectionHeader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-card);
+  opacity: 0.88;
+  z-index: 1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .sectionHeader::before {
@@ -511,6 +525,7 @@
   right: 0;
   height: 4px;
   background: var(--primary-gradient);
+  z-index: 2;
 }
 
 .sectionTitle {
@@ -519,13 +534,17 @@
   color: var(--text-primary);
   margin-bottom: 14px;
   letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
 }
 
 .sectionSubtitle {
   font-size: 1.08rem;
   color: var(--text-secondary);
   line-height: 1.6;
-  font-weight: 500;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
 }
 
 .servicesCategoryGrid {
