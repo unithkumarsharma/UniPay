@@ -211,65 +211,78 @@
   text-align: center;
 }
 
-.autoSliderCard {
-  background: var(--bg-card);
-  border: 1.5px solid rgba(5, 150, 105, 0.3);
+.fullImageBanner {
+  width: 100%;
+  height: 520px;
   border-radius: var(--radius-xl);
-  padding: 30px 22px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background-size: cover;
+  background-position: center;
   position: relative;
   overflow: hidden;
-  animation: cardFadeIn 0.5s ease-in-out;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.6s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-@keyframes cardFadeIn {
-  from { opacity: 0.4; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+.imageOverlayGradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.65) 50%, rgba(15, 23, 42, 0.95) 100%);
+  z-index: 1;
 }
 
-.sliderIcon {
-  font-size: 3.5rem;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1));
+.bannerContent {
+  position: relative;
+  z-index: 2;
+  padding: 24px 20px;
+  color: #FFFFFF;
+  text-align: left;
 }
 
-.sliderBadge {
+.bannerBadge {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--accent);
-  background: rgba(5, 150, 105, 0.12);
+  color: #34D399;
+  background: rgba(6, 78, 59, 0.8);
+  border: 1px solid rgba(52, 211, 153, 0.4);
   padding: 4px 12px;
   border-radius: var(--radius-full);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(8px);
 }
 
-.sliderTitle {
-  font-size: 1.18rem;
+.bannerTitle {
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 8px;
+  color: #FFFFFF;
+  margin-bottom: 6px;
+  line-height: 1.25;
 }
 
-.sliderDetail {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin-bottom: 16px;
-}
-
-.sliderStatus {
+.bannerDetail {
   font-size: 0.82rem;
+  color: #CBD5E1;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.bannerStatus {
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--success);
-  background: var(--success-light);
-  padding: 8px 14px;
+  color: #34D399;
+  background: rgba(6, 78, 59, 0.85);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  padding: 8px 12px;
   border-radius: var(--radius-md);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(8px);
 }
 
 .sliderDots {
