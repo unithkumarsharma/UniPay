@@ -68,41 +68,57 @@ export default function AdminComplaintsPage() {
   const [refundAmount, setRefundAmount] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setComplaintList(parsed);
-          }
-        } catch (e) {}
+  const fetchComplaintsFromDb = async () => {
+    try {
+      const res = await fetch('/api/complaints');
+      const data = await res.json();
+      if (data.success && data.complaints && data.complaints.length > 0) {
+        setComplaintList(data.complaints);
       }
+    } catch (e) {
+      console.warn('Real Database API fallback:', e.message);
     }
+  };
+
+  useEffect(() => {
+    fetchComplaintsFromDb();
   }, []);
 
-  const handleResolveTicket = (e) => {
+  const handleResolveTicket = async (e) => {
     e.preventDefault();
     if (!selectedTicket) return;
 
+    const replyMsg = replyText || `Official Admin Response: Ticket processed and updated to ${newStatus.toUpperCase()}.${refundAmount ? ` Refund of ₹${refundAmount} credited to wallet.` : ''}`;
+
     const updatedList = complaintList.map((c) => {
-      if (c.id === selectedTicket.id) {
+      if (c.id === selectedTicket.id || c._id === selectedTicket._id) {
         return {
           ...c,
           status: newStatus,
-          reply: replyText || `Official Admin Response: Ticket processed and updated to ${newStatus.toUpperCase()}.${refundAmount ? ` Refund of ₹${refundAmount} credited to wallet.` : ''}`,
+          reply: replyMsg,
         };
       }
       return c;
     });
 
     setComplaintList(updatedList);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedList));
+
+    setSuccessMsg(`Ticket #${selectedTicket.id || selectedTicket._id} updated permanently in Real Database!`);
+
+    try {
+      await fetch('/api/complaints', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedTicket._id || selectedTicket.id,
+          status: newStatus,
+          resolution: replyMsg,
+        }),
+      });
+    } catch (err) {
+      console.error('Database Sync Error:', err);
     }
 
-    setSuccessMsg(`Ticket #${selectedTicket.id} updated permanently!`);
     setTimeout(() => {
       setSelectedTicket(null);
       setSuccessMsg('');

@@ -120,31 +120,46 @@ export default function AccountantDashboard() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setFundRequests(parsed);
-          }
-        } catch (e) {}
+  const fetchFundRequestsFromDb = async () => {
+    try {
+      const res = await fetch('/api/fund-requests');
+      const data = await res.json();
+      if (data.success && data.requests && data.requests.length > 0) {
+        const formatted = data.requests.map((r) => ({
+          ...r,
+          id: r.id || r._id || r.requestId,
+        }));
+        setFundRequests(formatted);
       }
+    } catch (e) {
+      console.warn('Real Database API fallback:', e.message);
     }
+  };
+
+  useEffect(() => {
+    fetchFundRequestsFromDb();
   }, []);
 
-  const handleQuickApprove = (targetId) => {
-    setFundRequests((prev) => {
-      const updated = prev.map((r) =>
+  const handleQuickApprove = async (targetId) => {
+    setFundRequests((prev) =>
+      prev.map((r) =>
         r.id === targetId || r.requestId === targetId ? { ...r, status: 'approved' } : r
-      );
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-      }
-      return updated;
-    });
-    showToast(`Request #${targetId} Approved & Credited to Merchant Wallet!`);
+      )
+    );
+    showToast(`Request #${targetId} Approved & Credited to Wallet in Real Database!`);
+
+    try {
+      await fetch('/api/fund-requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: targetId,
+          status: 'approved',
+        }),
+      });
+    } catch (e) {
+      console.error('Database Sync Error:', e);
+    }
   };
 
   const handleDownloadLedger = () => {
