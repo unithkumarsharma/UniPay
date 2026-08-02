@@ -1,208 +1,141 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const MOCK_FUND_REQUESTS_PERIODS = {
-  today: [
-    {
-      id: 'FR-9901',
-      _id: 'FR-9901',
-      requestId: 'FR-9901',
-      user: 'Suresh Yadav',
-      userId: 'RTL001',
-      role: 'RETAILER',
-      amount: 50000,
-      paymentMethod: 'bank_wire',
-      utrNumber: 'UTR998124891',
-      createdAt: '2026-08-02 12:45',
-      status: 'pending',
-    },
-  ],
-  yesterday: [
-    {
-      id: 'FR-9902',
-      _id: 'FR-9902',
-      requestId: 'FR-9902',
-      user: 'Ankit Kumar',
-      userId: 'DST001',
-      role: 'DISTRIBUTOR',
-      amount: 100000,
-      paymentMethod: 'upi_transfer',
-      utrNumber: 'UPI772615102',
-      createdAt: '2026-08-01 11:30',
-      status: 'pending',
-    },
-  ],
-  '7days': [
-    {
-      id: 'FR-9901',
-      _id: 'FR-9901',
-      requestId: 'FR-9901',
-      user: 'Suresh Yadav',
-      userId: 'RTL001',
-      role: 'RETAILER',
-      amount: 50000,
-      paymentMethod: 'bank_wire',
-      utrNumber: 'UTR998124891',
-      createdAt: '2026-08-02 12:45',
-      status: 'pending',
-    },
-    {
-      id: 'FR-9902',
-      _id: 'FR-9902',
-      requestId: 'FR-9902',
-      user: 'Ankit Kumar',
-      userId: 'DST001',
-      role: 'DISTRIBUTOR',
-      amount: 100000,
-      paymentMethod: 'upi_transfer',
-      utrNumber: 'UPI772615102',
-      createdAt: '2026-08-01 11:30',
-      status: 'pending',
-    },
-    {
-      id: 'FR-9903',
-      _id: 'FR-9903',
-      requestId: 'FR-9903',
-      user: 'Vikram Singh',
-      userId: 'MD001',
-      role: 'MASTER DISTRIBUTOR',
-      amount: 250000,
-      paymentMethod: 'imps_deposit',
-      utrNumber: 'IMPS55192099',
-      createdAt: '2026-07-28 16:15',
-      status: 'approved',
-    },
-  ],
-  month: [
-    {
-      id: 'FR-9901',
-      _id: 'FR-9901',
-      requestId: 'FR-9901',
-      user: 'Suresh Yadav',
-      userId: 'RTL001',
-      role: 'RETAILER',
-      amount: 50000,
-      paymentMethod: 'bank_wire',
-      utrNumber: 'UTR998124891',
-      createdAt: '2026-08-02 12:45',
-      status: 'pending',
-    },
-    {
-      id: 'FR-9902',
-      _id: 'FR-9902',
-      requestId: 'FR-9902',
-      user: 'Ankit Kumar',
-      userId: 'DST001',
-      role: 'DISTRIBUTOR',
-      amount: 100000,
-      paymentMethod: 'upi_transfer',
-      utrNumber: 'UPI772615102',
-      createdAt: '2026-08-01 11:30',
-      status: 'pending',
-    },
-    {
-      id: 'FR-9903',
-      _id: 'FR-9903',
-      requestId: 'FR-9903',
-      user: 'Vikram Singh',
-      userId: 'MD001',
-      role: 'MASTER DISTRIBUTOR',
-      amount: 250000,
-      paymentMethod: 'imps_deposit',
-      utrNumber: 'IMPS55192099',
-      createdAt: '2026-07-28 16:15',
-      status: 'approved',
-    },
-  ],
-  custom: [
-    {
-      id: 'FR-9901',
-      _id: 'FR-9901',
-      requestId: 'FR-9901',
-      user: 'Suresh Yadav',
-      userId: 'RTL001',
-      role: 'RETAILER',
-      amount: 50000,
-      paymentMethod: 'bank_wire',
-      utrNumber: 'UTR998124891',
-      createdAt: '2026-08-02 12:45',
-      status: 'pending',
-    },
-  ],
-};
-
 export default function FundRequestsPage() {
   const { user } = useAuth();
-  const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
+  const [dateRangePreset, setDateRangePreset] = useState('month');
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
-  const [requests, setRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
-  const [isDbConnected, setIsDbConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Direct Real Database API Fetch
-  const fetchRequestsFromDatabase = async () => {
+  // Fetch ALL fund requests from Supabase once
+  const fetchRequests = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/fund-requests');
       const data = await res.json();
-      if (data.success && data.requests && data.requests.length > 0) {
+      if (data.success && Array.isArray(data.requests)) {
         const formatted = data.requests.map((r) => ({
           ...r,
           id: r.id || r._id || r.requestId,
+          createdAt: r.created_at || r.createdAt,
+          user: r.userId?.name || r.user || 'Partner',
+          role: r.userId?.role || r.role || 'PARTNER',
+          userCode: r.userId?.userId || r.userCode || '',
         }));
-        setRequests(formatted);
-        setIsDbConnected(true);
-        return;
+        setAllRequests(formatted);
+      } else {
+        setAllRequests([]);
       }
     } catch (e) {
-      console.warn('Real Database Endpoint Fallback:', e.message);
+      console.error('Fetch fund requests error:', e);
+      setAllRequests([]);
     }
-    // Set Period Specific Data
-    setRequests(MOCK_FUND_REQUESTS_PERIODS[dateRangePreset] || MOCK_FUND_REQUESTS_PERIODS.month);
-  };
+    setLoading(false);
+  }, []);
 
+  // Initial load
   useEffect(() => {
-    fetchRequestsFromDatabase();
-  }, [dateRangePreset]);
+    fetchRequests();
+  }, [fetchRequests]);
 
-  // Real Database Action Dispatcher (POST/PATCH)
+  // Filter by date preset whenever allRequests or preset changes
+  useEffect(() => {
+    if (allRequests.length === 0) {
+      setFilteredRequests([]);
+      return;
+    }
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let startDate, endDate;
+    switch (dateRangePreset) {
+      case 'today':
+        startDate = startOfToday;
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'yesterday':
+        startDate = new Date(startOfToday.getTime() - 86400000);
+        endDate = startOfToday;
+        break;
+      case '7days':
+        startDate = new Date(startOfToday.getTime() - 7 * 86400000);
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'custom':
+        startDate = fromDate ? new Date(fromDate) : new Date(0);
+        endDate = toDate ? new Date(new Date(toDate).getTime() + 86400000) : new Date();
+        break;
+      default:
+        startDate = new Date(0);
+        endDate = new Date();
+    }
+
+    const filtered = allRequests.filter((r) => {
+      const d = new Date(r.createdAt || r.created_at);
+      return d >= startDate && d < endDate;
+    });
+
+    setFilteredRequests(filtered);
+  }, [allRequests, dateRangePreset, fromDate, toDate]);
+
+  // Approve or Reject — calls API then re-fetches fresh data
   const handleAction = async (targetId, action) => {
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
+    setActionLoading(targetId);
 
-    // 1. Optimistic Real-Time UI Update
-    setRequests((prevRequests) =>
-      prevRequests.map((r) => {
-        if (r.id === targetId || r._id === targetId || r.requestId === targetId) {
-          return { ...r, status: nextStatus };
-        }
-        return r;
-      })
+    // 1. Optimistic UI update
+    setAllRequests((prev) =>
+      prev.map((r) =>
+        (r.id === targetId || r._id === targetId || r.requestId === targetId)
+          ? { ...r, status: nextStatus }
+          : r
+      )
     );
 
-    showToast(`Request #${targetId} updated to ${nextStatus.toUpperCase()} in Real Database!`);
-
-    // 2. Real Database API Call (Supabase / MongoDB API endpoint)
+    // 2. PATCH to Supabase via API
     try {
-      await fetch('/api/fund-requests', {
+      const res = await fetch('/api/fund-requests', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           requestId: targetId,
           status: nextStatus,
-          adminId: user?._id,
+          adminId: user?.id || user?._id,
         }),
       });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(`Request #${targetId} ${nextStatus.toUpperCase()} — saved to database!`);
+      } else {
+        showToast(`Error: ${data.error || 'Update failed'}`);
+      }
     } catch (e) {
-      console.error('Database Sync Error:', e);
+      console.error('PATCH error:', e);
+      showToast(`Network error: ${e.message}`);
     }
+
+    // 3. Re-fetch fresh data from Supabase to guarantee consistency
+    await fetchRequests();
+    setActionLoading(null);
   };
 
   const columns = [
@@ -218,7 +151,7 @@ export default function FundRequestsPage() {
           padding: '3px 8px',
           borderRadius: 'var(--radius-md)',
         }}>
-          {r.requestId || r.id || r._id}
+          {r.request_id || r.requestId || r.id}
         </span>
       ),
     },
@@ -227,9 +160,9 @@ export default function FundRequestsPage() {
       label: 'Requested By',
       render: (r) => (
         <div>
-          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.user || r.userId?.name || 'Partner Merchant'}</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.user}</div>
           <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', padding: '1px 6px', borderRadius: '4px' }}>
-            {r.role || r.userId?.userId || 'PARTNER'}
+            {r.role} {r.userCode ? `(${r.userCode})` : ''}
           </span>
         </div>
       ),
@@ -256,7 +189,7 @@ export default function FundRequestsPage() {
           borderRadius: 'var(--radius-sm)',
           textTransform: 'uppercase',
         }}>
-          {(r.paymentMethod || 'bank_wire').replace('_', ' ')}
+          {(r.payment_mode || r.paymentMethod || 'bank_wire').replace(/_/g, ' ')}
         </span>
       ),
     },
@@ -265,7 +198,7 @@ export default function FundRequestsPage() {
       label: 'UTR / Ref No.',
       render: (r) => (
         <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px' }}>
-          {r.utrNumber || 'N/A'}
+          {r.reference_no || r.utrNumber || 'N/A'}
         </span>
       ),
     },
@@ -308,21 +241,24 @@ export default function FundRequestsPage() {
       label: 'Actions',
       render: (row) => {
         const rowKey = row.id || row._id || row.requestId;
+        const isProcessing = actionLoading === rowKey;
         return row.status === 'pending' ? (
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', minWidth: 'max-content' }}>
             <button
               className="btn btn-sm btn-success"
-              style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              disabled={isProcessing}
+              style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: isProcessing ? 0.6 : 1 }}
               onClick={() => handleAction(rowKey, 'approve')}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Approve &amp; Credit
+              {isProcessing ? 'Saving...' : 'Approve & Credit'}
             </button>
             <button
               className="btn btn-sm btn-danger"
-              style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              disabled={isProcessing}
+              style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: isProcessing ? 0.6 : 1 }}
               onClick={() => handleAction(rowKey, 'reject')}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -341,10 +277,10 @@ export default function FundRequestsPage() {
     },
   ];
 
-  // Dynamic live calculations from requests state
-  const pendingCount = requests.filter((r) => r.status === 'pending').length;
-  const approvedCount = requests.filter((r) => r.status === 'approved').length;
-  const totalVolume = requests.reduce((sum, r) => sum + (r.amount || 0), 0);
+  // Dynamic live calculations
+  const pendingCount = filteredRequests.filter((r) => r.status === 'pending').length;
+  const approvedCount = filteredRequests.filter((r) => r.status === 'approved').length;
+  const totalVolume = filteredRequests.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
   return (
     <>
@@ -378,13 +314,13 @@ export default function FundRequestsPage() {
               <line x1="12" y1="1" x2="12" y2="23" />
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
             </svg>
-            REAL DATABASE CONNECTED • MERCHANT BANK DEPOSIT VERIFICATION
+            SUPABASE DATABASE • MERCHANT BANK DEPOSIT VERIFICATION
           </div>
           <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             Fund Deposit Requests
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-            Verify bank wire UTR numbers and approve instant wallet load requests stored in Database.
+            Verify bank wire UTR numbers and approve instant wallet load requests stored in Supabase Database.
           </p>
         </div>
       </div>
@@ -397,7 +333,7 @@ export default function FundRequestsPage() {
         border: '1px solid var(--border-color)',
         marginBottom: '24px',
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
@@ -492,7 +428,7 @@ export default function FundRequestsPage() {
         <DashboardCard
           icon="zap"
           iconColor="green"
-          title="Approved &amp; Credited"
+          title="Approved & Credited"
           value={approvedCount}
           change="Auto Wallet Credit"
           changeType="positive"
@@ -501,11 +437,18 @@ export default function FundRequestsPage() {
         />
       </div>
 
+      {/* Loading indicator */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+          Loading fund requests from Supabase Database...
+        </div>
+      )}
+
       {/* Requests Directory Table */}
       <DataTable
-        title={`Merchant Deposit Requests Directory (${dateRangePreset.toUpperCase()})`}
+        title={`Merchant Deposit Requests (${dateRangePreset.toUpperCase()}) — ${filteredRequests.length} records`}
         columns={columns}
-        data={requests}
+        data={filteredRequests}
         searchable={true}
       />
     </>
