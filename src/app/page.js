@@ -1,12 +1,81 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
 import { serviceCategories } from '@/data/services';
 import styles from './landing.module.css';
 
+const LEFT_SERVICES = [
+  {
+    icon: '📱',
+    title: 'Mobile & DTH Recharge',
+    badge: '⚡ Instant Commission',
+    detail: 'Jio, Airtel, Vi, Dish TV',
+    status: '✅ ₹299 Recharge Done',
+    bgGradient: 'linear-gradient(135deg, rgba(45, 42, 135, 0.12), rgba(5, 150, 105, 0.15))'
+  },
+  {
+    icon: '💡',
+    title: 'BBPS Bill Payment',
+    badge: '🔌 Electricity & Water',
+    detail: 'All State Electricity Boards',
+    status: '⚡ Bill Paid Successfully',
+    bgGradient: 'linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(45, 42, 135, 0.15))'
+  },
+  {
+    icon: '💸',
+    title: 'DMT Money Transfer',
+    badge: '🏦 24x7 IMPS Transfer',
+    detail: 'Instant Transfer to any Bank',
+    status: '✅ ₹10,000 Transferred',
+    bgGradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.12), rgba(16, 185, 129, 0.15))'
+  }
+];
+
+const RIGHT_SERVICES = [
+  {
+    icon: '🏧',
+    title: 'AEPS Aadhaar Banking',
+    badge: '🖐️ Cash Withdrawal',
+    detail: 'Balance Inquiry & Mini Statement',
+    status: '✅ ₹5,000 Cash Withdrawal',
+    bgGradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.15), rgba(45, 42, 135, 0.12))'
+  },
+  {
+    icon: '✈️',
+    title: 'Flight & Travel Booking',
+    badge: '🎟️ Low Fares & Bus',
+    detail: 'Domestic & International Flights',
+    status: '✅ Ticket Issued Instant',
+    bgGradient: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(5, 150, 105, 0.12))'
+  },
+  {
+    icon: '📄',
+    title: 'e-PAN Card Processing',
+    badge: '📜 Paperless NSDL',
+    detail: 'Instant New PAN Application',
+    status: '✅ e-PAN Generated',
+    bgGradient: 'linear-gradient(135deg, rgba(45, 42, 135, 0.15), rgba(14, 165, 233, 0.12))'
+  }
+];
+
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [leftIndex, setLeftIndex] = useState(0);
+  const [rightIndex, setRightIndex] = useState(0);
+
+  // Auto-scroll images/cards every 2 seconds (2000ms)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLeftIndex((prev) => (prev + 1) % LEFT_SERVICES.length);
+      setRightIndex((prev) => (prev + 1) % RIGHT_SERVICES.length);
+    }, 2000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const activeLeft = LEFT_SERVICES[leftIndex];
+  const activeRight = RIGHT_SERVICES[rightIndex];
 
   return (
     <div className={styles.landingWrapper}>
@@ -69,10 +138,28 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* ===== HERO SECTION ===== */}
+      {/* ===== HERO SECTION WITH AUTO-SLIDING CARDS (LEFT & RIGHT) ===== */}
       <section className={styles.heroSection}>
-        <div className={styles.heroContainer}>
-          <div className={styles.heroContent}>
+        <div className={styles.heroLayoutGrid}>
+
+          {/* LEFT AUTO-SCROLLING CARD (Every 2s) */}
+          <div className={styles.heroSideColLeft}>
+            <div className={styles.autoSliderCard} style={{ background: activeLeft.bgGradient }}>
+              <div className={styles.sliderIcon}>{activeLeft.icon}</div>
+              <div className={styles.sliderBadge}>{activeLeft.badge}</div>
+              <h3 className={styles.sliderTitle}>{activeLeft.title}</h3>
+              <p className={styles.sliderDetail}>{activeLeft.detail}</p>
+              <div className={styles.sliderStatus}>{activeLeft.status}</div>
+              <div className={styles.sliderDots}>
+                {LEFT_SERVICES.map((_, i) => (
+                  <span key={i} className={`${styles.dot} ${i === leftIndex ? styles.activeDot : ''}`}></span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* CENTER HERO CONTENT */}
+          <div className={styles.heroCenterContent}>
             <div className={styles.heroBadge}>
               <span className={styles.badgePulse}></span>
               India&apos;s #1 Multi-Service B2B &amp; B2C Fintech Platform
@@ -112,6 +199,23 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
+          {/* RIGHT AUTO-SCROLLING CARD (Every 2s) */}
+          <div className={styles.heroSideColRight}>
+            <div className={styles.autoSliderCard} style={{ background: activeRight.bgGradient }}>
+              <div className={styles.sliderIcon}>{activeRight.icon}</div>
+              <div className={styles.sliderBadge}>{activeRight.badge}</div>
+              <h3 className={styles.sliderTitle}>{activeRight.title}</h3>
+              <p className={styles.sliderDetail}>{activeRight.detail}</p>
+              <div className={styles.sliderStatus}>{activeRight.status}</div>
+              <div className={styles.sliderDots}>
+                {RIGHT_SERVICES.map((_, i) => (
+                  <span key={i} className={`${styles.dot} ${i === rightIndex ? styles.activeDot : ''}`}></span>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
