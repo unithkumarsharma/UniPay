@@ -308,7 +308,7 @@ export default function AccountantDashboard() {
               <div key={req.id} style={{ background: 'var(--bg-secondary)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                    <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 800, color: '#2563EB', fontSize: '0.85rem' }}>{req.id}</span>
+                    <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 800, color: '#2563EB', fontSize: '0.85rem' }}>{req.request_id || req.requestId || req.id}</span>
                     <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{typeof req.user === 'object' ? req.user?.name : req.user}</strong>
                     <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', padding: '1px 6px', borderRadius: '4px' }}>
                       {req.role || ''} {req.userCode ? `(${req.userCode})` : ''}
@@ -324,7 +324,7 @@ export default function AccountantDashboard() {
                     <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#10B981' }}>
                       ₹{Number(req.amount).toLocaleString('en-IN')}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{req.createdAt}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{req.createdAt ? new Date(req.createdAt).toLocaleString('en-IN') : ''}</div>
                   </div>
 
                   <button
