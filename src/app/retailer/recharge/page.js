@@ -56,7 +56,7 @@ export default function RechargePage() {
 
       const data = await res.json();
       if (data.success) {
-        setMessage({ type: 'success', text: `✅ Recharge Successful! Txn ID: ${data.transaction.txnId}. Commission earned: ₹${data.transaction.commission}` });
+        setMessage({ type: 'success', text: `Recharge Successful! Txn ID: ${data.transaction.txnId}. Commission earned: ₹${data.transaction.commission}` });
         await refreshUserData();
         setMobile('');
         setSelectedPlan(null);

@@ -11,7 +11,7 @@ const LEFT_IMAGES = [
     title: 'Mobile & DTH 5G Recharge',
     badge: '⚡ Instant Commission',
     detail: 'Jio, Airtel, Vi & Dish TV 24x7',
-    status: '✅ ₹299 Recharge Successful'
+    status: '₹299 Recharge Successful'
   },
   {
     image: 'https://images.unsplash.com/photo-1544725121-be3bf52e2dc8?w=1000&auto=format&fit=crop&q=85',
@@ -25,7 +25,7 @@ const LEFT_IMAGES = [
     title: 'DMT Money Transfer',
     badge: '🏦 24x7 IMPS Bank Transfer',
     detail: 'Instant Transfer to Any Bank',
-    status: '✅ ₹10,000 Transferred'
+    status: '₹10,000 Transferred'
   }
 ];
 
@@ -35,21 +35,21 @@ const RIGHT_IMAGES = [
     title: 'AEPS Aadhaar Banking',
     badge: '🖐️ Cash Withdrawal ATM',
     detail: 'Balance Inquiry & Mini Statement',
-    status: '✅ ₹5,000 Cash Withdrawal'
+    status: '₹5,000 Cash Withdrawal'
   },
   {
     image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1000&auto=format&fit=crop&q=85',
     title: 'Flight & Travel Booking',
     badge: '✈️ Flight & Bus Tickets',
     detail: 'Lowest Airfare & Instant PNR',
-    status: '✅ Flight Ticket Confirmed'
+    status: 'Flight Ticket Confirmed'
   },
   {
     image: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1000&auto=format&fit=crop&q=85',
     title: 'Digital Merchant Network',
     badge: '🛍️ Shop Owner Platform',
     detail: 'Serve Customers & Earn Commission',
-    status: '✅ Daily Settlement Active'
+    status: 'Daily Settlement Active'
   }
 ];
 

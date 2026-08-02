@@ -72,7 +72,7 @@ export default function AdminWalletPage() {
 
     setShowModal(false);
     showToast(
-      `✅ ₹${numAmount.toLocaleString('en-IN')} ${modalAction === 'add' ? 'credited to' : 'deducted from'} ${selectedUser.name}'s wallet!`
+      `₹${numAmount.toLocaleString('en-IN')} ${modalAction === 'add' ? 'credited to' : 'deducted from'} ${selectedUser.name}'s wallet!`
     );
 
     // 2. Background API sync attempt

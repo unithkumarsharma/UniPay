@@ -98,7 +98,7 @@ export default function LogoShowcasePage() {
       });
       const data = await res.json();
       if (data.success) {
-        setSuccessMsg(`✅ ${opt.title} has been set as the official logo for UniPay!`);
+        setSuccessMsg(`${opt.title} has been set as the official logo for UniPay!`);
       }
     } catch (e) {
       console.error(e);

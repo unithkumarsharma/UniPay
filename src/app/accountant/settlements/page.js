@@ -75,7 +75,7 @@ export default function SettlementsPage() {
       }
       return updated;
     });
-    showToast('✅ All pending commission settlements processed & saved permanently!');
+    showToast('All pending commission settlements processed & saved permanently!');
   };
 
   const handleSingleSettlement = (targetId) => {
@@ -86,7 +86,7 @@ export default function SettlementsPage() {
       }
       return updated;
     });
-    showToast(`✅ Settlement #${targetId} processed & saved permanently!`);
+    showToast(`Settlement #${targetId} processed & saved permanently!`);
   };
 
   const columns = [
@@ -182,7 +182,7 @@ export default function SettlementsPage() {
             </button>
           </div>
         ) : (
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>✅ Dispatched</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>Dispatched</span>
         ),
     },
   ];

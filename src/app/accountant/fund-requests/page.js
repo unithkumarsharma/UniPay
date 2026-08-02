@@ -120,7 +120,7 @@ export default function FundRequestsPage() {
       return updated;
     });
 
-    showToast(`✅ Request #${targetId} marked as ${nextStatus.toUpperCase()} permanently!`);
+    showToast(`Request #${targetId} marked as ${nextStatus.toUpperCase()} permanently!`);
 
     // Async backend sync
     try {
@@ -264,7 +264,7 @@ export default function FundRequestsPage() {
           </div>
         ) : (
           <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>
-            {row.status === 'approved' ? '✅ Credited' : '❌ Rejected'}
+            {row.status === 'approved' ? 'Credited' : 'Rejected'}
           </span>
         );
       },

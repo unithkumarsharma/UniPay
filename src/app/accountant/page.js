@@ -144,7 +144,7 @@ export default function AccountantDashboard() {
       }
       return updated;
     });
-    showToast(`✅ Request #${targetId} Approved & Credited to Merchant Wallet!`);
+    showToast(`Request #${targetId} Approved & Credited to Merchant Wallet!`);
   };
 
   const handleDownloadLedger = () => {
@@ -277,7 +277,7 @@ export default function AccountantDashboard() {
 
         {pendingRequests.length === 0 ? (
           <div style={{ padding: '20px', textAlign: 'center', color: '#10B981', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-lg)', fontWeight: 700 }}>
-            ✅ All merchant deposit requests have been verified and processed!
+            All merchant deposit requests have been verified and processed!
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '12px' }}>

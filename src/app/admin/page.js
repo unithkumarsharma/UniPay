@@ -653,7 +653,7 @@ export default function AdminDashboard() {
         <Modal title="➕ Master Fund Top-up" onClose={() => setActiveModal(null)}>
           {modalSuccessMsg ? (
             <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--success)', fontWeight: 700 }}>
-              ✅ {modalSuccessMsg}
+              {modalSuccessMsg}
             </div>
           ) : (
             <form onSubmit={handleModalSubmit}>
@@ -692,7 +692,7 @@ export default function AdminDashboard() {
         <Modal title="👤 Quick Partner Onboarding" onClose={() => setActiveModal(null)}>
           {modalSuccessMsg ? (
             <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--success)', fontWeight: 700 }}>
-              ✅ {modalSuccessMsg}
+              {modalSuccessMsg}
             </div>
           ) : (
             <form onSubmit={handleModalSubmit}>
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
         <Modal title="📢 System Alert Broadcast" onClose={() => setActiveModal(null)}>
           {modalSuccessMsg ? (
             <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--success)', fontWeight: 700 }}>
-              ✅ {modalSuccessMsg}
+              {modalSuccessMsg}
             </div>
           ) : (
             <form onSubmit={handleModalSubmit}>

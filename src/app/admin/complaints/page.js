@@ -328,7 +328,7 @@ export default function AdminComplaintsPage() {
           className={`btn btn-sm ${filter === 'resolved' ? 'btn-success' : 'btn-secondary'}`}
           onClick={() => setFilter('resolved')}
         >
-          ✅ Resolved ({resolvedCount})
+          Resolved ({resolvedCount})
         </button>
       </div>
 
@@ -345,7 +345,7 @@ export default function AdminComplaintsPage() {
         <Modal title={`Resolve Support Ticket #${selectedTicket.id}`} onClose={() => setSelectedTicket(null)}>
           {successMsg ? (
             <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--success)', fontWeight: 700 }}>
-              ✅ {successMsg}
+              {successMsg}
             </div>
           ) : (
             <form onSubmit={handleResolveTicket}>
@@ -362,7 +362,7 @@ export default function AdminComplaintsPage() {
               <div className="form-group">
                 <label className="form-label">Update Ticket Status</label>
                 <select className="form-select" value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
-                  <option value="resolved">✅ Mark as RESOLVED &amp; Close Ticket</option>
+                  <option value="resolved">Mark as RESOLVED &amp; Close Ticket</option>
                   <option value="in_progress">⏳ Mark as IN PROGRESS (Investigating)</option>
                   <option value="open">🔴 Mark as OPEN</option>
                 </select>

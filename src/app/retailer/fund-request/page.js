@@ -53,7 +53,7 @@ export default function RetailerFundRequestPage() {
     setRequests([newReq, ...requests]);
     setAmount('');
     setUtr('');
-    showToast(`✅ Fund request of ₹${Number(amount).toLocaleString('en-IN')} submitted successfully!`);
+    showToast(`Fund request of ₹${Number(amount).toLocaleString('en-IN')} submitted successfully!`);
   };
 
   const columns = [

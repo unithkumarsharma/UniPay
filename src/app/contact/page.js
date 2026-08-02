@@ -24,7 +24,7 @@ export default function ContactPage() {
 
           {submitted ? (
             <div style={{ padding: '20px', background: 'var(--success-light)', color: 'var(--success)', borderRadius: 'var(--radius-md)', fontWeight: 600 }}>
-              ✅ Thank you! Your message has been received. Our merchant support team will call you back within 2 hours.
+              Thank you! Your message has been received. Our merchant support team will call you back within 2 hours.
             </div>
           ) : (
             <form onSubmit={handleSubmit}>

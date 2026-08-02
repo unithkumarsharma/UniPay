@@ -110,7 +110,7 @@ export default function RetailerComplaintsPage() {
               : 'badge-danger'
           }`}
         >
-          {row.status === 'resolved' ? '✅ Resolved' : row.status === 'in_progress' ? '⏳ In Progress' : '🔴 Open'}
+          {row.status === 'resolved' ? 'Resolved' : row.status === 'in_progress' ? 'In Progress' : 'Open'}
         </span>
       ),
     },
@@ -176,7 +176,7 @@ export default function RetailerComplaintsPage() {
           ⏳ In Progress ({complaintList.filter((c) => c.status === 'in_progress').length})
         </button>
         <button className={`btn btn-sm ${filter === 'resolved' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('resolved')}>
-          ✅ Resolved ({complaintList.filter((c) => c.status === 'resolved').length})
+          Resolved ({complaintList.filter((c) => c.status === 'resolved').length})
         </button>
       </div>
 

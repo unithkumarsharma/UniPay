@@ -52,7 +52,7 @@ export default function DistFundRequestPage() {
     setRequests([newReq, ...requests]);
     setAmount('');
     setUtr('');
-    showToast(`✅ Master Distributor Fund Request of ₹${Number(amount).toLocaleString('en-IN')} submitted!`);
+    showToast(`Master Distributor Fund Request of ₹${Number(amount).toLocaleString('en-IN')} submitted!`);
   };
 
   const columns = [
