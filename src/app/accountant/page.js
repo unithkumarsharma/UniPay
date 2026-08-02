@@ -112,7 +112,7 @@ const ledgerColumns = [
 ];
 
 export default function AccountantDashboard() {
-  const [fundRequests, setFundRequests] = useState(INITIAL_FUND_REQUESTS);
+  const [fundRequests, setFundRequests] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
 
   const showToast = (msg) => {
@@ -124,7 +124,7 @@ export default function AccountantDashboard() {
     try {
       const res = await fetch('/api/fund-requests');
       const data = await res.json();
-      if (data.success && data.requests && data.requests.length > 0) {
+      if (data.success && Array.isArray(data.requests)) {
         const formatted = data.requests.map((r) => ({
           ...r,
           id: r.id || r._id || r.requestId,
@@ -138,7 +138,7 @@ export default function AccountantDashboard() {
         setFundRequests(formatted);
       }
     } catch (e) {
-      console.warn('Real Database API fallback:', e.message);
+      console.warn('Real Database API fetch error:', e.message);
     }
   };
 

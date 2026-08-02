@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 
@@ -37,7 +38,8 @@ const INITIAL_COMPLAINTS = [
 ];
 
 export default function RetailerComplaintsPage() {
-  const [complaintList, setComplaintList] = useState(INITIAL_COMPLAINTS);
+  const { user } = useAuth();
+  const [complaintList, setComplaintList] = useState([]);
   const [filter, setFilter] = useState('all');
   const [showNewModal, setShowNewModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -49,28 +51,54 @@ export default function RetailerComplaintsPage() {
   const [message, setMessage] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const handleCreateComplaint = (e) => {
-    e.preventDefault();
-    const newId = `CMP-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newTicket = {
-      id: newId,
-      txnId: txnId || `TXN${Math.floor(100000 + Math.random() * 900000)}`,
-      type: issueType,
-      message: message || 'Issue reported regarding transaction status.',
-      priority,
-      status: 'open',
-      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      reply: '',
-    };
+  const userId = user?.id || user?._id;
 
-    setComplaintList([newTicket, ...complaintList]);
-    setSuccessMsg(`Ticket #${newId} raised successfully! Our support team will resolve it within 2 hours.`);
-    setTimeout(() => {
-      setShowNewModal(false);
-      setSuccessMsg('');
-      setTxnId('');
-      setMessage('');
-    }, 1800);
+  const fetchComplaints = async () => {
+    try {
+      const url = userId ? `/api/complaints?userId=${userId}` : '/api/complaints';
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.complaints)) {
+        setComplaintList(data.complaints);
+      }
+    } catch (e) {
+      console.error('Fetch complaints error:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [userId]);
+
+  const handleCreateComplaint = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId || 'RTL001',
+          transactionId: txnId || `TXN${Math.floor(100000 + Math.random() * 900000)}`,
+          issueType,
+          priority,
+          description: message || 'Issue reported regarding transaction status.',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setSuccessMsg(`Ticket raised successfully!`);
+        fetchComplaints();
+        setTimeout(() => {
+          setShowNewModal(false);
+          setSuccessMsg('');
+          setTxnId('');
+          setMessage('');
+        }, 1200);
+      }
+    } catch (err) {
+      console.error('Create complaint error:', err);
+    }
   };
 
   const filteredData = complaintList.filter((c) => {

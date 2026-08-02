@@ -1,58 +1,87 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import DataTable from '@/components/DataTable';
 
-const INITIAL_DIST_REQUESTS = [
-  {
-    id: 'DST-REQ-101',
-    requestId: 'DST-REQ-101',
-    amount: 50000,
-    method: 'Bank Transfer (RTGS)',
-    utr: 'RTGS99812488',
-    status: 'approved',
-    date: '2026-08-01 11:20',
-  },
-  {
-    id: 'DST-REQ-102',
-    requestId: 'DST-REQ-102',
-    amount: 100000,
-    method: 'UPI Transfer',
-    utr: 'UPI77261599',
-    status: 'pending',
-    date: '2026-08-02 15:10',
-  },
-];
-
 export default function DistFundRequestPage() {
-  const [requests, setRequests] = useState(INITIAL_DIST_REQUESTS);
+  const { user } = useAuth();
+  const [requests, setRequests] = useState([]);
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('Bank Transfer (RTGS)');
+  const [method, setMethod] = useState('NEFT');
   const [utr, setUtr] = useState('');
   const [toastMsg, setToastMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3500);
   };
 
-  const handleSubmit = (e) => {
+  const userId = user?.id || user?._id;
+
+  const fetchRequests = useCallback(async () => {
+    try {
+      const url = userId ? `/api/fund-requests?userId=${userId}` : '/api/fund-requests';
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.requests)) {
+        const formatted = data.requests.map((r) => ({
+          id: r.id || r.requestId,
+          requestId: r.request_id || r.requestId || r.id,
+          amount: Number(r.amount),
+          method: r.payment_mode || r.paymentMethod || r.method,
+          utr: r.reference_no || r.utrNumber || r.utr,
+          status: r.status,
+          date: r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : (r.date || ''),
+        }));
+        setRequests(formatted);
+      }
+    } catch (e) {
+      console.error('Fetch distributor fund requests error:', e);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || !utr) return;
+    if (!userId) {
+      showToast('Error: User session not found. Please log in again.');
+      return;
+    }
 
-    const newReq = {
-      id: `DST-REQ-${Date.now().toString().slice(-4)}`,
-      requestId: `DST-REQ-${Date.now().toString().slice(-4)}`,
-      amount: Number(amount),
-      method,
-      utr,
-      status: 'pending',
-      date: new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }),
-    };
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/fund-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          amount: Number(amount),
+          paymentMethod: method,
+          utrNumber: utr,
+          bankName: 'HDFC Bank',
+          remarks: 'Distributor Wallet Deposit Request',
+        }),
+      });
 
-    setRequests([newReq, ...requests]);
-    setAmount('');
-    setUtr('');
-    showToast(`Master Distributor Fund Request of ₹${Number(amount).toLocaleString('en-IN')} submitted!`);
+      const data = await res.json();
+      if (data.success) {
+        setAmount('');
+        setUtr('');
+        showToast(`Fund Request of ₹${Number(amount).toLocaleString('en-IN')} submitted successfully!`);
+        fetchRequests();
+      } else {
+        showToast(data.error || 'Failed to submit request');
+      }
+    } catch (err) {
+      showToast('Network error while submitting request');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const columns = [

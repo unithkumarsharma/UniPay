@@ -12,12 +12,14 @@ export default function MDFundRequestPage() {
   const [remarks, setRemarks] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userId = user?.id || user?._id;
+
   const fetchRequests = async () => {
-    if (!user?._id) return;
+    if (!userId) return;
     try {
-      const res = await fetch(`/api/fund-requests?userId=${user._id}`);
+      const res = await fetch(`/api/fund-requests?userId=${userId}`);
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.requests)) {
         setRequests(data.requests);
       }
     } catch (e) {
@@ -31,14 +33,14 @@ export default function MDFundRequestPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user?._id || !amount) return;
+    if (!userId || !amount) return;
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/fund-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user._id,
+          userId,
           amount: parseFloat(amount),
           paymentMethod: method,
           utrNumber,

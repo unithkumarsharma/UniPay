@@ -43,7 +43,7 @@ export default function RechargePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user._id,
+          userId: user.id || user._id,
           type: 'recharge',
           amount: amountToCharge,
           serviceDetails: {

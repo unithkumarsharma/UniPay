@@ -12,7 +12,7 @@ const INITIAL_MOCK_USERS = [
 ];
 
 export default function AdminWalletPage() {
-  const [users, setUsers] = useState(INITIAL_MOCK_USERS);
+  const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalAction, setModalAction] = useState('add'); // 'add' or 'deduct'
@@ -29,12 +29,12 @@ export default function AdminWalletPage() {
     try {
       const res = await fetch('/api/users');
       const data = await res.json();
-      if (data.success && data.users && data.users.length > 0) {
+      if (data.success && Array.isArray(data.users)) {
         const formatted = data.users.map(u => ({ ...u, id: u.id || u._id || u.userId }));
         setUsers(formatted);
       }
     } catch (e) {
-      console.warn('Using fallback users list:', e.message);
+      console.warn('Users API fetch error:', e.message);
     }
   };
 

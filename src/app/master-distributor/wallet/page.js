@@ -13,12 +13,14 @@ export default function MDWalletPage() {
   const [amount, setAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userId = user?.id || user?._id;
+
   const fetchDistributors = async () => {
-    if (!user?._id) return;
+    if (!userId) return;
     try {
-      const res = await fetch(`/api/users?role=distributor&parentId=${user._id}`);
+      const res = await fetch(`/api/users?role=distributor&parentId=${userId}`);
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.users)) {
         setDistributors(data.users);
       }
     } catch (e) {
@@ -38,15 +40,16 @@ export default function MDWalletPage() {
 
   const handleTransfer = async (e) => {
     e.preventDefault();
-    if (!user?._id || !selectedDist?._id || !amount) return;
+    const receiverId = selectedDist?.id || selectedDist?._id;
+    if (!userId || !receiverId || !amount) return;
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/wallet/transfer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          senderId: user._id,
-          receiverId: selectedDist._id,
+          senderId: userId,
+          receiverId,
           amount: parseFloat(amount),
         }),
       });

@@ -58,7 +58,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
 const LOCAL_STORAGE_KEY = 'unipay_complaints_store';
 
 export default function AdminComplaintsPage() {
-  const [complaintList, setComplaintList] = useState(INITIAL_ADMIN_COMPLAINTS);
+  const [complaintList, setComplaintList] = useState([]);
   const [filter, setFilter] = useState('all');
   const [selectedTicket, setSelectedTicket] = useState(null);
 
@@ -72,11 +72,11 @@ export default function AdminComplaintsPage() {
     try {
       const res = await fetch('/api/complaints');
       const data = await res.json();
-      if (data.success && data.complaints && data.complaints.length > 0) {
+      if (data.success && Array.isArray(data.complaints)) {
         setComplaintList(data.complaints);
       }
     } catch (e) {
-      console.warn('Real Database API fallback:', e.message);
+      console.warn('Complaints API fetch error:', e.message);
     }
   };
 
