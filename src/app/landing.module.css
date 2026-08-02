@@ -219,12 +219,28 @@
   background-position: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.6s ease-in-out;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, box-shadow 0.4s ease;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+}
+
+.fullImageBanner:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(5, 150, 105, 0.25);
+  border-color: var(--accent);
+}
+
+.fadeIn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.fadeOut {
+  opacity: 0.2;
+  transform: scale(0.97);
 }
 
 .imageOverlayGradient {

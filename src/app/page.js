@@ -7,21 +7,21 @@ import styles from './landing.module.css';
 
 const LEFT_IMAGES = [
   {
-    image: 'https://images.unsplash.com/photo-1556742049-0a67af6a20f7?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1000&auto=format&fit=crop&q=85',
     title: 'Mobile & DTH 5G Recharge',
     badge: '⚡ Instant Commission',
     detail: 'Jio, Airtel, Vi & Dish TV 24x7',
     status: '✅ ₹299 Recharge Successful'
   },
   {
-    image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1544725121-be3bf52e2dc8?w=1000&auto=format&fit=crop&q=85',
     title: 'BBPS Utility Bill Payments',
     badge: '💡 Electricity & Water',
     detail: 'All India State Electricity Boards',
     status: '⚡ Electricity Bill Paid'
   },
   {
-    image: 'https://images.unsplash.com/photo-1616077168079-7e09a677fb2c?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=1000&auto=format&fit=crop&q=85',
     title: 'DMT Money Transfer',
     badge: '🏦 24x7 IMPS Bank Transfer',
     detail: 'Instant Transfer to Any Bank',
@@ -31,21 +31,21 @@ const LEFT_IMAGES = [
 
 const RIGHT_IMAGES = [
   {
-    image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=1000&auto=format&fit=crop&q=85',
     title: 'AEPS Aadhaar Banking',
     badge: '🖐️ Cash Withdrawal ATM',
     detail: 'Balance Inquiry & Mini Statement',
     status: '✅ ₹5,000 Cash Withdrawal'
   },
   {
-    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1000&auto=format&fit=crop&q=85',
     title: 'Flight & Travel Booking',
     badge: '✈️ Flight & Bus Tickets',
     detail: 'Lowest Airfare & Instant PNR',
     status: '✅ Flight Ticket Confirmed'
   },
   {
-    image: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1000&auto=format&fit=crop&q=85',
     title: 'Digital Merchant Network',
     badge: '🛍️ Shop Owner Platform',
     detail: 'Serve Customers & Earn Commission',
@@ -57,13 +57,22 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [leftIndex, setLeftIndex] = useState(0);
   const [rightIndex, setRightIndex] = useState(0);
+  const [fadeLeft, setFadeLeft] = useState(true);
+  const [fadeRight, setFadeRight] = useState(true);
 
-  // Auto-scroll images every 2 seconds (2000ms)
+  // Auto-scroll images smoothly every 2 seconds (2000ms) with cross-fade
   useEffect(() => {
     const timer = setInterval(() => {
-      setLeftIndex((prev) => (prev + 1) % LEFT_IMAGES.length);
-      setRightIndex((prev) => (prev + 1) % RIGHT_IMAGES.length);
-    }, 2000);
+      setFadeLeft(false);
+      setFadeRight(false);
+
+      setTimeout(() => {
+        setLeftIndex((prev) => (prev + 1) % LEFT_IMAGES.length);
+        setRightIndex((prev) => (prev + 1) % RIGHT_IMAGES.length);
+        setFadeLeft(true);
+        setFadeRight(true);
+      }, 300);
+    }, 2400);
 
     return () => clearInterval(timer);
   }, []);
@@ -132,14 +141,14 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* ===== HERO SECTION WITH FULL VERTICAL IMAGE SLIDERS (LEFT & RIGHT) ===== */}
+      {/* ===== HERO SECTION WITH RETOUCHED REAL IMAGE SLIDERS ===== */}
       <section className={styles.heroSection}>
         <div className={styles.heroLayoutGrid}>
 
-          {/* LEFT FULL VERTICAL REAL IMAGE BANNER (Every 2s) */}
+          {/* LEFT RETOUCHED REAL IMAGE SLIDER */}
           <div className={styles.heroSideColLeft}>
             <div
-              className={styles.fullImageBanner}
+              className={`${styles.fullImageBanner} ${fadeLeft ? styles.fadeIn : styles.fadeOut}`}
               style={{ backgroundImage: `url(${activeLeft.image})` }}
             >
               <div className={styles.imageOverlayGradient}></div>
@@ -199,10 +208,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* RIGHT FULL VERTICAL REAL IMAGE BANNER (Every 2s) */}
+          {/* RIGHT RETOUCHED REAL IMAGE SLIDER */}
           <div className={styles.heroSideColRight}>
             <div
-              className={styles.fullImageBanner}
+              className={`${styles.fullImageBanner} ${fadeRight ? styles.fadeIn : styles.fadeOut}`}
               style={{ backgroundImage: `url(${activeRight.image})` }}
             >
               <div className={styles.imageOverlayGradient}></div>
