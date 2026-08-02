@@ -70,7 +70,7 @@ export async function POST(request) {
           request_id: requestId,
           user_id: userId,
           amount: numAmount,
-          payment_mode: paymentMethod,
+          payment_mode: (paymentMethod || '').toUpperCase().replace(/[_ ]/g, ''),
           reference_no: refNo,
           bank_name: bankName || 'HDFC Bank',
           remarks: remarks || '',
