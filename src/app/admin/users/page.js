@@ -5,12 +5,32 @@ import Modal from '@/components/Modal';
 
 export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState('md');
+
+  // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFundModal, setShowFundModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+
+  // Selected User States
   const [selectedUserForFund, setSelectedUserForFund] = useState(null);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
+  const [selectedUserForDelete, setSelectedUserForDelete] = useState(null);
+
+  // Fund State
   const [fundAmount, setFundAmount] = useState('');
   const [fundNote, setFundNote] = useState('');
   const [fundSuccessMsg, setFundSuccessMsg] = useState('');
+
+  // Edit Form State
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    shopName: '',
+    phone: '',
+    email: '',
+    city: '',
+    status: 'active',
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -20,7 +40,7 @@ export default function AdminUsersPage() {
   const [rtlList, setRtlList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Form State for creating new user
+  // Create User Form State
   const [formData, setFormData] = useState({
     name: '',
     shopName: '',
@@ -132,6 +152,65 @@ export default function AdminUsersPage() {
     setIsSubmitting(false);
   };
 
+  // EDIT USER HANDLER
+  const handleOpenEditModal = (user) => {
+    setSelectedUserForEdit(user);
+    setEditFormData({
+      name: user.name || '',
+      shopName: user.shopName || '',
+      phone: user.phone || '',
+      email: user.email || '',
+      city: user.city || '',
+      status: user.status || 'active',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!selectedUserForEdit) return;
+
+    try {
+      const res = await fetch(`/api/users/${selectedUserForEdit._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editFormData),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setShowEditModal(false);
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to update user details');
+      }
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  // DELETE USER HANDLER
+  const handleDeleteUser = async () => {
+    if (!selectedUserForDelete) return;
+
+    try {
+      const res = await fetch(`/api/users/${selectedUserForDelete._id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setShowDeleteConfirmModal(false);
+        setSelectedUserForDelete(null);
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   // Generic Filter Function
   const filterList = (list) => {
     return list.filter((u) => {
@@ -146,6 +225,48 @@ export default function AdminUsersPage() {
       return matchQuery && matchStatus;
     });
   };
+
+  const commonActions = (row) => (
+    <div className="flex gap-sm">
+      <button
+        className="btn btn-sm btn-primary"
+        title="Add Wallet Funds"
+        onClick={() => {
+          setSelectedUserForFund(row);
+          setShowFundModal(true);
+        }}
+      >
+        💳 Add Funds
+      </button>
+
+      <button
+        className="btn btn-sm btn-secondary"
+        title="Edit User Details"
+        onClick={() => handleOpenEditModal(row)}
+      >
+        ✏️ Edit
+      </button>
+
+      <button
+        className={`btn btn-sm ${row.status === 'active' ? 'btn-warning' : 'btn-success'}`}
+        title={row.status === 'active' ? 'Block User' : 'Unblock User'}
+        onClick={() => handleToggleStatus(row._id, row.status)}
+      >
+        {row.status === 'active' ? '🚫 Block' : '✅ Unblock'}
+      </button>
+
+      <button
+        className="btn btn-sm btn-danger"
+        title="Delete User Permanently"
+        onClick={() => {
+          setSelectedUserForDelete(row);
+          setShowDeleteConfirmModal(true);
+        }}
+      >
+        🗑️ Delete
+      </button>
+    </div>
+  );
 
   const mdColumns = [
     { key: 'userId', label: 'User ID' },
@@ -170,29 +291,7 @@ export default function AdminUsersPage() {
         </span>
       ),
     },
-    {
-      key: 'actions',
-      label: 'Quick Actions',
-      render: (row) => (
-        <div className="flex gap-sm">
-          <button
-            className="btn btn-sm btn-primary"
-            onClick={() => {
-              setSelectedUserForFund(row);
-              setShowFundModal(true);
-            }}
-          >
-            💳 Add Funds
-          </button>
-          <button
-            className={`btn btn-sm ${row.status === 'active' ? 'btn-danger' : 'btn-success'}`}
-            onClick={() => handleToggleStatus(row._id, row.status)}
-          >
-            {row.status === 'active' ? '🚫 Block' : '✅ Unblock'}
-          </button>
-        </div>
-      ),
-    },
+    { key: 'actions', label: 'Actions', render: commonActions },
   ];
 
   const distColumns = [
@@ -218,29 +317,7 @@ export default function AdminUsersPage() {
         </span>
       ),
     },
-    {
-      key: 'actions',
-      label: 'Quick Actions',
-      render: (row) => (
-        <div className="flex gap-sm">
-          <button
-            className="btn btn-sm btn-primary"
-            onClick={() => {
-              setSelectedUserForFund(row);
-              setShowFundModal(true);
-            }}
-          >
-            💳 Add Funds
-          </button>
-          <button
-            className={`btn btn-sm ${row.status === 'active' ? 'btn-danger' : 'btn-success'}`}
-            onClick={() => handleToggleStatus(row._id, row.status)}
-          >
-            {row.status === 'active' ? '🚫 Block' : '✅ Unblock'}
-          </button>
-        </div>
-      ),
-    },
+    { key: 'actions', label: 'Actions', render: commonActions },
   ];
 
   const rtlColumns = [
@@ -267,29 +344,7 @@ export default function AdminUsersPage() {
         </span>
       ),
     },
-    {
-      key: 'actions',
-      label: 'Quick Actions',
-      render: (row) => (
-        <div className="flex gap-sm">
-          <button
-            className="btn btn-sm btn-primary"
-            onClick={() => {
-              setSelectedUserForFund(row);
-              setShowFundModal(true);
-            }}
-          >
-            💳 Add Funds
-          </button>
-          <button
-            className={`btn btn-sm ${row.status === 'active' ? 'btn-danger' : 'btn-success'}`}
-            onClick={() => handleToggleStatus(row._id, row.status)}
-          >
-            {row.status === 'active' ? '🚫 Block' : '✅ Unblock'}
-          </button>
-        </div>
-      ),
-    },
+    { key: 'actions', label: 'Actions', render: commonActions },
   ];
 
   const currentTabName = activeTab === 'md' ? 'Master Distributor' : activeTab === 'dist' ? 'Distributor' : 'Retailer';
@@ -299,8 +354,8 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1>👥 Network Partner &amp; User Management</h1>
-          <p>Onboard, manage, credit wallet funds, and audit all network partners.</p>
+          <h1>👥 Partner &amp; User Management Portal</h1>
+          <p>Onboard, edit details, credit wallet funds, block or delete users across the network.</p>
         </div>
         <button
           className="btn btn-primary"
@@ -494,6 +549,108 @@ export default function AdminUsersPage() {
           </button>
         </form>
       </Modal>
+
+      {/* EDIT USER DETAILS MODAL */}
+      {selectedUserForEdit && (
+        <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title={`Edit Details: ${selectedUserForEdit.name}`}>
+          <form onSubmit={handleUpdateUser}>
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
+              <input
+                type="text"
+                className="form-input"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                required
+              />
+            </div>
+
+            {selectedUserForEdit.role === 'retailer' && (
+              <div className="form-group">
+                <label className="form-label">Shop Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={editFormData.shopName}
+                  onChange={(e) => setEditFormData({ ...editFormData, shopName: e.target.value })}
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label className="form-label">Mobile Number</label>
+              <input
+                type="tel"
+                className="form-input"
+                value={editFormData.phone}
+                onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                type="email"
+                className="form-input"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">City / Location</label>
+              <input
+                type="text"
+                className="form-input"
+                value={editFormData.city}
+                onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Account Status</label>
+              <select
+                className="form-select"
+                value={editFormData.status}
+                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+              >
+                <option value="active">🟢 Active</option>
+                <option value="blocked">🔴 Blocked</option>
+              </select>
+            </div>
+
+            <button type="submit" className="btn btn-primary w-full">
+              💾 Save Updated Details
+            </button>
+          </form>
+        </Modal>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {selectedUserForDelete && (
+        <Modal isOpen={showDeleteConfirmModal} onClose={() => setShowDeleteConfirmModal(false)} title="Confirm Delete User">
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>⚠️</div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>
+              Are you sure you want to delete {selectedUserForDelete.name}?
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              This action cannot be undone. User account <strong>{selectedUserForDelete.userId}</strong> and access credentials will be permanently removed.
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button className="btn btn-secondary" onClick={() => setShowDeleteConfirmModal(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleDeleteUser}>
+                🗑️ Yes, Delete Permanently
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Direct Add Fund Modal */}
       {selectedUserForFund && (
