@@ -15,7 +15,9 @@ export default function AdminWalletPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUsers = async () => {
-    setIsLoading(true);
+    if (users.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await fetch('/api/users');
       const data = await res.json();

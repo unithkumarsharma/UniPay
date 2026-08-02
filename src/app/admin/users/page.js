@@ -53,7 +53,9 @@ export default function AdminUsersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchUsers = async () => {
-    setIsLoading(true);
+    if (mdList.length === 0 && distList.length === 0 && rtlList.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const [mdRes, distRes, rtlRes] = await Promise.all([
         fetch('/api/users?role=master_distributor').then((r) => r.json()),

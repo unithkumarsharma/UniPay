@@ -94,12 +94,19 @@ export function AuthProvider({ children }) {
 
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {}
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        setIsLoading(false); // Instant hydration - zero blocking delay!
+      } catch (e) {
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
     }
+
     if (savedToken) {
       setToken(savedToken);
-      // Refresh profile & live wallet balance
+      // Refresh live profile in background without blocking UI
       fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${savedToken}` },
       })
@@ -110,10 +117,7 @@ export function AuthProvider({ children }) {
             localStorage.setItem('unipay-user', JSON.stringify(data.user));
           }
         })
-        .catch(() => {})
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
+        .catch(() => {});
     }
   }, []);
 
