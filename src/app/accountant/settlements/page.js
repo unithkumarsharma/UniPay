@@ -47,6 +47,11 @@ const LOCAL_STORAGE_KEY = 'unipay_settlements_store';
 export default function SettlementsPage() {
   const [settlementList, setSettlementList] = useState(MOCK_SETTLEMENTS);
   const [toastMessage, setToastMessage] = useState('');
+  
+  // Date Filtering State
+  const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
+  const [fromDate, setFromDate] = useState('2026-08-01');
+  const [toDate, setToDate] = useState('2026-08-02');
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -248,6 +253,85 @@ export default function SettlementsPage() {
           </svg>
           Process All Pending Settlements
         </button>
+      </div>
+
+      {/* Date Range Preset Selector Bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        padding: '16px 20px',
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--border-color)',
+        marginBottom: '24px',
+        display: 'flex',
+        justify: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+      }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Settlement Period:
+          </span>
+
+          {[
+            { id: 'today', label: 'Today' },
+            { id: 'yesterday', label: 'Yesterday' },
+            { id: '7days', label: 'Last 7 Days' },
+            { id: 'month', label: 'This Month' },
+            { id: 'custom', label: 'Custom Range' },
+          ].map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => setDateRangePreset(preset.id)}
+              style={{
+                padding: '6px 14px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid',
+                borderColor: dateRangePreset === preset.id ? '#2563EB' : 'var(--border-color)',
+                background: dateRangePreset === preset.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                color: dateRangePreset === preset.id ? '#2563EB' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        {dateRangePreset === 'custom' && (
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>From:</span>
+              <input
+                type="date"
+                className="form-input"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>To:</span>
+              <input
+                type="date"
+                className="form-input"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* KPI Stats Grid */}
