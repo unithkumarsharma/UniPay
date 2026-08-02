@@ -171,49 +171,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== NETWORK HIERARCHY ===== */}
-      <section id="network" className={styles.networkSection}>
+      {/* ===== PARTNER CTA SECTION ===== */}
+      <section id="partner" className={styles.networkSection}>
         <div className={styles.sectionContainer}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Multi-Tier Distribution Network</h2>
-            <p className={styles.sectionSubtitle}>Built to support Admin, Master Distributors, Distributors, and Retailers seamlessly.</p>
+            <h2 className={styles.sectionTitle}>Start Growing Your Business Today</h2>
+            <p className={styles.sectionSubtitle}>Join thousands of successful merchants earning daily income with UniPay digital services.</p>
           </div>
 
-          <div className={styles.networkGrid}>
-            <div className={styles.networkRoleCard}>
-              <div className={styles.roleHeader}>
-                <span className={styles.roleIcon}>👑</span>
-                <h3>Admin</h3>
-              </div>
-              <p>Full control over platform services, commission slabs, third-party APIs, user blocking, and company ledger reports.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', textAlign: 'center' }}>
+            <div style={{ background: 'var(--bg-card)', padding: '32px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '14px' }}>⚡</div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Instant Onboarding</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Get registered in less than 2 minutes and start offering financial services to your customers immediately.</p>
             </div>
-            <div className={styles.networkRoleCard}>
-              <div className={styles.roleHeader}>
-                <span className={styles.roleIcon}>📊</span>
-                <h3>Accountant</h3>
-              </div>
-              <p>Manages financial ledgers, approves bank transfer fund requests, and processes commission settlements.</p>
+
+            <div style={{ background: 'var(--bg-card)', padding: '32px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '14px' }}>💰</div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Maximum Earnings</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Enjoy industry-best margins on recharges, bill payments, and money transfers directly in your wallet.</p>
             </div>
-            <div className={styles.networkRoleCard}>
-              <div className={styles.roleHeader}>
-                <span className={styles.roleIcon}>🏛️</span>
-                <h3>Master Distributor</h3>
-              </div>
-              <p>State/Zone partner managing distributors, transferring wallet funds, and earning downline margins.</p>
-            </div>
-            <div className={styles.networkRoleCard}>
-              <div className={styles.roleHeader}>
-                <span className={styles.roleIcon}>🏪</span>
-                <h3>Distributor</h3>
-              </div>
-              <p>City/District partner expanding retailer shop network and managing wallet top-ups.</p>
-            </div>
-            <div className={styles.networkRoleCard}>
-              <div className={styles.roleHeader}>
-                <span className={styles.roleIcon}>🛒</span>
-                <h3>Retailer</h3>
-              </div>
-              <p>Local shop owner serving walk-in customers with recharges, BBPS, DMT, AEPS, and earning real-time commissions.</p>
+
+            <div style={{ background: 'var(--bg-card)', padding: '32px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '14px' }}>🤝</div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>24x7 Support</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Our dedicated support team and account managers are always available to help your shop grow.</p>
             </div>
           </div>
         </div>
