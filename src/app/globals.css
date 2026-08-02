@@ -10,26 +10,26 @@
 
 /* ===== LIGHT THEME (DEFAULT) ===== */
 :root {
-  /* Primary Colors (Option 2 Indigo & Emerald Green) */
-  --primary: #2D2A87;
-  --primary-hover: #1E1B62;
-  --primary-light: #EEF2FF;
-  --primary-dark: #1E1B4B;
-  --primary-gradient: linear-gradient(135deg, #2D2A87 0%, #059669 100%);
+  /* Universal Primary Colors (Indigo & Emerald Green) */
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --primary-dark: #1E40AF;
+  --primary-gradient: linear-gradient(135deg, #2563EB 0%, #059669 100%);
 
   /* Accent (Emerald Green) */
   --accent: #059669;
   --accent-hover: #047857;
   --accent-light: #D1FAE5;
 
-  /* Success / Warning / Danger */
+  /* Status Colors */
   --success: #059669;
   --success-light: #D1FAE5;
-  --warning: #F59E0B;
+  --warning: #D97706;
   --warning-light: #FEF3C7;
-  --danger: #EF4444;
+  --danger: #DC2626;
   --danger-light: #FEE2E2;
-  --info: #3B82F6;
+  --info: #2563EB;
   --info-light: #DBEAFE;
 
   /* Backgrounds */
@@ -37,34 +37,34 @@
   --bg-secondary: #F1F5F9;
   --bg-card: #FFFFFF;
   --bg-sidebar: #FFFFFF;
-  --bg-navbar: rgba(255, 255, 255, 0.85);
+  --bg-navbar: rgba(255, 255, 255, 0.9);
   --bg-input: #F8FAFC;
   --bg-hover: #F1F5F9;
-  --bg-modal-overlay: rgba(15, 23, 42, 0.5);
+  --bg-modal-overlay: rgba(15, 23, 42, 0.55);
 
   /* Text */
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-tertiary: #94A3B8;
   --text-inverse: #FFFFFF;
-  --text-link: #2D2A87;
+  --text-link: #2563EB;
 
   /* Borders */
   --border-color: #E2E8F0;
   --border-light: #F1F5F9;
-  --border-focus: #2D2A87;
+  --border-focus: #2563EB;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 20px rgba(45, 42, 135, 0.15);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.18);
 
   /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-blur: blur(12px);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-blur: blur(16px);
 
   /* Spacing */
   --sidebar-width: 260px;
@@ -92,11 +92,11 @@
 
 /* ===== DARK THEME ===== */
 [data-theme="dark"] {
-  --primary: #6366F1;
-  --primary-hover: #4F46E5;
-  --primary-light: #1E1B4B;
-  --primary-dark: #818CF8;
-  --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
+  --primary: #3B82F6;
+  --primary-hover: #2563EB;
+  --primary-light: #1E293B;
+  --primary-dark: #60A5FA;
+  --primary-gradient: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
 
   --accent: #10B981;
   --accent-hover: #059669;
@@ -108,37 +108,35 @@
   --warning-light: #78350F;
   --danger: #F87171;
   --danger-light: #7F1D1D;
-  --info: #818CF8;
-  --info-light: #312E81;
+  --info: #60A5FA;
+  --info-light: #1E3A5F;
 
-  --bg-primary: #0B1120;
-  --bg-secondary: #111827;
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
   --bg-card: #1E293B;
-  --bg-sidebar: #111827;
-  --bg-navbar: rgba(17, 24, 39, 0.85);
-  --bg-input: #1E293B;
-  --bg-hover: #1E293B;
+  --bg-sidebar: #0F172A;
+  --bg-navbar: rgba(15, 23, 42, 0.9);
+  --bg-input: #0F172A;
+  --bg-hover: #334155;
   --bg-modal-overlay: rgba(0, 0, 0, 0.7);
 
-  --text-primary: #F1F5F9;
+  --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-tertiary: #64748B;
   --text-inverse: #0F172A;
-  --text-link: #60A5FA;
+  --text-link: #3B82F6;
 
-  --border-color: #1E293B;
+  --border-color: #334155;
   --border-light: #1E293B;
   --border-focus: #3B82F6;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.25);
 
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(51, 65, 85, 0.5);
-  --glass-blur: blur(12px);
+  --glass-bg: rgba(30, 41, 59, 0.85);
+  --glass-border: rgba(51, 65, 85, 0.8);
 }
 
 /* ===== BASE STYLES ===== */
