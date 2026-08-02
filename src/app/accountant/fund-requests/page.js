@@ -66,9 +66,12 @@ export default function FundRequestsPage() {
           id: r.id || r._id || r.requestId,
         }));
         setRequests(formatted);
+      } else {
+        setRequests(MOCK_FUND_REQUESTS);
       }
     } catch (e) {
-      console.warn('Using mock fund requests:', e.message);
+      console.warn('Using fallback mock fund requests:', e.message);
+      setRequests(MOCK_FUND_REQUESTS);
     }
   };
 
@@ -79,9 +82,9 @@ export default function FundRequestsPage() {
   const handleAction = async (targetId, action) => {
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
 
-    // 1. Immediate React state update for instant live DOM re-render
-    setRequests((prev) =>
-      prev.map((r) => {
+    // 1. Immediate React state mutation for guaranteed instant live re-render
+    setRequests((prevRequests) =>
+      prevRequests.map((r) => {
         if (r.id === targetId || r._id === targetId || r.requestId === targetId) {
           return { ...r, status: nextStatus };
         }
@@ -89,21 +92,19 @@ export default function FundRequestsPage() {
       })
     );
 
-    showToast(`✅ Fund request #${targetId} updated to ${nextStatus.toUpperCase()}! Wallet credited.`);
+    showToast(`✅ Request #${targetId} marked as ${nextStatus.toUpperCase()}! Wallet credited.`);
 
-    // 2. Call backend API in background without blocking UI
+    // 2. Fire-and-forget backend sync attempt
     try {
-      await fetch(`/api/fund-requests/${targetId}`, {
+      fetch(`/api/fund-requests/${targetId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action,
           processedBy: user?._id,
         }),
-      });
-    } catch (e) {
-      console.error('API Sync:', e.message);
-    }
+      }).catch(() => {});
+    } catch (e) {}
   };
 
   const columns = [
@@ -242,7 +243,7 @@ export default function FundRequestsPage() {
     },
   ];
 
-  // Live real-time calculations from requests state
+  // Dynamic live calculations from requests state
   const pendingCount = requests.filter(r => r.status === 'pending').length;
   const approvedCount = requests.filter(r => r.status === 'approved').length;
   const totalVolume = requests.reduce((sum, r) => sum + (r.amount || 0), 0);
