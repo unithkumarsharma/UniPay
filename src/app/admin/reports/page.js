@@ -60,6 +60,16 @@ const financialDatasets = {
     volPath: 'M 10,140 L 100,120 L 190,70 L 280,45 L 370,60 L 460,25 L 460,170 L 10,170 Z',
     profitPath: 'M 10,155 L 100,140 L 190,95 L 280,70 L 370,85 L 460,50 L 460,170 L 10,170 Z',
   },
+  Yesterday: {
+    labels: ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+    grossVolume: '₹16,80,000',
+    netProfit: '₹5,10,200',
+    commissionPaid: '₹2,12,000',
+    avgTxnValue: '₹398',
+    volPoints: '10,150 100,130 190,85 280,60 370,75 460,35',
+    volPath: 'M 10,150 L 100,130 L 190,85 L 280,60 L 370,75 L 460,35 L 460,170 L 10,170 Z',
+    profitPath: 'M 10,160 L 100,145 L 190,105 L 280,80 L 370,95 L 460,60 L 460,170 L 10,170 Z',
+  },
   'Last 7 Days': {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     grossVolume: '₹1,24,50,000',
@@ -80,6 +90,16 @@ const financialDatasets = {
     volPath: 'M 10,140 L 170,85 L 330,45 L 490,15 L 490,170 L 10,170 Z',
     profitPath: 'M 10,155 L 170,110 L 330,70 L 490,35 L 490,170 L 10,170 Z',
   },
+  'Custom Range': {
+    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'],
+    grossVolume: '₹42,10,000',
+    netProfit: '₹12,85,400',
+    commissionPaid: '₹5,20,100',
+    avgTxnValue: '₹415',
+    volPoints: '10,120 120,95 240,65 360,40 480,20',
+    volPath: 'M 10,120 L 120,95 L 240,65 L 360,40 L 480,20 L 480,170 L 10,170 Z',
+    profitPath: 'M 10,135 L 120,110 L 240,80 L 360,55 L 480,35 L 480,170 L 10,170 Z',
+  },
 };
 
 const categoryBreakdown = [
@@ -91,11 +111,17 @@ const categoryBreakdown = [
 ];
 
 export default function AdminReportsPage() {
-  const [dateFilter, setDateFilter] = useState('Today');
+  const [datePreset, setDatePreset] = useState('Today');
+  const [fromDate, setFromDate] = useState('2026-08-01');
+  const [toDate, setToDate] = useState('2026-08-02');
+  const [isCustomMode, setIsCustomMode] = useState(false);
+  const [appliedCustomLabel, setAppliedCustomLabel] = useState('');
   const [serviceFilter, setServiceFilter] = useState('All Services');
   const [chartMetric, setChartMetric] = useState('gross'); // 'gross' | 'profit'
 
-  const activeDataset = financialDatasets[dateFilter] || financialDatasets.Today;
+  const activeDataset = isCustomMode
+    ? financialDatasets['Custom Range']
+    : (financialDatasets[datePreset] || financialDatasets.Today);
 
   const columns = [
     {
@@ -189,12 +215,38 @@ export default function AdminReportsPage() {
     { key: 'time', label: 'Timestamp' },
   ];
 
+  const handleDatePresetChange = (val) => {
+    setDatePreset(val);
+    if (val === 'Custom Range') {
+      setIsCustomMode(true);
+    } else {
+      setIsCustomMode(false);
+      setAppliedCustomLabel('');
+    }
+  };
+
+  const handleApplyCustomRange = (e) => {
+    e.preventDefault();
+    if (!fromDate || !toDate) {
+      alert('Please select both From Date and To Date');
+      return;
+    }
+    setIsCustomMode(true);
+    setAppliedCustomLabel(`Range: ${fromDate} to ${toDate}`);
+  };
+
+  const handleClearCustomRange = () => {
+    setIsCustomMode(false);
+    setDatePreset('Today');
+    setAppliedCustomLabel('');
+  };
+
   const handleExportCSV = () => {
-    alert('Exporting Complete Business Audit Ledger to CSV file...');
+    alert(`Exporting Audit Ledger Report for [${isCustomMode ? `${fromDate} to ${toDate}` : datePreset}] to CSV...`);
   };
 
   const handleExportPDF = () => {
-    alert('Generating Official Financial Audit Statement PDF...');
+    alert(`Generating Official Financial Audit Statement PDF for [${isCustomMode ? `${fromDate} to ${toDate}` : datePreset}]...`);
   };
 
   return (
@@ -214,7 +266,7 @@ export default function AdminReportsPage() {
             Reports &amp; Business Analytics
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-            Comprehensive revenue breakdown, net margin analytics, category volume split, and live transaction ledgers.
+            Comprehensive revenue breakdown, net margin analytics, custom date range filtering, and live transaction ledgers.
           </p>
         </div>
 
@@ -244,6 +296,109 @@ export default function AdminReportsPage() {
             Export CSV Report
           </button>
         </div>
+      </div>
+
+      {/* ===== CUSTOM DATE RANGE & FILTER CONTROL BAR ===== */}
+      <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', marginBottom: '28px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: isCustomMode ? '16px' : '0' }}>
+          
+          {/* Quick Date Presets */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Time Period:
+            </span>
+
+            <select
+              className="form-select"
+              value={datePreset}
+              onChange={(e) => handleDatePresetChange(e.target.value)}
+              style={{ width: '180px', fontSize: '0.85rem', fontWeight: 600 }}
+            >
+              <option value="Today">Today</option>
+              <option value="Yesterday">Yesterday</option>
+              <option value="Last 7 Days">Last 7 Days</option>
+              <option value="This Month">This Month</option>
+              <option value="Custom Range">📅 Custom Date Range...</option>
+            </select>
+
+            <select
+              className="form-select"
+              value={serviceFilter}
+              onChange={(e) => setServiceFilter(e.target.value)}
+              style={{ width: '180px', fontSize: '0.85rem', fontWeight: 600 }}
+            >
+              <option value="All Services">All Services</option>
+              <option value="Mobile Recharge">Mobile Recharge</option>
+              <option value="DTH Recharge">DTH Recharge</option>
+              <option value="Electricity Bill">Electricity Bill</option>
+              <option value="Money Transfer">Money Transfer</option>
+              <option value="PAN Card">PAN Card</option>
+            </select>
+          </div>
+
+          {/* Active Range Pill */}
+          {appliedCustomLabel && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '5px 14px', background: 'rgba(16, 185, 129, 0.12)', color: '#059669', borderRadius: 'var(--radius-full)', fontSize: '0.78rem', fontWeight: 700 }}>
+              <span>📅 {appliedCustomLabel}</span>
+              <button onClick={handleClearCustomRange} style={{ border: 'none', background: 'none', color: '#059669', cursor: 'pointer', fontWeight: 800, padding: 0 }}>✕</button>
+            </div>
+          )}
+        </div>
+
+        {/* CUSTOM DATE RANGE PICKER INPUTS BAR */}
+        {datePreset === 'Custom Range' && (
+          <form onSubmit={handleApplyCustomRange} style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid var(--border-light)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>From Date:</label>
+              <input
+                type="date"
+                className="form-input"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                style={{ width: '150px', fontSize: '0.82rem', padding: '6px 10px' }}
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>To Date:</label>
+              <input
+                type="date"
+                className="form-input"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                style={{ width: '150px', fontSize: '0.82rem', padding: '6px 10px' }}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              Filter Revenue &amp; Audit
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleClearCustomRange}
+            >
+              Reset Filter
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Primary Financial KPI Cards Grid */}
@@ -417,43 +572,6 @@ export default function AdminReportsPage() {
           </div>
         </div>
 
-      </div>
-
-      {/* Controls & Filter Bar */}
-      <div style={{ background: 'var(--bg-card)', padding: '16px 20px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flex: 1, alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-            </svg>
-            Filter Audit Ledger:
-          </span>
-
-          <select
-            className="form-select"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            style={{ width: '160px', fontSize: '0.85rem' }}
-          >
-            <option value="Today">Today</option>
-            <option value="Last 7 Days">Last 7 Days</option>
-            <option value="This Month">This Month</option>
-          </select>
-
-          <select
-            className="form-select"
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-            style={{ width: '180px', fontSize: '0.85rem' }}
-          >
-            <option value="All Services">All Services</option>
-            <option value="Mobile Recharge">Mobile Recharge</option>
-            <option value="DTH Recharge">DTH Recharge</option>
-            <option value="Electricity Bill">Electricity Bill</option>
-            <option value="Money Transfer">Money Transfer</option>
-            <option value="PAN Card">PAN Card</option>
-          </select>
-        </div>
       </div>
 
       {/* Transaction Audit Ledger Table */}
