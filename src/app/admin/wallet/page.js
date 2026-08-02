@@ -12,17 +12,20 @@ export default function AdminWalletPage() {
   const [amount, setAmount] = useState('');
   const [remarks, setRemarks] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchUsers = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch('/api/users');
       const data = await res.json();
       if (data.success) {
-        setUsers(data.users);
+        setUsers(data.users || []);
       }
     } catch (e) {
       console.error(e);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -67,23 +70,104 @@ export default function AdminWalletPage() {
 
   const totalPool = users.reduce((sum, u) => sum + (u.walletBalance || 0), 0);
 
+  const getRoleBadgeStyle = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return { bg: 'rgba(239, 68, 68, 0.12)', color: '#DC2626', label: 'ADMIN' };
+      case 'master_distributor':
+        return { bg: 'rgba(37, 99, 235, 0.12)', color: '#2563EB', label: 'MASTER DIST' };
+      case 'distributor':
+        return { bg: 'rgba(16, 185, 129, 0.12)', color: '#059669', label: 'DISTRIBUTOR' };
+      case 'accountant':
+        return { bg: 'rgba(139, 92, 246, 0.12)', color: '#7C3AED', label: 'ACCOUNTANT' };
+      default:
+        return { bg: 'rgba(245, 158, 11, 0.12)', color: '#D97706', label: 'RETAILER' };
+    }
+  };
+
   const columns = [
     { key: 'userId', label: 'User ID' },
-    { key: 'name', label: 'Name' },
-    { key: 'role', label: 'Role', render: (r) => r.role?.replace('_', ' ').toUpperCase() },
-    { key: 'phone', label: 'Phone' },
-    { key: 'walletBalance', label: 'Balance', render: (r) => `₹${(r.walletBalance || 0).toLocaleString('en-IN')}` },
-    { key: 'status', label: 'Status' },
+    { key: 'name', label: 'Partner Name' },
+    {
+      key: 'role',
+      label: 'Role Tier',
+      render: (r) => {
+        const badge = getRoleBadgeStyle(r.role);
+        return (
+          <span style={{
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            padding: '3px 9px',
+            borderRadius: 'var(--radius-full)',
+            background: badge.bg,
+            color: badge.color,
+            letterSpacing: '0.03em',
+          }}>
+            {badge.label}
+          </span>
+        );
+      },
+    },
+    { key: 'phone', label: 'Mobile' },
+    {
+      key: 'walletBalance',
+      label: 'Wallet Balance',
+      render: (r) => (
+        <span style={{ fontWeight: 800, color: 'var(--success)' }}>
+          ₹{(r.walletBalance || 0).toLocaleString('en-IN')}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (r) => (
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '3px 10px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          background: r.status === 'active' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+          color: r.status === 'active' ? '#059669' : '#DC2626',
+          textTransform: 'uppercase',
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: r.status === 'active' ? '#10B981' : '#EF4444' }} />
+          {r.status === 'active' ? 'Active' : 'Blocked'}
+        </span>
+      ),
+    },
     {
       key: 'actions',
       label: 'Actions',
       render: (row) => (
-        <div className="flex gap-sm">
-          <button className="btn btn-sm btn-success" onClick={() => handleOpenModal(row, 'add')}>
-            + Add ₹
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <button
+            className="btn btn-sm btn-success"
+            style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            onClick={() => handleOpenModal(row, 'add')}
+            title="Credit funds to user"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="16" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            Credit Funds
           </button>
-          <button className="btn btn-sm btn-danger" onClick={() => handleOpenModal(row, 'deduct')}>
-            - Deduct ₹
+          <button
+            className="btn btn-sm btn-danger"
+            style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            onClick={() => handleOpenModal(row, 'deduct')}
+            title="Debit funds from user"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            Debit Funds
           </button>
         </div>
       ),
@@ -92,32 +176,73 @@ export default function AdminWalletPage() {
 
   return (
     <>
-      <div className="page-header">
-        <h1>Wallet Management</h1>
-        <p>Add or deduct balance from any user&apos;s wallet with real DB logging</p>
+      <div className="page-header" style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', borderRadius: 'var(--radius-full)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '8px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          MASTER WALLET CONTROL &amp; SETTLEMENTS
+        </div>
+        <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          Wallet Management Portal
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
+          Instantly credit or debit wallet balance across network accounts with real-time audit logging.
+        </p>
       </div>
 
-      <div className="stats-grid">
-        <DashboardCard icon="💰" iconColor="green" title="Total Network Pool" value={`₹${totalPool.toLocaleString('en-IN')}`} change="Real DB total" />
-        <DashboardCard icon="👥" iconColor="blue" title="Active Wallets" value={users.length} change="Registered users" />
+      <div className="stats-grid" style={{ marginBottom: '28px' }}>
+        <DashboardCard
+          icon="wallet"
+          iconColor="green"
+          title="Total Network Pool Balance"
+          value={`₹${totalPool.toLocaleString('en-IN')}`}
+          change="Real-time DB aggregate"
+          badge="Live Pool"
+          sparkline="0,22 10,18 20,15 30,12 40,8 50,6 60,2"
+        />
+        <DashboardCard
+          icon="users"
+          iconColor="blue"
+          title="Active Registered Wallets"
+          value={users.length}
+          change="Verified accounts"
+          badge="Network Accounts"
+          sparkline="0,20 10,16 20,14 30,10 40,8 50,5 60,3"
+        />
       </div>
 
-      <DataTable title="User Wallets" columns={columns} data={users} />
+      {isLoading ? (
+        <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-secondary)' }}>
+          Loading network user wallets...
+        </div>
+      ) : (
+        <DataTable
+          title="Network User Wallets Directory"
+          columns={columns}
+          data={users}
+          searchable={true}
+        />
+      )}
 
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={`${modalAction === 'add' ? 'Add Balance to' : 'Deduct Balance from'} ${selectedUser?.name}`}
+        title={`${modalAction === 'add' ? 'Credit Wallet Balance:' : 'Debit Wallet Balance:'} ${selectedUser?.name}`}
       >
         <form onSubmit={handleWalletAction}>
-          <div className="form-group">
-            <label className="form-label">Current Balance</label>
-            <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-              ₹{(selectedUser?.walletBalance || 0).toLocaleString('en-IN')}
+          <div style={{ background: 'var(--bg-secondary)', padding: '14px 18px', borderRadius: 'var(--radius-lg)', marginBottom: '18px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Partner: <strong>{selectedUser?.name}</strong> ({selectedUser?.userId})
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Current Balance: <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>₹{(selectedUser?.walletBalance || 0).toLocaleString('en-IN')}</strong>
             </div>
           </div>
+
           <div className="form-group">
-            <label className="form-label">Amount (₹)</label>
+            <label className="form-label">Transaction Amount (₹)</label>
             <input
               type="number"
               className="form-input"
@@ -128,22 +253,39 @@ export default function AdminWalletPage() {
               min="1"
             />
           </div>
+
           <div className="form-group">
-            <label className="form-label">Remarks / Description</label>
+            <label className="form-label">Remarks / Audit Note</label>
             <input
               type="text"
               className="form-input"
-              placeholder="Enter remarks"
+              placeholder="e.g. Approved RTGS Fund Credit"
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
             />
           </div>
+
           <button
             type="submit"
             className={`btn ${modalAction === 'add' ? 'btn-success' : 'btn-danger'} w-full mt-md`}
             disabled={isSubmitting}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px' }}
           >
-            {isSubmitting ? 'Processing...' : `${modalAction === 'add' ? 'Add' : 'Deduct'} Balance`}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              {modalAction === 'add' ? (
+                <>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </>
+              ) : (
+                <>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </>
+              )}
+            </svg>
+            {isSubmitting ? 'Processing Transaction...' : `${modalAction === 'add' ? 'Credit' : 'Debit'} Balance Now`}
           </button>
         </form>
       </Modal>
