@@ -1,7 +1,53 @@
 'use client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import { ledgerEntries } from '@/data/mockData';
+
+const INITIAL_FUND_REQUESTS = [
+  {
+    id: 'FR-9901',
+    _id: 'FR-9901',
+    requestId: 'FR-9901',
+    user: 'Suresh Yadav',
+    userId: 'RTL001',
+    role: 'RETAILER',
+    amount: 50000,
+    paymentMethod: 'bank_wire',
+    utrNumber: 'UTR998124891',
+    createdAt: '2026-08-02 12:45',
+    status: 'pending',
+  },
+  {
+    id: 'FR-9902',
+    _id: 'FR-9902',
+    requestId: 'FR-9902',
+    user: 'Ankit Kumar',
+    userId: 'DST001',
+    role: 'DISTRIBUTOR',
+    amount: 100000,
+    paymentMethod: 'upi_transfer',
+    utrNumber: 'UPI772615102',
+    createdAt: '2026-08-02 11:30',
+    status: 'pending',
+  },
+  {
+    id: 'FR-9903',
+    _id: 'FR-9903',
+    requestId: 'FR-9903',
+    user: 'Vikram Singh',
+    userId: 'MD001',
+    role: 'MASTER DISTRIBUTOR',
+    amount: 250000,
+    paymentMethod: 'imps_deposit',
+    utrNumber: 'IMPS55192099',
+    createdAt: '2026-08-01 16:15',
+    status: 'approved',
+  },
+];
+
+const LOCAL_STORAGE_KEY = 'unipay_fund_requests_store';
 
 const ledgerColumns = [
   {
@@ -66,12 +112,69 @@ const ledgerColumns = [
 ];
 
 export default function AccountantDashboard() {
-  const handleDownloadLedger = () => {
-    alert('Exporting Complete Company Ledger Audit Log to CSV...');
+  const [fundRequests, setFundRequests] = useState(INITIAL_FUND_REQUESTS);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3500);
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setFundRequests(parsed);
+          }
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const handleQuickApprove = (targetId) => {
+    setFundRequests((prev) => {
+      const updated = prev.map((r) =>
+        r.id === targetId || r.requestId === targetId ? { ...r, status: 'approved' } : r
+      );
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+    showToast(`✅ Request #${targetId} Approved & Credited to Merchant Wallet!`);
+  };
+
+  const handleDownloadLedger = () => {
+    showToast('Exporting Complete Company Ledger Audit Log to CSV...');
+  };
+
+  const pendingRequests = fundRequests.filter((r) => r.status === 'pending');
+  const pendingTotal = pendingRequests.reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
   return (
     <>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '24px',
+          zIndex: 9999,
+          background: '#10B981',
+          color: '#FFFFFF',
+          padding: '12px 20px',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-lg)',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+        }}>
+          {toastMessage}
+        </div>
+      )}
+
       {/* Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
@@ -143,12 +246,79 @@ export default function AccountantDashboard() {
           icon="ticket"
           iconColor="red"
           title="Pending Fund Requests"
-          value="3"
-          change="₹1,00,000 total"
-          changeType="negative"
+          value={pendingRequests.length}
+          change={`₹${pendingTotal.toLocaleString('en-IN')} total`}
+          changeType={pendingRequests.length > 0 ? 'negative' : 'positive'}
           badge="Action Needed"
           sparkline="0,5 10,8 20,12 30,15 40,18 50,20 60,22"
         />
+      </div>
+
+      {/* Pending Fund Requests Breakdown Card */}
+      <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', marginBottom: '32px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              Pending Merchant Deposit Requests ({pendingRequests.length})
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              Bank wire deposit requests awaiting accountant verification and wallet credit approval.
+            </p>
+          </div>
+
+          <Link href="/accountant/fund-requests" className="btn btn-sm btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            View All Requests &rarr;
+          </Link>
+        </div>
+
+        {pendingRequests.length === 0 ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#10B981', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-lg)', fontWeight: 700 }}>
+            ✅ All merchant deposit requests have been verified and processed!
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {pendingRequests.map((req) => (
+              <div key={req.id} style={{ background: 'var(--bg-secondary)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                    <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 800, color: '#2563EB', fontSize: '0.85rem' }}>{req.id}</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{req.user}</strong>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', padding: '1px 6px', borderRadius: '4px' }}>
+                      {req.role} ({req.userId})
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Payment Mode: <strong style={{ textTransform: 'uppercase' }}>{(req.paymentMethod || 'bank_wire').replace('_', ' ')}</strong> | UTR: <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 600 }}>{req.utrNumber}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#10B981' }}>
+                      ₹{Number(req.amount).toLocaleString('en-IN')}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{req.createdAt}</div>
+                  </div>
+
+                  <button
+                    className="btn btn-sm btn-success"
+                    onClick={() => handleQuickApprove(req.id)}
+                    style={{ padding: '6px 14px', fontSize: '0.78rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Approve &amp; Credit
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recent Ledger Entries Table */}
