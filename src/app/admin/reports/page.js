@@ -4,9 +4,98 @@ import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import { recentTransactions as initialTransactions } from '@/data/mockData';
 
+// Multi-color SVG service icons for table & analytics
+const serviceIcons = {
+  'Mobile Recharge': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+      <line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  ),
+  'Electricity Bill': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  ),
+  'DTH Recharge': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 11a9 9 0 0 1 9 9" />
+      <path d="M4 4a16 16 0 0 1 16 16" />
+      <circle cx="5" cy="19" r="1" />
+    </svg>
+  ),
+  'Money Transfer': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  ),
+  'Gas Bill': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-4-4-6-4-10z" />
+    </svg>
+  ),
+  'Water Bill': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+    </svg>
+  ),
+  'PAN Card': (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <line x1="7" y1="8" x2="17" y2="8" />
+      <line x1="7" y1="12" x2="13" y2="12" />
+    </svg>
+  ),
+};
+
+const financialDatasets = {
+  Today: {
+    labels: ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+    grossVolume: '₹18,45,000',
+    netProfit: '₹5,67,800',
+    commissionPaid: '₹2,34,500',
+    avgTxnValue: '₹407',
+    volPoints: '10,140 100,120 190,70 280,45 370,60 460,25',
+    volPath: 'M 10,140 L 100,120 L 190,70 L 280,45 L 370,60 L 460,25 L 460,170 L 10,170 Z',
+    profitPath: 'M 10,155 L 100,140 L 190,95 L 280,70 L 370,85 L 460,50 L 460,170 L 10,170 Z',
+  },
+  'Last 7 Days': {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    grossVolume: '₹1,24,50,000',
+    netProfit: '₹38,20,000',
+    commissionPaid: '₹15,80,000',
+    avgTxnValue: '₹412',
+    volPoints: '10,130 90,105 170,85 250,50 330,40 410,65 490,20',
+    volPath: 'M 10,130 L 90,105 L 170,85 L 250,50 L 330,40 L 410,65 L 490,20 L 490,170 L 10,170 Z',
+    profitPath: 'M 10,145 L 90,125 L 170,110 L 250,75 L 330,65 L 410,90 L 490,45 L 490,170 L 10,170 Z',
+  },
+  'This Month': {
+    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+    grossVolume: '₹5,12,00,000',
+    netProfit: '₹1,58,40,000',
+    commissionPaid: '₹64,50,000',
+    avgTxnValue: '₹418',
+    volPoints: '10,140 170,85 330,45 490,15',
+    volPath: 'M 10,140 L 170,85 L 330,45 L 490,15 L 490,170 L 10,170 Z',
+    profitPath: 'M 10,155 L 170,110 L 330,70 L 490,35 L 490,170 L 10,170 Z',
+  },
+};
+
+const categoryBreakdown = [
+  { name: 'Mobile & DTH Recharge', percent: 38, amount: '₹7,01,100', color: '#2563EB' },
+  { name: 'Money Transfer (DMT)', percent: 28, amount: '₹5,16,600', color: '#10B981' },
+  { name: 'BBPS Electricity & Gas', percent: 18, amount: '₹3,32,100', color: '#F59E0B' },
+  { name: 'AEPS Cash Withdrawal', percent: 12, amount: '₹2,21,400', color: '#8B5CF6' },
+  { name: 'PAN Card & Utility Cards', percent: 4, amount: '₹73,800', color: '#EF4444' },
+];
+
 export default function AdminReportsPage() {
   const [dateFilter, setDateFilter] = useState('Today');
   const [serviceFilter, setServiceFilter] = useState('All Services');
+  const [chartMetric, setChartMetric] = useState('gross'); // 'gross' | 'profit'
+
+  const activeDataset = financialDatasets[dateFilter] || financialDatasets.Today;
 
   const columns = [
     {
@@ -27,31 +116,29 @@ export default function AdminReportsPage() {
     },
     {
       key: 'type',
-      label: 'Service Type',
+      label: 'Service Category',
       render: (r) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: 28,
             height: 28,
             borderRadius: '6px',
-            background: 'rgba(37, 99, 235, 0.1)',
-            color: '#2563EB',
+            background: 'var(--bg-secondary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexShrink: 0,
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
+            {serviceIcons[r.type] || serviceIcons['Mobile Recharge']}
           </div>
           <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.type}</span>
         </div>
       ),
     },
-    { key: 'user', label: 'Merchant / User' },
+    { key: 'user', label: 'Merchant Outlet' },
     {
       key: 'amount',
-      label: 'Amount',
+      label: 'Volume (₹)',
       render: (r) => (
         <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
           ₹{(r.amount || 0).toLocaleString('en-IN')}
@@ -99,11 +186,15 @@ export default function AdminReportsPage() {
         );
       },
     },
-    { key: 'time', label: 'Time' },
+    { key: 'time', label: 'Timestamp' },
   ];
 
   const handleExportCSV = () => {
-    alert('Exporting Transaction Audit Report to CSV file...');
+    alert('Exporting Complete Business Audit Ledger to CSV file...');
+  };
+
+  const handleExportPDF = () => {
+    alert('Generating Official Financial Audit Statement PDF...');
   };
 
   return (
@@ -117,18 +208,45 @@ export default function AdminReportsPage() {
               <line x1="12" y1="20" x2="12" y2="4" />
               <line x1="6" y1="20" x2="6" y2="14" />
             </svg>
-            REAL-TIME SYSTEM ANALYTICS &amp; AUDIT LEDGER
+            FINANCIAL AUDIT &amp; TAX LEDGER
           </div>
-          <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             Reports &amp; Business Analytics
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-            Track volume metrics, net profit margins, commission payouts, and live audit ledgers.
+            Comprehensive revenue breakdown, net margin analytics, category volume split, and live transaction ledgers.
           </p>
+        </div>
+
+        {/* Action Export Buttons */}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handleExportPDF}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Download PDF Audit
+          </button>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={handleExportCSV}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export CSV Report
+          </button>
         </div>
       </div>
 
-      {/* KPI Stats Grid */}
+      {/* Primary Financial KPI Cards Grid */}
       <div className="stats-grid" style={{ marginBottom: '28px' }}>
         <DashboardCard
           icon="reports"
@@ -144,8 +262,8 @@ export default function AdminReportsPage() {
           icon="wallet"
           iconColor="green"
           title="Total Revenue Volume"
-          value="₹18,45,000"
-          change="+8% this month"
+          value={activeDataset.grossVolume}
+          change="+8.4% growth"
           changeType="positive"
           badge="Gross Revenue"
           sparkline="0,22 10,18 20,14 30,10 40,6 50,4 60,1"
@@ -154,7 +272,7 @@ export default function AdminReportsPage() {
           icon="commission"
           iconColor="purple"
           title="Commission Distributed"
-          value="₹2,34,500"
+          value={activeDataset.commissionPaid}
           change="Distributed across all tiers"
           badge="Payout Pool"
           sparkline="0,18 10,14 20,16 30,12 40,9 50,6 60,3"
@@ -163,17 +281,154 @@ export default function AdminReportsPage() {
           icon="zap"
           iconColor="orange"
           title="Net Admin Profit"
-          value="₹5,67,800"
-          change="+22% this month"
+          value={activeDataset.netProfit}
+          change="+22% margin yield"
           changeType="positive"
           badge="Net Margin"
           sparkline="0,24 10,19 20,15 30,11 40,7 50,3 60,1"
         />
       </div>
 
-      {/* Controls & Export Bar */}
+      {/* Graphical Financial Analytics & Distribution Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+        
+        {/* 1. GRAPHICAL FINANCIAL CURVE CHART */}
+        <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }} className="glow-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                Revenue &amp; Profit Yield Curve
+              </h2>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Real-time volume curve vs net margin realization.
+              </p>
+            </div>
+
+            {/* Metric Switcher */}
+            <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '3px', borderRadius: 'var(--radius-md)' }}>
+              <button
+                onClick={() => setChartMetric('gross')}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  background: chartMetric === 'gross' ? '#2563EB' : 'transparent',
+                  color: chartMetric === 'gross' ? '#FFFFFF' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                Gross Revenue
+              </button>
+              <button
+                onClick={() => setChartMetric('profit')}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  background: chartMetric === 'profit' ? '#10B981' : 'transparent',
+                  color: chartMetric === 'profit' ? '#FFFFFF' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                Net Margin
+              </button>
+            </div>
+          </div>
+
+          {/* SVG Financial Area Chart */}
+          <div style={{ width: '100%', height: '180px', position: 'relative' }}>
+            <svg width="100%" height="100%" viewBox="0 0 500 180" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+              <defs>
+                <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563EB" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
+                </linearGradient>
+                <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              <line x1="0" y1="40" x2="500" y2="40" stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.6" />
+              <line x1="0" y1="90" x2="500" y2="90" stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.6" />
+              <line x1="0" y1="140" x2="500" y2="140" stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.6" />
+
+              <path
+                d={chartMetric === 'gross' ? activeDataset.volPath : activeDataset.profitPath}
+                fill={chartMetric === 'gross' ? 'url(#grossGrad)' : 'url(#netGrad)'}
+              />
+              <polyline
+                fill="none"
+                stroke={chartMetric === 'gross' ? '#2563EB' : '#10B981'}
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={activeDataset.volPoints}
+              />
+            </svg>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+              {activeDataset.labels.map((lbl, idx) => (
+                <span key={idx}>{lbl}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 2. SERVICE CATEGORY FINANCIAL BREAKDOWN METER */}
+        <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }} className="glow-card">
+          <div style={{ marginBottom: '18px' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                <path d="M22 12A10 10 0 0 0 12 2v10z" />
+              </svg>
+              Category Financial Volume Breakdown
+            </h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Proportional distribution of gross transaction volume across services.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {categoryBreakdown.map((cat, idx) => (
+              <div key={idx}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color }} />
+                    {cat.name}
+                  </span>
+                  <span style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                    {cat.amount} ({cat.percent}%)
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: 6, background: 'var(--bg-secondary)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${cat.percent}%`, height: '100%', background: cat.color, borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Controls & Filter Bar */}
       <div style={{ background: 'var(--bg-card)', padding: '16px 20px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flex: 1, alignItems: 'center' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            Filter Audit Ledger:
+          </span>
+
           <select
             className="form-select"
             value={dateFilter}
@@ -181,11 +436,8 @@ export default function AdminReportsPage() {
             style={{ width: '160px', fontSize: '0.85rem' }}
           >
             <option value="Today">Today</option>
-            <option value="Yesterday">Yesterday</option>
             <option value="Last 7 Days">Last 7 Days</option>
             <option value="This Month">This Month</option>
-            <option value="Last Month">Last Month</option>
-            <option value="Custom Range">Custom Range</option>
           </select>
 
           <select
@@ -202,22 +454,9 @@ export default function AdminReportsPage() {
             <option value="PAN Card">PAN Card</option>
           </select>
         </div>
-
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={handleExportCSV}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Export CSV Report
-        </button>
       </div>
 
-      {/* Transaction Report Table */}
+      {/* Transaction Audit Ledger Table */}
       <DataTable
         title="Transaction Audit Ledger"
         columns={columns}
