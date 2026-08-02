@@ -10,27 +10,27 @@
 
 /* ===== LIGHT THEME (DEFAULT) ===== */
 :root {
-  /* Primary Colors */
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --primary-light: #DBEAFE;
-  --primary-dark: #1E40AF;
-  --primary-gradient: linear-gradient(135deg, #2563EB, #0EA5E9);
+  /* Primary Colors (Option 2 Indigo & Emerald Green) */
+  --primary: #2D2A87;
+  --primary-hover: #1E1B62;
+  --primary-light: #EEF2FF;
+  --primary-dark: #1E1B4B;
+  --primary-gradient: linear-gradient(135deg, #2D2A87 0%, #059669 100%);
 
-  /* Accent */
-  --accent: #0EA5E9;
-  --accent-hover: #0284C7;
-  --accent-light: #E0F2FE;
+  /* Accent (Emerald Green) */
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-light: #D1FAE5;
 
   /* Success / Warning / Danger */
-  --success: #10B981;
+  --success: #059669;
   --success-light: #D1FAE5;
   --warning: #F59E0B;
   --warning-light: #FEF3C7;
   --danger: #EF4444;
   --danger-light: #FEE2E2;
-  --info: #6366F1;
-  --info-light: #E0E7FF;
+  --info: #3B82F6;
+  --info-light: #DBEAFE;
 
   /* Backgrounds */
   --bg-primary: #F8FAFC;
@@ -47,19 +47,19 @@
   --text-secondary: #475569;
   --text-tertiary: #94A3B8;
   --text-inverse: #FFFFFF;
-  --text-link: #2563EB;
+  --text-link: #2D2A87;
 
   /* Borders */
   --border-color: #E2E8F0;
   --border-light: #F1F5F9;
-  --border-focus: #2563EB;
+  --border-focus: #2D2A87;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
+  --shadow-glow: 0 0 20px rgba(45, 42, 135, 0.15);
 
   /* Glass */
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -92,17 +92,17 @@
 
 /* ===== DARK THEME ===== */
 [data-theme="dark"] {
-  --primary: #3B82F6;
-  --primary-hover: #2563EB;
-  --primary-light: #1E3A5F;
-  --primary-dark: #60A5FA;
-  --primary-gradient: linear-gradient(135deg, #3B82F6, #22D3EE);
+  --primary: #6366F1;
+  --primary-hover: #4F46E5;
+  --primary-light: #1E1B4B;
+  --primary-dark: #818CF8;
+  --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
 
-  --accent: #22D3EE;
-  --accent-hover: #06B6D4;
-  --accent-light: #164E63;
+  --accent: #10B981;
+  --accent-hover: #059669;
+  --accent-light: #064E3B;
 
-  --success: #34D399;
+  --success: #10B981;
   --success-light: #064E3B;
   --warning: #FBBF24;
   --warning-light: #78350F;
