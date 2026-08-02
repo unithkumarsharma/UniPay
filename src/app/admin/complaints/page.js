@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 
@@ -7,6 +8,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
   {
     id: 'CMP-1001',
     user: 'Rahul Sharma (Retailer)',
+    role: 'RETAILER',
     txnId: 'TXN882910',
     type: 'Recharge Failed - Debited',
     message: 'Amount ₹299 debited for Jio recharge but mobile plan not updated.',
@@ -18,6 +20,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
   {
     id: 'CMP-1002',
     user: 'Amit Gupta (Distributor)',
+    role: 'DISTRIBUTOR',
     txnId: 'TXN772615',
     type: 'BBPS Payment Pending',
     message: 'Electricity bill payment of ₹1,450 shown pending for 3 hours.',
@@ -29,6 +32,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
   {
     id: 'CMP-1003',
     user: 'Vikram Singh (Master Dist)',
+    role: 'MASTER DISTRIBUTOR',
     txnId: 'TXN551920',
     type: 'DMT Transfer Delayed',
     message: 'Money transfer of ₹5,000 to SBI account pending receipt.',
@@ -40,9 +44,10 @@ const INITIAL_ADMIN_COMPLAINTS = [
   {
     id: 'CMP-1004',
     user: 'Pooja Verma (Retailer)',
+    role: 'RETAILER',
     txnId: 'TXN441092',
     type: 'AEPS Withdrawal Dispute',
-    message: 'Biometric biometric withdrawal ₹2,000 debited from customer but wallet not updated.',
+    message: 'Biometric withdrawal ₹2,000 debited from customer but wallet not updated.',
     priority: 'HIGH',
     status: 'open',
     date: '2026-08-01 10:20',
@@ -83,7 +88,7 @@ export default function AdminComplaintsPage() {
       setSuccessMsg('');
       setReplyText('');
       setRefundAmount('');
-    }, 1500);
+    }, 1200);
   };
 
   const filteredData = complaintList.filter((c) => {
@@ -94,15 +99,70 @@ export default function AdminComplaintsPage() {
   });
 
   const columns = [
-    { key: 'id', label: 'Ticket ID' },
-    { key: 'user', label: 'Merchant / Partner' },
-    { key: 'txnId', label: 'Txn ID' },
+    {
+      key: 'id',
+      label: 'Ticket ID',
+      render: (r) => (
+        <span style={{
+          fontFamily: 'ui-monospace, monospace',
+          fontWeight: 700,
+          color: '#2563EB',
+          background: 'rgba(37, 99, 235, 0.08)',
+          padding: '3px 8px',
+          borderRadius: 'var(--radius-md)',
+        }}>
+          {r.id}
+        </span>
+      ),
+    },
+    {
+      key: 'user',
+      label: 'Merchant / Partner',
+      render: (r) => (
+        <div>
+          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.user}</div>
+          <span style={{
+            fontSize: '0.68rem',
+            fontWeight: 700,
+            color: 'var(--primary)',
+            background: 'var(--primary-light)',
+            padding: '1px 6px',
+            borderRadius: '4px',
+          }}>
+            {r.role}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'txnId',
+      label: 'Txn ID',
+      render: (r) => (
+        <span style={{
+          fontFamily: 'ui-monospace, monospace',
+          fontWeight: 600,
+          color: 'var(--text-secondary)',
+          background: 'var(--bg-secondary)',
+          padding: '2px 6px',
+          borderRadius: '4px',
+        }}>
+          {r.txnId}
+        </span>
+      ),
+    },
     { key: 'type', label: 'Category' },
     {
       key: 'priority',
       label: 'Priority',
       render: (row) => (
-        <span className={`badge ${row.priority === 'HIGH' ? 'badge-danger' : 'badge-info'}`}>
+        <span style={{
+          padding: '3px 8px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: '0.7rem',
+          fontWeight: 800,
+          background: row.priority === 'HIGH' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+          color: row.priority === 'HIGH' ? '#DC2626' : '#D97706',
+        }}>
           {row.priority}
         </span>
       ),
@@ -110,109 +170,172 @@ export default function AdminComplaintsPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (row) => (
-        <span
-          className={`badge ${
-            row.status === 'resolved'
-              ? 'badge-success'
-              : row.status === 'in_progress'
-              ? 'badge-warning'
-              : 'badge-danger'
-          }`}
-        >
-          {row.status === 'resolved' ? '✅ Resolved' : row.status === 'in_progress' ? '⏳ In Progress' : '🔴 Open'}
-        </span>
-      ),
+      render: (row) => {
+        const isResolved = row.status === 'resolved';
+        const isInProgress = row.status === 'in_progress';
+        return (
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '3px 10px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            background: isResolved ? 'rgba(16, 185, 129, 0.12)' : isInProgress ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+            color: isResolved ? '#059669' : isInProgress ? '#D97706' : '#DC2626',
+            textTransform: 'uppercase',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: isResolved ? '#10B981' : isInProgress ? '#F59E0B' : '#EF4444' }} />
+            {isResolved ? 'Resolved' : isInProgress ? 'In Progress' : 'Open'}
+          </span>
+        );
+      },
     },
     { key: 'date', label: 'Submitted Date' },
     {
       key: 'actions',
       label: 'Action',
       render: (row) => (
-        <div className="flex gap-sm">
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', minWidth: 'max-content' }}>
           <button
             className="btn btn-sm btn-primary"
+            style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             onClick={() => {
               setSelectedTicket(row);
               setNewStatus(row.status === 'resolved' ? 'resolved' : 'resolved');
               setReplyText(row.reply || '');
             }}
           >
-            ⚙️ Manage / Reply
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            Manage / Reply
           </button>
         </div>
       ),
     },
   ];
 
+  const openCount = complaintList.filter((c) => c.status === 'open').length;
+  const progressCount = complaintList.filter((c) => c.status === 'in_progress').length;
+  const resolvedCount = complaintList.filter((c) => c.status === 'resolved').length;
+
   return (
     <>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      {/* Header */}
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
-          <h1>🛠️ Admin Grievance &amp; Complaint Resolution Center</h1>
-          <p>Review merchant disputes, issue wallet refunds, and update resolution tickets in real-time.</p>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(239, 68, 68, 0.1)', color: '#DC2626', borderRadius: 'var(--radius-full)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '8px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            MERCHANT HELPDESK &amp; DISPUTE RESOLUTION
+          </div>
+          <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            Admin Grievance &amp; Complaint Center
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
+            Review merchant transaction disputes, issue automated wallet refunds, and close support tickets.
+          </p>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="stats-grid" style={{ marginBottom: '24px' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Total Complaints</span>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, marginTop: '4px' }}>{complaintList.length}</div>
-        </div>
-        <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--danger)', fontWeight: 700 }}>Pending Open</span>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--danger)', marginTop: '4px' }}>
-            {complaintList.filter((c) => c.status === 'open').length}
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--warning)', fontWeight: 700 }}>Under Investigation</span>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--warning)', marginTop: '4px' }}>
-            {complaintList.filter((c) => c.status === 'in_progress').length}
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 700 }}>Resolved &amp; Settled</span>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--success)', marginTop: '4px' }}>
-            {complaintList.filter((c) => c.status === 'resolved').length}
-          </div>
-        </div>
+      <div className="stats-grid" style={{ marginBottom: '28px' }}>
+        <DashboardCard
+          icon="ticket"
+          iconColor="blue"
+          title="Total Complaints"
+          value={complaintList.length}
+          subtext="Merchant Support Queue"
+          badge="Ticket Queue"
+          sparkline="0,15 10,12 20,16 30,10 40,8 50,6 60,4"
+        />
+        <DashboardCard
+          icon="ticket"
+          iconColor="red"
+          title="Pending Open"
+          value={openCount}
+          change="Action Required"
+          changeType="negative"
+          badge="Open Queue"
+          sparkline="0,5 10,8 20,12 30,15 40,18 50,20 60,22"
+        />
+        <DashboardCard
+          icon="ticket"
+          iconColor="orange"
+          title="Under Investigation"
+          value={progressCount}
+          subtext="NPCI / Switch Verification"
+          badge="In Progress"
+          sparkline="0,10 10,10 20,12 30,14 40,12 50,10 60,8"
+        />
+        <DashboardCard
+          icon="ticket"
+          iconColor="green"
+          title="Resolved &amp; Settled"
+          value={resolvedCount}
+          change="100% Settled"
+          changeType="positive"
+          badge="Resolved"
+          sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
+        />
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex gap-sm mb-lg">
-        <button className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('all')}>
-          All Tickets ({complaintList.length})
+      {/* Filter Tabs Bar */}
+      <div style={{ background: 'var(--bg-card)', padding: '16px 20px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', marginBottom: '24px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setFilter('all')}
+        >
+          All Support Tickets ({complaintList.length})
         </button>
-        <button className={`btn btn-sm ${filter === 'open' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('open')}>
-          🔴 Open ({complaintList.filter((c) => c.status === 'open').length})
+        <button
+          className={`btn btn-sm ${filter === 'open' ? 'btn-danger' : 'btn-secondary'}`}
+          onClick={() => setFilter('open')}
+        >
+          🔴 Pending Open ({openCount})
         </button>
-        <button className={`btn btn-sm ${filter === 'in_progress' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('in_progress')}>
-          ⏳ In Progress ({complaintList.filter((c) => c.status === 'in_progress').length})
+        <button
+          className={`btn btn-sm ${filter === 'in_progress' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setFilter('in_progress')}
+        >
+          ⏳ In Progress ({progressCount})
         </button>
-        <button className={`btn btn-sm ${filter === 'resolved' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('resolved')}>
-          ✅ Resolved ({complaintList.filter((c) => c.status === 'resolved').length})
+        <button
+          className={`btn btn-sm ${filter === 'resolved' ? 'btn-success' : 'btn-secondary'}`}
+          onClick={() => setFilter('resolved')}
+        >
+          ✅ Resolved ({resolvedCount})
         </button>
       </div>
 
       {/* Complaints Table */}
-      <DataTable title="All Merchant Support Tickets" columns={columns} data={filteredData} />
+      <DataTable
+        title="Merchant Support Tickets Directory"
+        columns={columns}
+        data={filteredData}
+        searchable={true}
+      />
 
       {/* Manage Ticket Modal */}
       {selectedTicket && (
-        <Modal isOpen={!!selectedTicket} onClose={() => setSelectedTicket(null)} title={`Resolve Ticket #${selectedTicket.id}`}>
+        <Modal title={`Resolve Support Ticket #${selectedTicket.id}`} onClose={() => setSelectedTicket(null)}>
           {successMsg ? (
-            <div style={{ padding: '16px', background: 'var(--success-light)', color: 'var(--success)', borderRadius: 'var(--radius-md)', fontWeight: 600 }}>
+            <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--success)', fontWeight: 700 }}>
               ✅ {successMsg}
             </div>
           ) : (
             <form onSubmit={handleResolveTicket}>
-              <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Merchant: <strong>{selectedTicket.user}</strong></div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Transaction ID: <strong>{selectedTicket.txnId}</strong></div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '8px' }}>
-                  Description: &quot;{selectedTicket.message}&quot;
+              <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: 'var(--radius-lg)', marginBottom: '18px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Merchant: <strong style={{ color: 'var(--text-primary)' }}>{selectedTicket.user}</strong></span>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Txn ID: <strong style={{ color: '#2563EB', fontFamily: 'monospace' }}>{selectedTicket.txnId}</strong></span>
+                </div>
+                <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', background: 'var(--bg-card)', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+                  &quot;{selectedTicket.message}&quot;
                 </div>
               </div>
 
@@ -248,9 +371,10 @@ export default function AdminComplaintsPage() {
                 ></textarea>
               </div>
 
-              <button type="submit" className="btn btn-primary w-full">
-                💾 Save &amp; Update Ticket Status
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setSelectedTicket(null)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save &amp; Update Ticket</button>
+              </div>
             </form>
           )}
         </Modal>
