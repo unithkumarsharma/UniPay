@@ -128,7 +128,7 @@ export default function DataTable({ title, columns, data = [], actions, searchab
               </tr>
             ) : (
               filteredData.map((row, i) => (
-                <tr key={row.id || i}>
+                <tr key={row.id || row._id || row.requestId || i}>
                   {columns.map((col) => (
                     <td key={col.key}>
                       {col.key === 'id' ? (

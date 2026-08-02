@@ -6,6 +6,7 @@ import DataTable from '@/components/DataTable';
 
 const MOCK_FUND_REQUESTS = [
   {
+    id: 'FR-9901',
     _id: 'FR-9901',
     requestId: 'FR-9901',
     user: 'Suresh Yadav',
@@ -18,6 +19,7 @@ const MOCK_FUND_REQUESTS = [
     status: 'pending',
   },
   {
+    id: 'FR-9902',
     _id: 'FR-9902',
     requestId: 'FR-9902',
     user: 'Ankit Kumar',
@@ -30,6 +32,7 @@ const MOCK_FUND_REQUESTS = [
     status: 'pending',
   },
   {
+    id: 'FR-9903',
     _id: 'FR-9903',
     requestId: 'FR-9903',
     user: 'Vikram Singh',
@@ -46,13 +49,23 @@ const MOCK_FUND_REQUESTS = [
 export default function FundRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState(MOCK_FUND_REQUESTS);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3500);
+  };
 
   const fetchRequests = async () => {
     try {
       const res = await fetch('/api/fund-requests');
       const data = await res.json();
       if (data.success && data.requests && data.requests.length > 0) {
-        setRequests(data.requests);
+        const formatted = data.requests.map(r => ({
+          ...r,
+          id: r.id || r._id || r.requestId,
+        }));
+        setRequests(formatted);
       }
     } catch (e) {
       console.warn('Using mock fund requests:', e.message);
@@ -63,20 +76,24 @@ export default function FundRequestsPage() {
     fetchRequests();
   }, []);
 
-  const handleAction = async (requestId, action) => {
-    // 1. Instant local UI state update for immediate feedback
-    const updated = requests.map((r) => {
-      if (r._id === requestId || r.requestId === requestId) {
-        return { ...r, status: action === 'approve' ? 'approved' : 'rejected' };
-      }
-      return r;
-    });
+  const handleAction = async (targetId, action) => {
+    const nextStatus = action === 'approve' ? 'approved' : 'rejected';
 
-    setRequests([...updated]); // Brand new array reference forces live React re-render!
+    // 1. Immediate React state update for instant live DOM re-render
+    setRequests((prev) =>
+      prev.map((r) => {
+        if (r.id === targetId || r._id === targetId || r.requestId === targetId) {
+          return { ...r, status: nextStatus };
+        }
+        return r;
+      })
+    );
 
-    // 2. Call backend API in background
+    showToast(`✅ Fund request #${targetId} updated to ${nextStatus.toUpperCase()}! Wallet credited.`);
+
+    // 2. Call backend API in background without blocking UI
     try {
-      await fetch(`/api/fund-requests/${requestId}`, {
+      await fetch(`/api/fund-requests/${targetId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -84,9 +101,9 @@ export default function FundRequestsPage() {
           processedBy: user?._id,
         }),
       });
-    } catch (e) {}
-
-    alert(`Fund request ${requestId} has been ${action === 'approve' ? 'Approved & Credited to Merchant Wallet' : 'Rejected'}!`);
+    } catch (e) {
+      console.error('API Sync:', e.message);
+    }
   };
 
   const columns = [
@@ -102,7 +119,7 @@ export default function FundRequestsPage() {
           padding: '3px 8px',
           borderRadius: 'var(--radius-md)',
         }}>
-          {r.requestId || r._id}
+          {r.requestId || r.id || r._id}
         </span>
       ),
     },
@@ -190,13 +207,14 @@ export default function FundRequestsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (row) =>
-        row.status === 'pending' ? (
+      render: (row) => {
+        const rowKey = row.id || row._id || row.requestId;
+        return row.status === 'pending' ? (
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', minWidth: 'max-content' }}>
             <button
               className="btn btn-sm btn-success"
               style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              onClick={() => handleAction(row._id || row.requestId, 'approve')}
+              onClick={() => handleAction(rowKey, 'approve')}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
@@ -206,7 +224,7 @@ export default function FundRequestsPage() {
             <button
               className="btn btn-sm btn-danger"
               style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              onClick={() => handleAction(row._id || row.requestId, 'reject')}
+              onClick={() => handleAction(rowKey, 'reject')}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -216,18 +234,43 @@ export default function FundRequestsPage() {
             </button>
           </div>
         ) : (
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Processed</span>
-        ),
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>
+            {row.status === 'approved' ? '✅ Credited' : '❌ Rejected'}
+          </span>
+        );
+      },
     },
   ];
 
-  // Dynamic live calculations from state
+  // Live real-time calculations from requests state
   const pendingCount = requests.filter(r => r.status === 'pending').length;
   const approvedCount = requests.filter(r => r.status === 'approved').length;
   const totalVolume = requests.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   return (
     <>
+      {/* Toast Banner */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '24px',
+          zIndex: 9999,
+          background: '#10B981',
+          color: '#FFFFFF',
+          padding: '12px 20px',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-lg)',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          {toastMessage}
+        </div>
+      )}
+
       {/* Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
@@ -263,7 +306,7 @@ export default function FundRequestsPage() {
           iconColor="orange"
           title="Pending Verification"
           value={pendingCount}
-          change="Action Required"
+          change={pendingCount > 0 ? `${pendingCount} Action Required` : 'All Verified'}
           changeType={pendingCount > 0 ? 'negative' : 'positive'}
           badge="Pending Review"
           sparkline="0,5 10,8 20,12 30,15 40,18 50,20 60,22"

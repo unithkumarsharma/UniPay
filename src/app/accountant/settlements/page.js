@@ -44,17 +44,23 @@ const MOCK_SETTLEMENTS = [
 
 export default function SettlementsPage() {
   const [settlementList, setSettlementList] = useState(MOCK_SETTLEMENTS);
+  const [toastMessage, setToastMessage] = useState('');
 
-  const handleProcessBatch = () => {
-    const updated = settlementList.map((s) => ({ ...s, status: 'settled' }));
-    setSettlementList([...updated]); // Brand new array reference for live instant React re-render
-    alert('All pending commission settlements have been processed and dispatched to Escrow Bank Gateway!');
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3500);
   };
 
-  const handleSingleSettlement = (id) => {
-    const updated = settlementList.map((s) => (s.id === id ? { ...s, status: 'settled' } : s));
-    setSettlementList([...updated]); // Brand new array reference for live instant React re-render
-    alert(`Settlement ${id} processed successfully!`);
+  const handleProcessBatch = () => {
+    setSettlementList((prev) => prev.map((s) => ({ ...s, status: 'settled' })));
+    showToast('✅ All pending commission settlements processed & dispatched to Escrow Bank!');
+  };
+
+  const handleSingleSettlement = (targetId) => {
+    setSettlementList((prev) =>
+      prev.map((s) => (s.id === targetId ? { ...s, status: 'settled' } : s))
+    );
+    showToast(`✅ Settlement #${targetId} processed successfully!`);
   };
 
   const columns = [
@@ -150,12 +156,12 @@ export default function SettlementsPage() {
             </button>
           </div>
         ) : (
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Dispatched</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>✅ Dispatched</span>
         ),
     },
   ];
 
-  // Dynamic live calculations from state
+  // Dynamic live calculations from settlementList state
   const pendingAmount = settlementList
     .filter((s) => s.status === 'pending')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -166,6 +172,28 @@ export default function SettlementsPage() {
 
   return (
     <>
+      {/* Toast Banner */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '24px',
+          zIndex: 9999,
+          background: '#10B981',
+          color: '#FFFFFF',
+          padding: '12px 20px',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-lg)',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          {toastMessage}
+        </div>
+      )}
+
       {/* Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
@@ -212,7 +240,7 @@ export default function SettlementsPage() {
           iconColor="green"
           title="Settled This Month"
           value={`₹${settledAmount.toLocaleString('en-IN')}`}
-          change="89 transactions cleared"
+          change="Transactions cleared"
           changeType="positive"
           badge="Escrow Dispatched"
           sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
