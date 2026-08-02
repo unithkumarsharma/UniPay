@@ -1,23 +1,26 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import WalletLog from '@/models/WalletLog';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(request) {
   try {
-    await dbConnect();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    const query = {};
-    if (userId) query.userId = userId;
-
-    const logs = await WalletLog.find(query)
-      .populate('userId', 'name userId role')
-      .populate('performedBy', 'name userId role')
-      .sort({ createdAt: -1 })
+    let query = supabaseAdmin
+      .from('wallet_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
       .limit(100);
 
-    return NextResponse.json({ success: true, count: logs.length, logs });
+    if (userId) query = query.eq('user_id', userId);
+
+    const { data: logs, error } = await query;
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, count: logs?.length || 0, logs: logs || [] });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

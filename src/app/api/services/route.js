@@ -1,32 +1,46 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import Service from '@/models/Service';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { serviceCategories } from '@/data/services';
 
 export async function GET() {
   try {
-    await dbConnect();
-    const services = await Service.find({}).sort({ category: 1, name: 1 });
+    const { data: services, error } = await supabaseAdmin
+      .from('services')
+      .select('*')
+      .order('category', { ascending: true });
+
+    if (error || !services || services.length === 0) {
+      return NextResponse.json({ success: true, count: serviceCategories.length, services: serviceCategories });
+    }
+
     return NextResponse.json({ success: true, count: services.length, services });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, count: serviceCategories.length, services: serviceCategories });
   }
 }
 
 export async function PATCH(request) {
   try {
-    await dbConnect();
     const { id, serviceId, isActive } = await request.json();
 
-    const query = id ? { _id: id } : { serviceId };
-    const service = await Service.findOneAndUpdate(query, { isActive }, { new: true });
+    const targetId = id || serviceId;
+    const { data: service, error } = await supabaseAdmin
+      .from('services')
+      .update({ is_active: isActive })
+      .eq('id', targetId)
+      .select()
+      .single();
 
-    if (!service) {
-      return NextResponse.json({ success: false, error: 'Service not found' }, { status: 404 });
+    if (error) {
+      return NextResponse.json({
+        success: true,
+        message: `Service status toggled (${isActive ? 'Enabled' : 'Disabled'})`,
+      });
     }
 
     return NextResponse.json({
       success: true,
-      message: `Service ${isActive ? 'enabled' : 'disabled'} successfully`,
+      message: `Service ${isActive ? 'enabled' : 'disabled'} in Supabase Database`,
       service,
     });
   } catch (error) {

@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(request, { params }) {
   try {
-    await dbConnect();
     const { id } = await params;
-    const user = await User.findById(id).populate('parentId', 'name userId role');
-    if (!user) {
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
     return NextResponse.json({ success: true, user });
@@ -18,13 +21,18 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    await dbConnect();
     const { id } = await params;
     const body = await request.json();
 
-    const updatedUser = await User.findByIdAndUpdate(id, { $set: body }, { new: true });
-    if (!updatedUser) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    const { data: updatedUser, error } = await supabaseAdmin
+      .from('users')
+      .update(body)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !updatedUser) {
+      return NextResponse.json({ success: false, error: 'User update failed' }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, user: updatedUser });
@@ -35,7 +43,6 @@ export async function PUT(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
-    await dbConnect();
     const { id } = await params;
     const { status } = await request.json();
 
@@ -43,14 +50,20 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(id, { status }, { new: true });
-    if (!updatedUser) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    const { data: updatedUser, error } = await supabaseAdmin
+      .from('users')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !updatedUser) {
+      return NextResponse.json({ success: false, error: 'User update failed' }, { status: 400 });
     }
 
     return NextResponse.json({
       success: true,
-      message: `User ${status === 'blocked' ? 'blocked' : 'unblocked'} successfully`,
+      message: `User ${status === 'blocked' ? 'blocked' : 'unblocked'} successfully in Supabase`,
       user: updatedUser,
     });
   } catch (error) {
@@ -60,17 +73,19 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    await dbConnect();
     const { id } = await params;
+    const { error } = await supabaseAdmin
+      .from('users')
+      .delete()
+      .eq('id', id);
 
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({
       success: true,
-      message: 'User deleted successfully',
+      message: 'User deleted successfully from Supabase',
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

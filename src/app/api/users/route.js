@@ -1,22 +1,28 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import bcrypt from 'bcryptjs';
 
 export async function GET(request) {
   try {
-    await dbConnect();
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
     const parentId = searchParams.get('parentId');
 
-    const query = {};
-    if (role) query.role = role;
-    if (parentId) query.parentId = parentId;
+    let query = supabaseAdmin
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    const users = await User.find(query).populate('parentId', 'name userId role').sort({ createdAt: -1 });
+    if (role) query = query.eq('role', role);
+    if (parentId) query = query.eq('parent_id', parentId);
 
-    return NextResponse.json({ success: true, count: users.length, users });
+    const { data: users, error } = await query;
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, count: users?.length || 0, users: users || [] });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -24,7 +30,6 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await dbConnect();
     const body = await request.json();
     const { name, phone, email, password, role, parentId, shopName, city, state, address, initialBalance } = body;
 
@@ -35,7 +40,13 @@ export async function POST(request) {
       );
     }
 
-    const existing = await User.findOne({ phone });
+    // Check existing
+    const { data: existing } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('phone', phone)
+      .single();
+
     if (existing) {
       return NextResponse.json(
         { success: false, error: 'User with this mobile number already exists' },
@@ -44,25 +55,38 @@ export async function POST(request) {
     }
 
     const hashedPassword = await bcrypt.hash(password || '123456', 10);
+    const userIdTag = `${role}${Date.now().toString().slice(-4)}`;
 
-    const newUser = await User.create({
-      name,
-      phone,
-      email: email || '',
-      password: hashedPassword,
-      role,
-      parentId: parentId || null,
-      shopName: shopName || '',
-      city: city || '',
-      state: state || '',
-      address: address || '',
-      walletBalance: parseFloat(initialBalance) || 0,
-    });
+    const { data: newUser, error } = await supabaseAdmin
+      .from('users')
+      .insert([
+        {
+          user_id: userIdTag,
+          name,
+          phone,
+          email: email || '',
+          password_hash: hashedPassword,
+          role,
+          parent_id: parentId || null,
+          shop_name: shopName || '',
+          city: city || '',
+          state: state || '',
+          address: address || '',
+          wallet_balance: parseFloat(initialBalance) || 0,
+          status: 'active',
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'User created successfully',
-      user: newUser.toJSON(),
+      message: 'User created successfully in Supabase Database',
+      user: newUser,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
