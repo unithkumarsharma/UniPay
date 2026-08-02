@@ -2,241 +2,258 @@
 import { useState } from 'react';
 import { serviceCategories } from '@/data/services';
 
-// Fintech Vector SVG Icon Map with Bolder Lines & Micro-Details
-const serviceSvgIcons = {
+// Realistic Multi-Color SVGs for All 28 Platform Services
+const multiColorServiceIcons = {
   mobile_prepaid: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="2" width="14" height="20" rx="2.5" />
-      <line x1="12" y1="18" x2="12.01" y2="18" />
-      <path d="M10 6h4" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="8" y="3" width="20" height="30" rx="4" fill="#2563EB" />
+      <rect x="10" y="6" width="16" height="20" rx="1.5" fill="#38BDF8" />
+      <circle cx="18" cy="29" r="1.5" fill="#FFFFFF" />
+      <path d="M14 11l3 3 5-5" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 20h8" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
     </svg>
   ),
   mobile_postpaid: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="2" width="14" height="20" rx="2.5" />
-      <path d="M16 8a4 4 0 0 1-4 4" />
-      <line x1="12" y1="18" x2="12.01" y2="18" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="6" y="4" width="18" height="28" rx="3.5" fill="#4F46E5" />
+      <rect x="8" y="7" width="14" height="18" rx="1" fill="#818CF8" />
+      <path d="M22 14h10v14H22z" fill="#F59E0B" rx="1.5" />
+      <path d="M24 18h6M24 22h4" stroke="#78350F" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="15" cy="28" r="1" fill="#FFFFFF" />
     </svg>
   ),
   dth: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" />
-      <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" />
-      <circle cx="12" cy="12" r="2.5" />
-      <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" />
-      <path d="M19.1 4.9c3.9 3.9 3.9 10.3 0 14.2" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M6 26c0-11 9-20 20-20" stroke="#9333EA" strokeWidth="3" strokeLinecap="round" />
+      <path d="M10 26c0-8.8 7.2-16 16-16" stroke="#A855F7" strokeWidth="3" strokeLinecap="round" />
+      <path d="M14 26c0-6.6 5.4-12 12-12" stroke="#C084FC" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="26" cy="26" r="4" fill="#F59E0B" />
+      <path d="M6 30l8-8" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" />
     </svg>
   ),
   data_card: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="8" rx="2" />
-      <rect x="2" y="14" width="20" height="8" rx="2" />
-      <line x1="6" y1="6" x2="6.01" y2="6" />
-      <line x1="6" y1="18" x2="6.01" y2="18" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="10" width="28" height="16" rx="3" fill="#06B6D4" />
+      <rect x="8" y="14" width="8" height="8" rx="1.5" fill="#164E63" />
+      <circle cx="22" cy="18" r="2" fill="#10B981" />
+      <circle cx="27" cy="18" r="2" fill="#F59E0B" />
+      <path d="M14 4c4 0 8 4 8 4" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M11 7c2.5 0 5 2.5 5 2.5" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   ),
   google_play: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="6" y1="12" x2="10" y2="12" />
-      <line x1="8" y1="10" x2="8" y2="14" />
-      <circle cx="15" cy="13" r="1" />
-      <circle cx="18" cy="11" r="1" />
-      <rect x="2" y="6" width="20" height="12" rx="4" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M6 4.5l15.5 13.5L6 31.5V4.5z" fill="#4285F4" />
+      <path d="M21.5 18L6 4.5l17 9.8L21.5 18z" fill="#EA4335" />
+      <path d="M21.5 18l1.5-3.7 7 4-7 4-1.5-4.3z" fill="#FBBC05" />
+      <path d="M6 31.5L21.5 18l1.5 4.3-17 9.2z" fill="#34A853" />
     </svg>
   ),
   electricity: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M18 3C11.4 3 6 8.4 6 15c0 4.5 2.5 8.4 6.2 10.4V28c0 1.1.9 2 2 2h7.6c1.1 0 2-.9 2-2v-2.6C27.5 23.4 30 19.5 30 15c0-6.6-5.4-12-12-12z" fill="#F59E0B" />
+      <path d="M14 28h8v3h-8vz" fill="#D97706" />
+      <path d="M16 31h4v2h-4vz" fill="#92400E" />
+      <path d="M19 8l-5 8h4.5L16 23l6.5-8H18l2-7z" fill="#FFFFFF" />
     </svg>
   ),
   gas: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3.5z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="10" y="10" width="16" height="22" rx="4" fill="#EF4444" />
+      <rect x="13" y="5" width="10" height="5" rx="1.5" fill="#991B1B" />
+      <path d="M16 10v4M20 10v4" stroke="#7F1D1D" strokeWidth="2" strokeLinecap="round" />
+      <path d="M18 16c-3 4-1 7 0 9 1-2 3-5 0-9z" fill="#F59E0B" />
+      <path d="M18 19c-1.5 2-.5 3.5 0 4.5.5-1 1.5-2.5 0-4.5z" fill="#F97316" />
     </svg>
   ),
   water: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M18 3S7 16.5 7 23.5a11 11 0 0 0 22 0C29 16.5 18 3 18 3z" fill="#0EA5E9" />
+      <path d="M18 7.5s-7.5 9-7.5 14.5a7.5 7.5 0 0 0 11.5 6.3C18.7 26.5 18 24 18 21.5c0-4.5 4-8 4-8s-4-6-4-6z" fill="#38BDF8" opacity="0.6" />
+      <path d="M14 22a4 4 0 0 0 4 4" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   ),
   broadband: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" fill="#2563EB" />
+      <ellipse cx="18" cy="18" rx="14" ry="6" stroke="#38BDF8" strokeWidth="2" fill="none" />
+      <line x1="18" y1="4" x2="18" y2="32" stroke="#60A5FA" strokeWidth="2" />
+      <line x1="4" y1="18" x2="32" y2="18" stroke="#60A5FA" strokeWidth="2" />
     </svg>
   ),
   landline: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M6 14c0-4 3-7 7-7h10c4 0 7 3 7 7v10c0 4-3 7-7 7H13c-4 0-7-3-7-7V14z" fill="#14B8A6" />
+      <path d="M10 4h16c1.5 0 2.5 1 2.5 2.5S27.5 9 26 9H10C8.5 9 7.5 8 7.5 6.5S8.5 4 10 4z" fill="#EF4444" />
+      <circle cx="18" cy="20" r="4" fill="#0F766E" />
+      <circle cx="18" cy="20" r="1.5" fill="#FFFFFF" />
     </svg>
   ),
   insurance: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M18 3L5 8v10c0 8.5 6 14.5 13 16 7-1.5 13-7.5 13-16V8L18 3z" fill="#10B981" />
+      <path d="M18 6.5L8 10.5v8c0 6.5 4.5 11 10 12.2V6.5z" fill="#059669" opacity="0.4" />
+      <path d="M13 18l3.5 3.5L24 14" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   insurance_new: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <line x1="12" y1="8" x2="12" y2="14" />
-      <line x1="9" y1="11" x2="15" y2="11" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M18 3L5 8v10c0 8.5 6 14.5 13 16 7-1.5 13-7.5 13-16V8L18 3z" fill="#10B981" />
+      <path d="M18 12v12M12 18h12" stroke="#F59E0B" strokeWidth="3.5" strokeLinecap="round" />
     </svg>
   ),
   loan_emi: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="21" x2="21" y2="21" />
-      <line x1="6" y1="18" x2="6" y2="11" />
-      <line x1="10" y1="18" x2="10" y2="11" />
-      <line x1="14" y1="18" x2="14" y2="11" />
-      <line x1="18" y1="18" x2="18" y2="11" />
-      <polygon points="12 2 20 7 4 7 12 2" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M18 3L4 10h28L18 3z" fill="#F59E0B" />
+      <rect x="6" y="12" width="4" height="14" fill="#2563EB" rx="1" />
+      <rect x="13" y="12" width="4" height="14" fill="#2563EB" rx="1" />
+      <rect x="20" y="12" width="4" height="14" fill="#2563EB" rx="1" />
+      <rect x="27" y="12" width="4" height="14" fill="#2563EB" rx="1" />
+      <rect x="3" y="28" width="30" height="4" fill="#1E3A8A" rx="1" />
     </svg>
   ),
   fastag: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1" y="3" width="15" height="13" rx="2" />
-      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-      <circle cx="5.5" cy="18.5" r="2.5" />
-      <circle cx="18.5" cy="18.5" r="2.5" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="12" width="22" height="14" rx="3" fill="#EAB308" />
+      <path d="M8 12l3-6h14l3 6H8z" fill="#38BDF8" />
+      <circle cx="9" cy="26" r="3" fill="#1F2937" />
+      <circle cx="21" cy="26" r="3" fill="#1F2937" />
+      <rect x="24" y="4" width="8" height="12" rx="2" fill="#10B981" />
+      <path d="M26 8h4" stroke="#FFFFFF" strokeWidth="2" />
     </svg>
   ),
   credit_card: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <line x1="2" y1="10" x2="22" y2="10" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="3" y="7" width="30" height="22" rx="4" fill="#6366F1" />
+      <rect x="3" y="13" width="30" height="5" fill="#1E1B4B" />
+      <rect x="7" y="21" width="6" height="5" rx="1" fill="#F59E0B" />
+      <circle cx="25" cy="23" r="3" fill="#EF4444" opacity="0.8" />
+      <circle cx="28" cy="23" r="3" fill="#F59E0B" opacity="0.8" />
     </svg>
   ),
   municipal_tax: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 21h18" />
-      <path d="M9 8h6" />
-      <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <path d="M5 32h26V14L18 5 5 14v18z" fill="#D97706" />
+      <rect x="13" y="20" width="10" height="12" rx="1" fill="#2563EB" />
+      <polygon points="18 8 9 15 27 15" fill="#B45309" />
+      <circle cx="18" cy="12" r="1.5" fill="#FFFFFF" />
     </svg>
   ),
   education: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-      <path d="M6 12v5c3 3 9 3 12 0v-5" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <polygon points="18 4 33 12 18 20 3 12" fill="#1E3A8A" />
+      <polygon points="18 7 30 13 18 19 6 13" fill="#2563EB" />
+      <path d="M9 16.5v8c0 3.5 9 4.5 9 4.5s9-1 9-4.5v-8" fill="none" stroke="#1E3A8A" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M30 13v12" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="30" cy="26" r="2" fill="#F59E0B" />
     </svg>
   ),
   dmt: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="17 1 21 5 17 9" />
-      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-      <polyline points="7 23 3 19 7 15" />
-      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="8" width="28" height="20" rx="3" fill="#10B981" />
+      <circle cx="18" cy="18" r="5" fill="#047857" />
+      <path d="M18 15v6M16 16.5h4M16 19.5h4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8 4l6 4H2L8 4z" fill="#2563EB" />
+      <path d="M28 32l-6-4h12l-6 4z" fill="#F59E0B" />
     </svg>
   ),
   upi: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="4" width="28" height="28" rx="6" fill="#8B5CF6" />
+      <path d="M12 12h5v5h-5zM20 12h4v4h-4zM12 20h4v4h-4zM20 20h4v4h-4z" fill="#FFFFFF" />
+      <circle cx="26" cy="10" r="3" fill="#10B981" />
+      <path d="M24.5 10l1 1 2-2" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   aeps: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" fill="#06B6D4" />
+      <path d="M18 10a7 7 0 0 0-7 7c0 3 1.5 5.5 3.5 7" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M18 14a3 3 0 0 0-3 3c0 2 1 3.5 2 4.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M22 17c0 3-1 5-2.5 7.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="26" cy="10" r="3.5" fill="#10B981" />
+      <path d="M24.5 10l1 1 2-2" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   micro_atm: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <line x1="2" y1="10" x2="22" y2="10" />
-      <line x1="6" y1="15" x2="6.01" y2="15" />
-      <line x1="10" y1="15" x2="10.01" y2="15" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="6" y="6" width="24" height="26" rx="4" fill="#111827" />
+      <rect x="9" y="9" width="18" height="8" rx="1.5" fill="#10B981" />
+      <circle cx="11" cy="21" r="1.5" fill="#9CA3AF" />
+      <circle cx="18" cy="21" r="1.5" fill="#9CA3AF" />
+      <circle cx="25" cy="21" r="1.5" fill="#9CA3AF" />
+      <circle cx="11" cy="26" r="1.5" fill="#9CA3AF" />
+      <circle cx="18" cy="26" r="1.5" fill="#9CA3AF" />
+      <circle cx="25" cy="26" r="1.5" fill="#EF4444" />
+      <rect x="10" y="2" width="16" height="6" rx="1" fill="#2563EB" />
     </svg>
   ),
   account_opening: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="8.5" cy="7" r="4" />
-      <line x1="20" y1="8" x2="20" y2="14" />
-      <line x1="17" y1="11" x2="23" y2="11" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="6" width="22" height="26" rx="3" fill="#4F46E5" />
+      <circle cx="15" cy="15" r="4" fill="#F59E0B" />
+      <path d="M9 25c0-3 3-5 6-5s6 2 6 5" fill="#F59E0B" />
+      <circle cx="27" cy="23" r="5" fill="#10B981" />
+      <path d="M27 20v6M24 23h6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
     </svg>
   ),
   bus: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="14" rx="2" />
-      <path d="M4 17v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2M17 17v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2" />
-      <circle cx="7.5" cy="13.5" r="1.5" />
-      <circle cx="16.5" cy="13.5" r="1.5" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="5" y="6" width="26" height="22" rx="4" fill="#F97316" />
+      <rect x="8" y="10" width="20" height="7" rx="1.5" fill="#38BDF8" />
+      <circle cx="10" cy="24" r="2.5" fill="#1E293B" />
+      <circle cx="26" cy="24" r="2.5" fill="#1E293B" />
+      <rect x="13" y="21" width="10" height="3" fill="#FED7AA" rx="1" />
     </svg>
   ),
   flight: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.7 5.2c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" fill="#0EA5E9" />
+      <path d="M28 16l-8-3-4-8-3 1 3 8-7 3-3-2-2 1 3 4 3 2 12-6z" fill="#FFFFFF" />
     </svg>
   ),
   train: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="3" width="16" height="14" rx="2" />
-      <path d="M4 11h16M12 3v8M8 19l-3 3M16 19l3 3M8 15h.01M16 15h.01" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="7" y="4" width="22" height="24" rx="5" fill="#EF4444" />
+      <rect x="10" y="8" width="16" height="8" rx="2" fill="#38BDF8" />
+      <circle cx="12" cy="21" r="2" fill="#F59E0B" />
+      <circle cx="24" cy="21" r="2" fill="#F59E0B" />
+      <path d="M12 31l-4 3M24 31l4 3" stroke="#94A3B8" strokeWidth="3" strokeLinecap="round" />
     </svg>
   ),
   hotel: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9" />
-      <circle cx="9" cy="11" r="2" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="6" y="6" width="24" height="26" rx="3" fill="#A855F7" />
+      <rect x="10" y="10" width="5" height="5" fill="#FDE047" rx="1" />
+      <rect x="21" y="10" width="5" height="5" fill="#FDE047" rx="1" />
+      <rect x="10" y="18" width="5" height="5" fill="#FDE047" rx="1" />
+      <rect x="21" y="18" width="5" height="5" fill="#FDE047" rx="1" />
+      <rect x="14" y="25" width="8" height="7" fill="#F59E0B" rx="1" />
     </svg>
   ),
   pan_card: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <circle cx="8" cy="10" r="2" />
-      <path d="M12 16v-1a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v1" />
-      <line x1="14" y1="9" x2="18" y2="9" />
-      <line x1="14" y1="13" x2="18" y2="13" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="3" y="6" width="30" height="24" rx="4" fill="#1E3A8A" />
+      <rect x="6" y="10" width="24" height="4" fill="#F59E0B" rx="1" />
+      <circle cx="11" cy="21" r="3.5" fill="#3B82F6" />
+      <rect x="17" y="18" width="12" height="2" fill="#93C5FD" rx="1" />
+      <rect x="17" y="22" width="8" height="2" fill="#93C5FD" rx="1" />
     </svg>
   ),
   e_shram: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="12" y1="18" x2="12" y2="12" />
-      <line x1="9" y1="15" x2="15" y2="15" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="6" width="28" height="24" rx="4" fill="#D97706" />
+      <rect x="8" y="10" width="20" height="4" fill="#FEF3C7" rx="1" />
+      <path d="M12 18h12M12 22h8" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   ),
   ayushman: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="6" width="28" height="24" rx="4" fill="#DC2626" />
+      <rect x="8" y="10" width="20" height="4" fill="#FDE8E8" rx="1" />
+      <path d="M18 16v10M13 21h10" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
     </svg>
   ),
-};
-
-// Rich Vibrant Gradient Themes for Every Service Category & ID
-const realServiceThemeMap = {
-  mobile_prepaid: { bg: 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(29,78,216,0.3))', color: '#2563EB', glow: 'rgba(37,99,235,0.25)' },
-  mobile_postpaid: { bg: 'linear-gradient(135deg, rgba(79,70,229,0.18), rgba(67,56,202,0.3))', color: '#4F46E5', glow: 'rgba(79,70,229,0.25)' },
-  dth: { bg: 'linear-gradient(135deg, rgba(147,51,234,0.18), rgba(126,34,206,0.3))', color: '#9333EA', glow: 'rgba(147,51,234,0.25)' },
-  data_card: { bg: 'linear-gradient(135deg, rgba(6,182,212,0.18), rgba(14,116,144,0.3))', color: '#06B6D4', glow: 'rgba(6,182,212,0.25)' },
-  google_play: { bg: 'linear-gradient(135deg, rgba(16,185,129,0.18), rgba(4,120,87,0.3))', color: '#10B981', glow: 'rgba(16,185,129,0.25)' },
-  electricity: { bg: 'linear-gradient(135deg, rgba(245,158,11,0.22), rgba(217,119,6,0.35))', color: '#F59E0B', glow: 'rgba(245,158,11,0.3)' },
-  gas: { bg: 'linear-gradient(135deg, rgba(239,68,68,0.22), rgba(185,28,28,0.35))', color: '#EF4444', glow: 'rgba(239,68,68,0.3)' },
-  water: { bg: 'linear-gradient(135deg, rgba(14,165,233,0.22), rgba(3,105,161,0.35))', color: '#0EA5E9', glow: 'rgba(14,165,233,0.3)' },
-  broadband: { bg: 'linear-gradient(135deg, rgba(168,85,247,0.22), rgba(126,34,206,0.35))', color: '#A855F7', glow: 'rgba(168,85,247,0.3)' },
-  landline: { bg: 'linear-gradient(135deg, rgba(20,184,166,0.22), rgba(15,118,110,0.35))', color: '#14B8A6', glow: 'rgba(20,184,166,0.3)' },
-  insurance: { bg: 'linear-gradient(135deg, rgba(16,185,129,0.22), rgba(6,95,70,0.35))', color: '#10B981', glow: 'rgba(16,185,129,0.3)' },
-  loan_emi: { bg: 'linear-gradient(135deg, rgba(225,29,72,0.22), rgba(159,18,57,0.35))', color: '#E11D48', glow: 'rgba(225,29,72,0.3)' },
-  fastag: { bg: 'linear-gradient(135deg, rgba(234,179,8,0.22), rgba(161,98,7,0.35))', color: '#EAB308', glow: 'rgba(234,179,8,0.3)' },
-  credit_card: { bg: 'linear-gradient(135deg, rgba(99,102,241,0.22), rgba(67,56,202,0.35))', color: '#6366F1', glow: 'rgba(99,102,241,0.3)' },
-  municipal_tax: { bg: 'linear-gradient(135deg, rgba(217,119,6,0.22), rgba(146,64,14,0.35))', color: '#D97706', glow: 'rgba(217,119,6,0.3)' },
-  education: { bg: 'linear-gradient(135deg, rgba(37,99,235,0.22), rgba(30,58,138,0.35))', color: '#2563EB', glow: 'rgba(37,99,235,0.3)' },
-  dmt: { bg: 'linear-gradient(135deg, rgba(16,185,129,0.22), rgba(4,120,87,0.35))', color: '#10B981', glow: 'rgba(16,185,129,0.3)' },
-  upi: { bg: 'linear-gradient(135deg, rgba(139,92,246,0.25), rgba(109,40,217,0.4))', color: '#8B5CF6', glow: 'rgba(139,92,246,0.35)' },
-  aeps: { bg: 'linear-gradient(135deg, rgba(6,182,212,0.25), rgba(14,116,144,0.4))', color: '#06B6D4', glow: 'rgba(6,182,212,0.35)' },
-  micro_atm: { bg: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(21,128,61,0.4))', color: '#22C55E', glow: 'rgba(34,197,94,0.35)' },
-  account_opening: { bg: 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(67,56,202,0.4))', color: '#6366F1', glow: 'rgba(99,102,241,0.35)' },
-  bus: { bg: 'linear-gradient(135deg, rgba(249,115,22,0.25), rgba(194,65,12,0.4))', color: '#F97316', glow: 'rgba(249,115,22,0.35)' },
-  flight: { bg: 'linear-gradient(135deg, rgba(14,165,233,0.25), rgba(3,105,161,0.4))', color: '#0EA5E9', glow: 'rgba(14,165,233,0.35)' },
-  train: { bg: 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(185,28,28,0.4))', color: '#EF4444', glow: 'rgba(239,68,68,0.35)' },
-  hotel: { bg: 'linear-gradient(135deg, rgba(168,85,247,0.25), rgba(126,34,206,0.4))', color: '#A855F7', glow: 'rgba(168,85,247,0.35)' },
-  pan_card: { bg: 'linear-gradient(135deg, rgba(37,99,235,0.25), rgba(30,58,138,0.4))', color: '#2563EB', glow: 'rgba(37,99,235,0.35)' },
-  insurance_new: { bg: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(4,120,87,0.4))', color: '#10B981', glow: 'rgba(16,185,129,0.35)' },
-  e_shram: { bg: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(180,83,9,0.4))', color: '#D97706', glow: 'rgba(245,158,11,0.35)' },
-  ayushman: { bg: 'linear-gradient(135deg, rgba(225,29,72,0.25), rgba(159,18,57,0.4))', color: '#E11D48', glow: 'rgba(225,29,72,0.35)' },
 };
 
 export default function AdminServicesPage() {
@@ -365,15 +382,9 @@ export default function AdminServicesPage() {
             <div className="services-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
               {filteredServices.map((service) => {
                 const isActive = serviceStatus[service.id];
-                const theme = realServiceThemeMap[service.id] || {
-                  bg: 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(29,78,216,0.3))',
-                  color: '#2563EB',
-                  glow: 'rgba(37,99,235,0.25)',
-                };
-
-                const iconSvg = serviceSvgIcons[service.id] || (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
+                const realIcon = multiColorServiceIcons[service.id] || (
+                  <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+                    <circle cx="18" cy="18" r="14" fill="#2563EB" />
                   </svg>
                 );
 
@@ -386,31 +397,29 @@ export default function AdminServicesPage() {
                       border: '1px solid',
                       borderColor: isActive ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-color)',
                       borderRadius: 'var(--radius-xl)',
-                      padding: '22px 16px',
+                      padding: '20px 16px',
                       textAlign: 'center',
                       cursor: 'pointer',
-                      opacity: isActive ? 1 : 0.55,
-                      boxShadow: isActive ? `0 6px 20px -4px ${theme.glow}` : 'none',
+                      opacity: isActive ? 1 : 0.5,
                       transition: 'all 0.25s ease',
                       position: 'relative',
                     }}
                     onClick={() => toggleService(service.id)}
                   >
-                    {/* Vibrant Gradient Vector SVG Icon Badge */}
+                    {/* Realistic Multi-Color Icon Badge */}
                     <div style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: '14px',
-                      background: theme.bg,
-                      color: theme.color,
+                      width: 56,
+                      height: 56,
+                      borderRadius: '16px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 14px',
-                      boxShadow: `0 4px 14px ${theme.glow}`,
+                      margin: '0 auto 12px',
                       transition: 'transform 0.2s ease',
                     }}>
-                      {iconSvg}
+                      {realIcon}
                     </div>
 
                     <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
