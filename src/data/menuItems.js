@@ -1,0 +1,42 @@
+export const menuItems = {
+  admin: [
+    { label: 'Dashboard', icon: '📊', path: '/admin' },
+    { label: 'User Management', icon: '👥', path: '/admin/users' },
+    { label: 'Wallet Management', icon: '💰', path: '/admin/wallet' },
+    { label: 'Services', icon: '⚡', path: '/admin/services' },
+    { label: 'Commission Setup', icon: '💎', path: '/admin/commission' },
+    { label: 'Reports', icon: '📈', path: '/admin/reports' },
+    { label: 'Complaints', icon: '📋', path: '/admin/complaints' },
+    { label: 'Settings', icon: '⚙️', path: '/admin/settings' },
+  ],
+  accountant: [
+    { label: 'Dashboard', icon: '📊', path: '/accountant' },
+    { label: 'Ledger', icon: '📒', path: '/accountant/ledger' },
+    { label: 'Fund Requests', icon: '💳', path: '/accountant/fund-requests' },
+    { label: 'Settlements', icon: '🏦', path: '/accountant/settlements' },
+    { label: 'Reports', icon: '📈', path: '/accountant/reports' },
+  ],
+  master_distributor: [
+    { label: 'Dashboard', icon: '📊', path: '/master-distributor' },
+    { label: 'My Distributors', icon: '👥', path: '/master-distributor/distributors' },
+    { label: 'Wallet & Transfer', icon: '💰', path: '/master-distributor/wallet' },
+    { label: 'Fund Request', icon: '💳', path: '/master-distributor/fund-request' },
+    { label: 'Reports', icon: '📈', path: '/master-distributor/reports' },
+  ],
+  distributor: [
+    { label: 'Dashboard', icon: '📊', path: '/distributor' },
+    { label: 'My Retailers', icon: '🛒', path: '/distributor/retailers' },
+    { label: 'Wallet & Transfer', icon: '💰', path: '/distributor/wallet' },
+    { label: 'Fund Request', icon: '💳', path: '/distributor/fund-request' },
+    { label: 'Reports', icon: '📈', path: '/distributor/reports' },
+  ],
+  retailer: [
+    { label: 'Dashboard', icon: '📊', path: '/retailer' },
+    { label: 'Recharge', icon: '📱', path: '/retailer/recharge' },
+    { label: 'Bill Payment', icon: '🧾', path: '/retailer/bill-payment' },
+    { label: 'Fund Request', icon: '💳', path: '/retailer/fund-request' },
+    { label: 'Transactions', icon: '📋', path: '/retailer/transactions' },
+    { label: 'Complaints', icon: '🔔', path: '/retailer/complaints' },
+    { label: 'Reports', icon: '📈', path: '/retailer/reports' },
+  ],
+};
