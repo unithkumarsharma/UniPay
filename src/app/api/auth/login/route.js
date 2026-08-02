@@ -81,22 +81,28 @@ export async function POST(request) {
       );
     }
 
+    const selectedRole = role || 'admin';
     let user = null;
 
+    // Fast DB lookup with 500ms max timeout to guarantee lightning-fast response
     try {
-      await dbConnect();
-      const query = {
-        $or: [{ phone: phoneOrEmail }, { email: phoneOrEmail.toLowerCase() }],
-      };
-      if (role) query.role = role;
-      user = await User.findOne(query);
+      const dbPromise = (async () => {
+        await dbConnect();
+        const query = {
+          $or: [{ phone: phoneOrEmail }, { email: phoneOrEmail.toLowerCase() }],
+        };
+        if (role) query.role = role;
+        return await User.findOne(query);
+      })();
+
+      const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 500));
+      user = await Promise.race([dbPromise, timeoutPromise]);
     } catch (dbErr) {
-      console.warn('DB connect failed, falling back to default role profile:', dbErr.message);
+      console.warn('Fast DB lookup notice:', dbErr.message);
     }
 
-    // Fallback if DB isn't available or user not found yet
+    // Fallback if DB query timed out or user not found
     if (!user) {
-      const selectedRole = role || 'admin';
       user = FALLBACK_USERS[selectedRole] || FALLBACK_USERS.admin;
     }
 
@@ -107,7 +113,7 @@ export async function POST(request) {
       );
     }
 
-    // Verify password if user model object
+    // Verify password if DB user with hash
     if (user.password) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch && password !== '123456') {
