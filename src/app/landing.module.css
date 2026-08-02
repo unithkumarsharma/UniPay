@@ -426,7 +426,7 @@
 }
 
 .heroStatCard {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-card);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
@@ -478,8 +478,9 @@
   position: relative;
   z-index: 1;
   padding: 95px 24px;
-  background: rgba(241, 245, 249, 0.6);
-  backdrop-filter: blur(12px);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .sectionContainer {
@@ -616,7 +617,9 @@
   position: relative;
   z-index: 1;
   padding: 95px 24px;
-  background: rgba(241, 245, 249, 0.6);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .partnerCardsGrid {
