@@ -497,6 +497,7 @@
 .sectionTitle {
   font-size: 2.3rem;
   font-weight: 800;
+  color: var(--text-primary);
   margin-bottom: 14px;
   letter-spacing: -0.02em;
 }
@@ -505,6 +506,7 @@
   font-size: 1.08rem;
   color: var(--text-secondary);
   line-height: 1.6;
+  font-weight: 500;
 }
 
 .servicesCategoryGrid {
