@@ -102,13 +102,43 @@ const financialDatasets = {
   },
 };
 
-const categoryBreakdown = [
-  { name: 'Mobile & DTH Recharge', percent: 38, amount: '₹7,01,100', color: '#2563EB' },
-  { name: 'Money Transfer (DMT)', percent: 28, amount: '₹5,16,600', color: '#10B981' },
-  { name: 'BBPS Electricity & Gas', percent: 18, amount: '₹3,32,100', color: '#F59E0B' },
-  { name: 'AEPS Cash Withdrawal', percent: 12, amount: '₹2,21,400', color: '#8B5CF6' },
-  { name: 'PAN Card & Utility Cards', percent: 4, amount: '₹73,800', color: '#EF4444' },
-];
+const categoryDatasets = {
+  Today: [
+    { name: 'Mobile & DTH Recharge', percent: 38, amount: '₹7,01,100', color: '#2563EB' },
+    { name: 'Money Transfer (DMT)', percent: 28, amount: '₹5,16,600', color: '#10B981' },
+    { name: 'BBPS Electricity & Gas', percent: 18, amount: '₹3,32,100', color: '#F59E0B' },
+    { name: 'AEPS Cash Withdrawal', percent: 12, amount: '₹2,21,400', color: '#8B5CF6' },
+    { name: 'PAN Card & Utility Cards', percent: 4, amount: '₹73,800', color: '#EF4444' },
+  ],
+  Yesterday: [
+    { name: 'Mobile & DTH Recharge', percent: 35, amount: '₹5,88,000', color: '#2563EB' },
+    { name: 'Money Transfer (DMT)', percent: 30, amount: '₹5,04,000', color: '#10B981' },
+    { name: 'BBPS Electricity & Gas', percent: 20, amount: '₹3,36,000', color: '#F59E0B' },
+    { name: 'AEPS Cash Withdrawal', percent: 10, amount: '₹1,68,000', color: '#8B5CF6' },
+    { name: 'PAN Card & Utility Cards', percent: 5, amount: '₹84,000', color: '#EF4444' },
+  ],
+  'Last 7 Days': [
+    { name: 'Mobile & DTH Recharge', percent: 40, amount: '₹49,80,000', color: '#2563EB' },
+    { name: 'Money Transfer (DMT)', percent: 26, amount: '₹32,37,000', color: '#10B981' },
+    { name: 'BBPS Electricity & Gas', percent: 16, amount: '₹19,92,000', color: '#F59E0B' },
+    { name: 'AEPS Cash Withdrawal', percent: 13, amount: '₹16,18,500', color: '#8B5CF6' },
+    { name: 'PAN Card & Utility Cards', percent: 5, amount: '₹6,22,500', color: '#EF4444' },
+  ],
+  'This Month': [
+    { name: 'Mobile & DTH Recharge', percent: 36, amount: '₹1,84,32,000', color: '#2563EB' },
+    { name: 'Money Transfer (DMT)', percent: 29, amount: '₹1,48,48,000', color: '#10B981' },
+    { name: 'BBPS Electricity & Gas', percent: 19, amount: '₹97,28,000', color: '#F59E0B' },
+    { name: 'AEPS Cash Withdrawal', percent: 11, amount: '₹56,32,000', color: '#8B5CF6' },
+    { name: 'PAN Card & Utility Cards', percent: 5, amount: '₹25,60,000', color: '#EF4444' },
+  ],
+  'Custom Range': [
+    { name: 'Mobile & DTH Recharge', percent: 42, amount: '₹17,68,200', color: '#2563EB' },
+    { name: 'Money Transfer (DMT)', percent: 25, amount: '₹10,52,500', color: '#10B981' },
+    { name: 'BBPS Electricity & Gas', percent: 17, amount: '₹7,15,700', color: '#F59E0B' },
+    { name: 'AEPS Cash Withdrawal', percent: 11, amount: '₹4,63,100', color: '#8B5CF6' },
+    { name: 'PAN Card & Utility Cards', percent: 5, amount: '₹2,10,500', color: '#EF4444' },
+  ],
+};
 
 export default function AdminReportsPage() {
   const [datePreset, setDatePreset] = useState('Today');
@@ -122,6 +152,10 @@ export default function AdminReportsPage() {
   const activeDataset = isCustomMode
     ? financialDatasets['Custom Range']
     : (financialDatasets[datePreset] || financialDatasets.Today);
+
+  const activeCategoryBreakdown = isCustomMode
+    ? categoryDatasets['Custom Range']
+    : (categoryDatasets[datePreset] || categoryDatasets.Today);
 
   const columns = [
     {
@@ -548,12 +582,12 @@ export default function AdminReportsPage() {
               Category Financial Volume Breakdown
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Proportional distribution of gross transaction volume across services.
+              Proportional distribution of gross transaction volume across services ({isCustomMode ? 'Custom Range' : datePreset}).
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {categoryBreakdown.map((cat, idx) => (
+            {activeCategoryBreakdown.map((cat, idx) => (
               <div key={idx}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                   <span style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -565,7 +599,7 @@ export default function AdminReportsPage() {
                   </span>
                 </div>
                 <div style={{ width: '100%', height: 6, background: 'var(--bg-secondary)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${cat.percent}%`, height: '100%', background: cat.color, borderRadius: 3 }} />
+                  <div style={{ width: `${cat.percent}%`, height: '100%', background: cat.color, borderRadius: 3, transition: 'width 0.4s ease' }} />
                 </div>
               </div>
             ))}
@@ -576,7 +610,7 @@ export default function AdminReportsPage() {
 
       {/* Transaction Audit Ledger Table */}
       <DataTable
-        title="Transaction Audit Ledger"
+        title={`Transaction Audit Ledger (${isCustomMode ? 'Custom Date Range' : datePreset})`}
         columns={columns}
         data={initialTransactions}
         searchable={true}
