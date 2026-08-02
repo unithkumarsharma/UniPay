@@ -586,11 +586,11 @@
 }
 
 .categoryName {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--primary);
   margin-bottom: 22px;
-  border-bottom: 2px solid var(--primary-light);
+  border-bottom: 3px solid var(--primary);
   padding-bottom: 12px;
 }
 
