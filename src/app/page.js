@@ -10,6 +10,11 @@ export default function LandingPage() {
 
   return (
     <div className={styles.landingWrapper}>
+      {/* Background Orbs & Ambient Glow */}
+      <div className={styles.bgGlowOrb1}></div>
+      <div className={styles.bgGlowOrb2}></div>
+      <div className={styles.bgGlowOrb3}></div>
+
       {/* ===== HEADER / NAVBAR ===== */}
       <header className={styles.header}>
         <div className={styles.headerContainer}>
@@ -179,23 +184,23 @@ export default function LandingPage() {
             <p className={styles.sectionSubtitle}>Join thousands of successful merchants earning daily income with UniPay digital services.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', textAlign: 'center' }}>
-            <div style={{ background: 'var(--bg-card)', padding: '32px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '14px' }}>⚡</div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Instant Onboarding</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Get registered in less than 2 minutes and start offering financial services to your customers immediately.</p>
+          <div className={styles.partnerCardsGrid}>
+            <div className={styles.partnerCard}>
+              <div className={styles.partnerIcon}>⚡</div>
+              <h3 className={styles.partnerTitle}>Instant Onboarding</h3>
+              <p className={styles.partnerText}>Get registered in less than 2 minutes and start offering financial services to your customers immediately.</p>
             </div>
 
-            <div style={{ background: 'var(--bg-card)', padding: '32px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '14px' }}>💰</div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Maximum Earnings</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Enjoy industry-best margins on recharges, bill payments, and money transfers directly in your wallet.</p>
+            <div className={styles.partnerCard}>
+              <div className={styles.partnerIcon}>💰</div>
+              <h3 className={styles.partnerTitle}>Maximum Earnings</h3>
+              <p className={styles.partnerText}>Enjoy industry-best margins on recharges, bill payments, and money transfers directly in your wallet.</p>
             </div>
 
-            <div style={{ background: 'var(--bg-card)', padding: '32px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '14px' }}>🤝</div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>24x7 Support</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Our dedicated support team and account managers are always available to help your shop grow.</p>
+            <div className={styles.partnerCard}>
+              <div className={styles.partnerIcon}>🤝</div>
+              <h3 className={styles.partnerTitle}>24x7 Support</h3>
+              <p className={styles.partnerText}>Our dedicated support team and account managers are always available to help your shop grow.</p>
             </div>
           </div>
         </div>
