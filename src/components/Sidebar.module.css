@@ -85,34 +85,51 @@
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all var(--transition-fast);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  position: relative;
 }
 
 .navItem:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+  transform: translateX(2px);
 }
 
 .navItem.active {
-  background: var(--primary-light);
-  color: var(--primary);
-  font-weight: 600;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563EB;
+  font-weight: 700;
+}
+
+.navItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3.5px;
+  border-radius: 0 4px 4px 0;
+  background: #2563EB;
 }
 
 .navIcon {
-  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  width: 24px;
-  text-align: center;
+  width: 22px;
+  height: 22px;
+  color: inherit;
 }
 
 .navLabel {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
 /* User section */
