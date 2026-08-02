@@ -65,7 +65,7 @@ export default function LoginPage() {
         <div className={styles.logoSection}>
           <img src="/logo.png" alt="UniPay" className={styles.logo} />
           <h1 className={styles.title}>UniPay</h1>
-          <p className={styles.subtitle}>Multi-Service Payment Platform</p>
+          <p className={styles.subtitle}>Smart Payment, Seamless Suvidha</p>
         </div>
 
         {/* Role Selection */}

@@ -15,7 +15,10 @@ export default function LandingPage() {
         <div className={styles.headerContainer}>
           <Link href="/" className={styles.brand}>
             <img src="/logo.png" alt="UniPay Logo" className={styles.brandLogo} />
-            <span className={styles.brandName}>UniPay</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className={styles.brandName}>UniPay</span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent)', marginTop: -2 }}>Smart Payment, Seamless Suvidha</span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}

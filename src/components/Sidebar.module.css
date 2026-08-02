@@ -49,13 +49,22 @@
 }
 
 .logoText {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
+  line-height: 1.2;
+}
+
+.tagline {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 /* Navigation */

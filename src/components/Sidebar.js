@@ -27,7 +27,12 @@ export default function Sidebar({ collapsed, onToggle }) {
           <div className={styles.logoIcon}>
             <img src="/logo.png" alt="UniPay" width={36} height={36} />
           </div>
-          {!collapsed && <span className={styles.logoText}>UniPay</span>}
+          {!collapsed && (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className={styles.logoText}>UniPay</span>
+              <span className={styles.tagline}>Smart Payment, Seamless Suvidha</span>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
