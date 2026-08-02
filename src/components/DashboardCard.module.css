@@ -1,97 +1,143 @@
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 22px 24px;
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
 }
 
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--primary-gradient);
-  opacity: 0.8;
-  transition: opacity var(--transition-base);
-}
-
 .card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
-  border-color: var(--primary);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.09);
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.3);
 }
 
-.card:hover::before {
-  opacity: 1;
-}
-
-.info {
+.header {
   display: flex;
-  flex-direction: column;
-}
-
-.title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-}
-
-.value {
-  font-size: 1.75rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  line-height: 1.1;
-  margin-bottom: 8px;
-  letter-spacing: -0.02em;
-}
-
-.change {
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
-.positive {
-  color: var(--success);
-}
-
-.negative {
-  color: var(--danger);
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .icon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-lg);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
 }
 
 .card:hover .icon {
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
-.blue { background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); }
-.green { background: var(--success-light); color: var(--success); border: 1px solid var(--border-color); }
-.orange { background: var(--warning-light); color: var(--warning); border: 1px solid var(--border-color); }
-.red { background: var(--danger-light); color: var(--danger); border: 1px solid var(--border-color); }
-.purple { background: var(--info-light); color: var(--info); border: 1px solid var(--border-color); }
+.blue {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563EB;
+}
+
+.green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+}
+
+.orange {
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.purple {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+}
+
+.red {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+}
+
+.title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.value {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 14px;
+  letter-spacing: -0.03em;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.change {
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.positive {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.negative {
+  color: #DC2626;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.neutral {
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+}
+
+.subtext {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}

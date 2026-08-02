@@ -372,7 +372,7 @@ export default function AdminDashboard() {
         </h2>
         <div className="stats-grid">
           <DashboardCard
-            icon="👥"
+            icon="users"
             iconColor="blue"
             title="Total Registered Accounts"
             value={adminStats.totalUsers.toLocaleString()}
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
             sparkline="0,20 10,15 20,18 30,12 40,8 50,14 60,4"
           />
           <DashboardCard
-            icon="⚡"
+            icon="lightning"
             iconColor="green"
             title="Today's Transactions"
             value={adminStats.todayTransactions.toLocaleString()}
@@ -392,7 +392,7 @@ export default function AdminDashboard() {
             sparkline="0,22 10,18 20,12 30,14 40,8 50,6 60,2"
           />
           <DashboardCard
-            icon="💰"
+            icon="wallet"
             iconColor="orange"
             title="Today's Margin Revenue"
             value={`₹${adminStats.todayRevenue.toLocaleString('en-IN')}`}
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
             sparkline="0,24 10,20 20,16 30,12 40,10 50,6 60,3"
           />
           <DashboardCard
-            icon="🛍️"
+            icon="services"
             iconColor="purple"
             title="Active Operational Services"
             value={`${adminStats.activeServices} Services`}
@@ -417,7 +417,7 @@ export default function AdminDashboard() {
       {/* ===== NETWORK HIERARCHY DISTRIBUTION ===== */}
       <div className="stats-grid" style={{ marginBottom: '32px' }}>
         <DashboardCard
-          icon="🏛️"
+          icon="masterDistributor"
           iconColor="blue"
           title="Master Distributors (MD)"
           value={adminStats.totalMDs}
@@ -426,7 +426,7 @@ export default function AdminDashboard() {
           sparkline="0,18 10,16 20,12 30,14 40,10 50,8 60,4"
         />
         <DashboardCard
-          icon="🏪"
+          icon="distributor"
           iconColor="green"
           title="Distributors (DST)"
           value={adminStats.totalDistributors}
@@ -435,7 +435,7 @@ export default function AdminDashboard() {
           sparkline="0,20 10,18 20,14 30,10 40,8 50,6 60,2"
         />
         <DashboardCard
-          icon="🛒"
+          icon="retailer"
           iconColor="orange"
           title="Retail Merchants (RTL)"
           value={adminStats.totalRetailers.toLocaleString()}
@@ -444,7 +444,7 @@ export default function AdminDashboard() {
           sparkline="0,22 10,19 20,15 30,11 40,7 50,5 60,1"
         />
         <DashboardCard
-          icon="📩"
+          icon="ticket"
           iconColor="red"
           title="Dispute Complaints"
           value={adminStats.pendingComplaints}
