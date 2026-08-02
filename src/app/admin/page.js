@@ -171,13 +171,27 @@ export default function AdminDashboard() {
           </button>
 
           <button onClick={() => setActiveModal('topup')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>➕</span> Fund Top-Up
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Fund Top-Up
           </button>
           <button onClick={() => setActiveModal('merchant')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>👤</span> Onboard Merchant
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="17" y1="11" x2="23" y2="11" />
+            </svg>
+            Onboard Merchant
           </button>
           <button onClick={() => setActiveModal('broadcast')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>📢</span> Alert Broadcast
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            Alert Broadcast
           </button>
         </div>
       </div>
@@ -455,96 +469,162 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* ===== SYSTEM GATEWAY SWITCH, VOLUME & AUDIT FEED ===== */}
+      {/* ===== SYSTEM GATEWAY SWITCH & AUDIT FEED ===== */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '32px' }}>
 
         {/* 1. GATEWAY & API LATENCY MONITOR */}
-        <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }} className="glow-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🟢</span> Live Gateway Switch Latency
+        <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }} className="glow-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="status-dot-pulse" />
+              Live Gateway Switch Latency
             </h3>
             <button
               onClick={handlePingTest}
               style={{
-                padding: '4px 12px',
-                fontSize: '0.75rem',
+                padding: '6px 14px',
+                fontSize: '0.78rem',
                 fontWeight: 700,
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-full)',
                 border: '1px solid var(--border-color)',
                 background: 'var(--bg-secondary)',
                 color: 'var(--text-secondary)',
                 cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease',
               }}
             >
-              🔄 Refresh Ping
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              Ping Test
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Prepaid Mobile */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', fontWeight: 700, marginBottom: '4px' }}>
-                <span>📱 Mobile Recharge Switch</span>
-                <span style={{ color: 'var(--success)' }}>99.98% ({healthPings.recharge}ms)</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                    <line x1="12" y1="18" x2="12.01" y2="18" />
+                  </svg>
+                  <span>Prepaid Mobile Switch (Jio/Airtel/Vi)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10B981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                    {healthPings.recharge}ms
+                  </span>
+                  <span style={{ color: '#10B981' }}>99.98%</span>
+                </div>
               </div>
               <div style={{ width: '100%', height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: '99.98%', height: '100%', background: 'var(--success)', borderRadius: 4 }}></div>
+                <div style={{ width: '99.98%', height: '100%', background: 'linear-gradient(90deg, #2563EB, #10B981)', borderRadius: 4 }}></div>
               </div>
             </div>
 
+            {/* BBPS Utilities */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', fontWeight: 700, marginBottom: '4px' }}>
-                <span>💡 BBPS Electricity &amp; Utility</span>
-                <span style={{ color: 'var(--success)' }}>99.92% ({healthPings.bbps}ms)</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                  <span>BBPS Electricity &amp; Utility NPCI</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10B981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                    {healthPings.bbps}ms
+                  </span>
+                  <span style={{ color: '#10B981' }}>99.92%</span>
+                </div>
               </div>
               <div style={{ width: '100%', height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: '99.92%', height: '100%', background: 'var(--success)', borderRadius: 4 }}></div>
+                <div style={{ width: '99.92%', height: '100%', background: 'linear-gradient(90deg, #F59E0B, #10B981)', borderRadius: 4 }}></div>
               </div>
             </div>
 
+            {/* Money Transfer IMPS */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', fontWeight: 700, marginBottom: '4px' }}>
-                <span>🏦 Money Transfer IMPS</span>
-                <span style={{ color: 'var(--success)' }}>100.00% ({healthPings.dmt}ms)</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                  <span>Money Transfer (DMT) IMPS Switch</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10B981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                    {healthPings.dmt}ms
+                  </span>
+                  <span style={{ color: '#10B981' }}>100.00%</span>
+                </div>
               </div>
               <div style={{ width: '100%', height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: '100%', height: '100%', background: 'var(--success)', borderRadius: 4 }}></div>
+                <div style={{ width: '100%', height: '100%', background: '#10B981', borderRadius: 4 }}></div>
               </div>
             </div>
 
+            {/* AEPS Biometric ATM */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', fontWeight: 700, marginBottom: '4px' }}>
-                <span>🏧 AEPS Aadhaar Biometric ATM</span>
-                <span style={{ color: 'var(--warning)' }}>98.50% ({healthPings.aeps}ms)</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
+                  </svg>
+                  <span>AEPS Aadhaar Biometric ATM Switch</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F59E0B', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                    {healthPings.aeps}ms
+                  </span>
+                  <span style={{ color: '#F59E0B' }}>98.50%</span>
+                </div>
               </div>
               <div style={{ width: '100%', height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: '98.5%', height: '100%', background: 'var(--warning)', borderRadius: 4 }}></div>
+                <div style={{ width: '98.5%', height: '100%', background: '#F59E0B', borderRadius: 4 }}></div>
               </div>
             </div>
           </div>
         </div>
 
         {/* 2. REAL-TIME AUDIT STREAM FEED */}
-        <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }} className="glow-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📜</span> Live System Audit Log Feed
+        <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }} className="glow-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Live System Audit Log Feed
             </h3>
-            <span style={{ fontSize: '0.72rem', background: isStreaming ? 'var(--success-light)' : 'var(--bg-secondary)', color: isStreaming ? 'var(--success)' : 'var(--text-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-              {isStreaming ? '⚡ Live Ticker' : 'Paused'}
+            <span style={{ fontSize: '0.72rem', background: isStreaming ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-secondary)', color: isStreaming ? '#059669' : 'var(--text-secondary)', padding: '3px 10px', borderRadius: 'var(--radius-full)', fontWeight: 700 }}>
+              {isStreaming ? '⚡ Live Feed Active' : 'Paused'}
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '210px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '215px', overflowY: 'auto' }}>
             {auditLogs.map((log) => (
-              <div key={log.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', animation: 'fadeIn 0.3s ease' }}>
-                <span style={{ fontSize: '0.95rem' }}>
-                  {log.type === 'financial' ? '💵' : log.type === 'system' ? '⚙️' : log.type === 'user' ? '👤' : '🛡️'}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.3 }}>{log.text}</div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: '2px', display: 'block' }}>{log.time}</span>
+              <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid', borderLeftColor: log.type === 'financial' ? '#10B981' : log.type === 'system' ? '#2563EB' : '#8B5CF6', fontSize: '0.82rem', animation: 'fadeIn 0.3s ease' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: log.type === 'financial' ? 'rgba(16, 185, 129, 0.15)' : log.type === 'system' ? 'rgba(37, 99, 235, 0.15)' : 'rgba(139, 92, 246, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={log.type === 'financial' ? '#10B981' : log.type === 'system' ? '#2563EB' : '#8B5CF6'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {log.type === 'financial' ? (
+                      <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    ) : log.type === 'system' ? (
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    ) : (
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                    )}
+                  </svg>
                 </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.text}</div>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontWeight: 600, flexShrink: 0 }}>{log.time}</span>
               </div>
             ))}
           </div>
