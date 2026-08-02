@@ -24,9 +24,9 @@ export default function LandingPage() {
           {/* Desktop Nav */}
           <nav className={styles.navDesktop}>
             <a href="#services" className={styles.navLink}>Services</a>
-            <a href="#features" className={styles.navLink}>Why UniPay</a>
-            <a href="#network" className={styles.navLink}>Network</a>
-            <a href="#contact" className={styles.navLink}>Contact Us</a>
+            <Link href="/about" className={styles.navLink}>About Us</Link>
+            <Link href="/security" className={styles.navLink}>Security</Link>
+            <Link href="/contact" className={styles.navLink}>Contact</Link>
           </nav>
 
           {/* Header Actions */}
@@ -52,9 +52,9 @@ export default function LandingPage() {
         {mobileMenuOpen && (
           <div className={styles.mobileNav}>
             <a href="#services" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Services</a>
-            <a href="#features" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Why UniPay</a>
-            <a href="#network" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Network</a>
-            <a href="#contact" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Contact Us</a>
+            <Link href="/about" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>About Us</Link>
+            <Link href="/security" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Security</Link>
+            <Link href="/contact" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             <div className={styles.mobileNavActions}>
               <Link href="/auth/login" className={styles.loginBtn} onClick={() => setMobileMenuOpen(false)}>
                 🔐 Login
@@ -228,28 +228,27 @@ export default function LandingPage() {
               <span className={styles.footerBrandName}>UniPay</span>
             </div>
             <p className={styles.footerDesc}>
-              UniPay is India&apos;s leading digital payment and multi-service platform for retailers, distributors, and customers.
+              UniPay - Smart Payment, Seamless Suvidha. Empowering over 100,000+ local retailers and distributors across India.
             </p>
           </div>
 
           <div className={styles.footerCol}>
-            <h4>Quick Links</h4>
+            <h4>Company</h4>
             <ul>
-              <li><Link href="/auth/login">Login</Link></li>
-              <li><a href="#services">Services</a></li>
-              <li><a href="#features">Why Us</a></li>
-              <li><a href="#network">Network</a></li>
+              <li><Link href="/about">About Us</Link></li>
+              <li><Link href="/security">Security &amp; Compliance</Link></li>
+              <li><Link href="/contact">Contact &amp; Support</Link></li>
+              <li><Link href="/auth/login">Partner Login</Link></li>
             </ul>
           </div>
 
           <div className={styles.footerCol}>
-            <h4>Popular Services</h4>
+            <h4>Legal &amp; Policies</h4>
             <ul>
-              <li><Link href="/auth/login">Mobile Prepaid Recharge</Link></li>
-              <li><Link href="/auth/login">BBPS Electricity Bill</Link></li>
-              <li><Link href="/auth/login">DMT Bank Transfer</Link></li>
-              <li><Link href="/auth/login">AEPS Cash Withdrawal</Link></li>
-              <li><Link href="/auth/login">PAN Card Processing</Link></li>
+              <li><Link href="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link href="/terms">Terms &amp; Conditions</Link></li>
+              <li><Link href="/refund-policy">Refund &amp; Cancellation Policy</Link></li>
+              <li><Link href="/security">PCI-DSS Security</Link></li>
             </ul>
           </div>
 
@@ -264,7 +263,7 @@ export default function LandingPage() {
         </div>
 
         <div className={styles.footerBottom}>
-          <p>© {new Date().getFullYear()} UniPay Technologies. All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} UniPay Technologies Private Limited. All Rights Reserved.</p>
         </div>
       </footer>
     </div>
