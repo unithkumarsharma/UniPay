@@ -16,6 +16,11 @@ const iconMap = {
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
     </svg>
   ),
+  zap: (
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  ),
   wallet: (
     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -58,6 +63,18 @@ const iconMap = {
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   ),
+  reports: (
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  commission: (
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  ),
 };
 
 export default function DashboardCard({
@@ -74,14 +91,17 @@ export default function DashboardCard({
   // If icon is a key in iconMap, use the SVG icon; otherwise render icon prop if provided
   const renderedIcon = typeof icon === 'string' && iconMap[icon] ? iconMap[icon] : (
     // Fallback emoji to SVG mappings
-    icon === '👥' ? iconMap.users :
-    icon === '⚡' ? iconMap.lightning :
-    icon === '💰' ? iconMap.wallet :
-    icon === '🛍️' ? iconMap.services :
-    icon === '🏛️' ? iconMap.masterDistributor :
-    icon === '🏪' ? iconMap.distributor :
-    icon === '🛒' ? iconMap.retailer :
-    icon === '📩' ? iconMap.ticket : icon
+    icon === '👥' || icon === 'users' ? iconMap.users :
+    icon === '⚡' || icon === 'lightning' ? iconMap.lightning :
+    icon === 'zap' ? iconMap.zap :
+    icon === '💰' || icon === 'wallet' ? iconMap.wallet :
+    icon === '🛍️' || icon === 'services' ? iconMap.services :
+    icon === '🏛️' || icon === 'masterDistributor' ? iconMap.masterDistributor :
+    icon === '🏪' || icon === 'distributor' ? iconMap.distributor :
+    icon === '🛒' || icon === 'retailer' ? iconMap.retailer :
+    icon === '📊' || icon === 'reports' ? iconMap.reports :
+    icon === '💎' || icon === 'commission' ? iconMap.commission :
+    icon === '📩' || icon === 'ticket' ? iconMap.ticket : null
   );
 
   return (
@@ -89,9 +109,11 @@ export default function DashboardCard({
       {/* Header Row: Icon + Title on left, Badge on right */}
       <div className={styles.header}>
         <div className={styles.titleGroup}>
-          <div className={`${styles.icon} ${styles[iconColor]}`}>
-            {renderedIcon}
-          </div>
+          {renderedIcon && (
+            <div className={`${styles.icon} ${styles[iconColor]}`}>
+              {renderedIcon}
+            </div>
+          )}
           <h3 className={styles.title}>{title}</h3>
         </div>
         {badge && (
