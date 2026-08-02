@@ -1,13 +1,68 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
-import { recentTransactions } from '@/data/mockData';
+
+const MOCK_RETAILER_PERIODS = {
+  today: {
+    todayComm: '₹156',
+    monthComm: '₹156',
+    totalComm: '₹28,450',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: '14:30 Today' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: '12:15 Today' },
+    ],
+  },
+  yesterday: {
+    todayComm: '₹210',
+    monthComm: '₹366',
+    totalComm: '₹28,450',
+    data: [
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: '18:45 Yesterday' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: '15:20 Yesterday' },
+    ],
+  },
+  '7days': {
+    todayComm: '₹1,120',
+    monthComm: '₹1,120',
+    totalComm: '₹28,450',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  month: {
+    todayComm: '₹156',
+    monthComm: '₹4,230',
+    totalComm: '₹28,450',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  custom: {
+    todayComm: '₹540',
+    monthComm: '₹540',
+    totalComm: '₹28,450',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+    ],
+  },
+};
 
 export default function RetailerReportsPage() {
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
+
+  const currentDataset = useMemo(() => {
+    return MOCK_RETAILER_PERIODS[dateRangePreset] || MOCK_RETAILER_PERIODS.month;
+  }, [dateRangePreset]);
 
   const columns = [
     {
@@ -183,28 +238,28 @@ export default function RetailerReportsPage() {
         <DashboardCard
           icon="commission"
           iconColor="green"
-          title="Today's Commission"
-          value="₹156"
-          change="24 transactions"
+          title="Period Commission"
+          value={currentDataset.todayComm}
+          change={`Filtered for ${dateRangePreset.toUpperCase()}`}
           changeType="positive"
-          badge="Daily Earnings"
+          badge={dateRangePreset.toUpperCase()}
           sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
         />
         <DashboardCard
           icon="reports"
           iconColor="blue"
-          title="This Month Earning"
-          value="₹4,230"
-          change="+12% vs last month"
+          title="Period Earning Accumulation"
+          value={currentDataset.monthComm}
+          change="+12% growth"
           changeType="positive"
-          badge="Monthly Yield"
+          badge="Accumulated"
           sparkline="0,22 10,19 20,15 30,12 40,9 50,6 60,3"
         />
         <DashboardCard
           icon="wallet"
           iconColor="purple"
           title="All-Time Commission Earned"
-          value="₹28,450"
+          value={currentDataset.totalComm}
           subtext="Total Lifetime Earnings"
           badge="Lifetime Total"
           sparkline="0,15 10,15 20,12 30,14 40,10 50,8 60,4"
@@ -213,9 +268,9 @@ export default function RetailerReportsPage() {
 
       {/* Table */}
       <DataTable
-        title="My Detailed Commission History"
+        title={`My Detailed Commission History (${dateRangePreset.toUpperCase()})`}
         columns={columns}
-        data={recentTransactions}
+        data={currentDataset.data}
         searchable={true}
       />
     </>

@@ -1,35 +1,43 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useMemo } from 'react';
 import DataTable from '@/components/DataTable';
-import { recentTransactions } from '@/data/mockData';
+
+const MOCK_TXNS_PERIODS = {
+  today: [
+    { txnId: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: 11.96, status: 'success', time: '14:30 Today' },
+    { txnId: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: 20.00, status: 'success', time: '12:15 Today' },
+  ],
+  yesterday: [
+    { txnId: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: 25.00, status: 'success', time: '18:45 Yesterday' },
+    { txnId: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: 15.00, status: 'success', time: '15:20 Yesterday' },
+  ],
+  '7days': [
+    { txnId: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: 11.96, status: 'success', time: 'Aug 02, 14:30' },
+    { txnId: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: 20.00, status: 'success', time: 'Aug 02, 12:15' },
+    { txnId: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: 25.00, status: 'success', time: 'Aug 01, 18:45' },
+    { txnId: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: 15.00, status: 'success', time: 'Aug 01, 15:20' },
+  ],
+  month: [
+    { txnId: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: 11.96, status: 'success', time: 'Aug 02, 14:30' },
+    { txnId: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: 20.00, status: 'success', time: 'Aug 02, 12:15' },
+    { txnId: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: 25.00, status: 'success', time: 'Aug 01, 18:45' },
+    { txnId: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: 15.00, status: 'success', time: 'Aug 01, 15:20' },
+    { txnId: 'TXN330911', type: 'Gas Bill Payment', amount: 1100, commission: 8.50, status: 'success', time: 'Jul 29, 11:10' },
+  ],
+  custom: [
+    { txnId: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: 11.96, status: 'success', time: 'Aug 02, 14:30' },
+  ],
+};
 
 export default function RetailerTransactionsPage() {
-  const { user } = useAuth();
-  const [transactions, setTransactions] = useState(recentTransactions);
-  const [isLoading, setIsLoading] = useState(false);
-
   // Date Filtering State
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
 
-  const fetchTxns = async () => {
-    if (!user?._id) return;
-    try {
-      const res = await fetch(`/api/transactions?userId=${user._id}`);
-      const data = await res.json();
-      if (data.success && data.transactions && data.transactions.length > 0) {
-        setTransactions(data.transactions);
-      }
-    } catch (e) {
-      console.warn('Using fallback transactions:', e.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchTxns();
-  }, [user]);
+  const currentDataset = useMemo(() => {
+    return MOCK_TXNS_PERIODS[dateRangePreset] || MOCK_TXNS_PERIODS.month;
+  }, [dateRangePreset]);
 
   const columns = [
     {
@@ -209,9 +217,9 @@ export default function RetailerTransactionsPage() {
 
       {/* Table */}
       <DataTable
-        title="All Executed Retailer Transactions"
+        title={`Executed Retailer Transactions (${dateRangePreset.toUpperCase()})`}
         columns={columns}
-        data={transactions}
+        data={currentDataset}
         searchable={true}
       />
     </>

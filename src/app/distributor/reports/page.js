@@ -1,13 +1,70 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
-import { recentTransactions } from '@/data/mockData';
+
+const MOCK_REPORTS_PERIODS = {
+  today: {
+    earning: '₹850',
+    volume: '18 txns',
+    change: '+8% vs yesterday',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: '14:30 Today' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: '12:15 Today' },
+      { id: 'TXN661520', type: 'Electricity Bill BBPS', amount: 2450, commission: '18.00', status: 'success', time: '10:05 Today' },
+    ],
+  },
+  yesterday: {
+    earning: '₹1,200',
+    volume: '28 txns',
+    change: '+5% growth',
+    data: [
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: '18:45 Yesterday' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: '15:20 Yesterday' },
+    ],
+  },
+  '7days': {
+    earning: '₹6,800',
+    volume: '195 txns',
+    change: '+12% weekly avg',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
+      { id: 'TXN330911', type: 'Gas Bill Payment', amount: 1100, commission: '8.50', status: 'success', time: 'Jul 29, 11:10' },
+    ],
+  },
+  month: {
+    earning: '₹24,500',
+    volume: '890 txns',
+    change: '+14% growth',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  custom: {
+    earning: '₹3,400',
+    volume: '92 txns',
+    change: 'Custom Range Audit',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+    ],
+  },
+};
 
 export default function DistReportsPage() {
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
+
+  const currentDataset = useMemo(() => {
+    return MOCK_REPORTS_PERIODS[dateRangePreset] || MOCK_REPORTS_PERIODS.month;
+  }, [dateRangePreset]);
 
   const columns = [
     {
@@ -184,18 +241,18 @@ export default function DistReportsPage() {
           icon="commission"
           iconColor="green"
           title="Distributor Commission Margin"
-          value="₹24,500"
-          change="+14% growth vs last period"
+          value={currentDataset.earning}
+          change={currentDataset.change}
           changeType="positive"
-          badge="Net Earnings"
+          badge={dateRangePreset.toUpperCase()}
           sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
         />
         <DashboardCard
           icon="reports"
           iconColor="blue"
           title="Retailer Network Volume"
-          value="890 txns"
-          subtext="Processed by Retailers"
+          value={currentDataset.volume}
+          subtext={`Filtered for ${dateRangePreset.toUpperCase()}`}
           badge="Volume Stream"
           sparkline="0,22 10,19 20,15 30,12 40,9 50,6 60,3"
         />
@@ -203,9 +260,9 @@ export default function DistReportsPage() {
 
       {/* Table */}
       <DataTable
-        title="Distributor Network Transaction History"
+        title={`Distributor Network Transaction History (${dateRangePreset.toUpperCase()})`}
         columns={columns}
-        data={recentTransactions}
+        data={currentDataset.data}
         searchable={true}
       />
     </>

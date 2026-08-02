@@ -4,105 +4,166 @@ import { useAuth } from '@/context/AuthContext';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const MOCK_FUND_REQUESTS = [
-  {
-    id: 'FR-9901',
-    _id: 'FR-9901',
-    requestId: 'FR-9901',
-    user: 'Suresh Yadav',
-    userId: 'RTL001',
-    role: 'RETAILER',
-    amount: 50000,
-    paymentMethod: 'bank_wire',
-    utrNumber: 'UTR998124891',
-    createdAt: '2026-08-02 12:45',
-    status: 'pending',
-  },
-  {
-    id: 'FR-9902',
-    _id: 'FR-9902',
-    requestId: 'FR-9902',
-    user: 'Ankit Kumar',
-    userId: 'DST001',
-    role: 'DISTRIBUTOR',
-    amount: 100000,
-    paymentMethod: 'upi_transfer',
-    utrNumber: 'UPI772615102',
-    createdAt: '2026-08-02 11:30',
-    status: 'pending',
-  },
-  {
-    id: 'FR-9903',
-    _id: 'FR-9903',
-    requestId: 'FR-9903',
-    user: 'Vikram Singh',
-    userId: 'MD001',
-    role: 'MASTER DISTRIBUTOR',
-    amount: 250000,
-    paymentMethod: 'imps_deposit',
-    utrNumber: 'IMPS55192099',
-    createdAt: '2026-08-01 16:15',
-    status: 'approved',
-  },
-];
+const MOCK_FUND_REQUESTS_PERIODS = {
+  today: [
+    {
+      id: 'FR-9901',
+      _id: 'FR-9901',
+      requestId: 'FR-9901',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 50000,
+      paymentMethod: 'bank_wire',
+      utrNumber: 'UTR998124891',
+      createdAt: '2026-08-02 12:45',
+      status: 'pending',
+    },
+  ],
+  yesterday: [
+    {
+      id: 'FR-9902',
+      _id: 'FR-9902',
+      requestId: 'FR-9902',
+      user: 'Ankit Kumar',
+      userId: 'DST001',
+      role: 'DISTRIBUTOR',
+      amount: 100000,
+      paymentMethod: 'upi_transfer',
+      utrNumber: 'UPI772615102',
+      createdAt: '2026-08-01 11:30',
+      status: 'pending',
+    },
+  ],
+  '7days': [
+    {
+      id: 'FR-9901',
+      _id: 'FR-9901',
+      requestId: 'FR-9901',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 50000,
+      paymentMethod: 'bank_wire',
+      utrNumber: 'UTR998124891',
+      createdAt: '2026-08-02 12:45',
+      status: 'pending',
+    },
+    {
+      id: 'FR-9902',
+      _id: 'FR-9902',
+      requestId: 'FR-9902',
+      user: 'Ankit Kumar',
+      userId: 'DST001',
+      role: 'DISTRIBUTOR',
+      amount: 100000,
+      paymentMethod: 'upi_transfer',
+      utrNumber: 'UPI772615102',
+      createdAt: '2026-08-01 11:30',
+      status: 'pending',
+    },
+    {
+      id: 'FR-9903',
+      _id: 'FR-9903',
+      requestId: 'FR-9903',
+      user: 'Vikram Singh',
+      userId: 'MD001',
+      role: 'MASTER DISTRIBUTOR',
+      amount: 250000,
+      paymentMethod: 'imps_deposit',
+      utrNumber: 'IMPS55192099',
+      createdAt: '2026-07-28 16:15',
+      status: 'approved',
+    },
+  ],
+  month: [
+    {
+      id: 'FR-9901',
+      _id: 'FR-9901',
+      requestId: 'FR-9901',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 50000,
+      paymentMethod: 'bank_wire',
+      utrNumber: 'UTR998124891',
+      createdAt: '2026-08-02 12:45',
+      status: 'pending',
+    },
+    {
+      id: 'FR-9902',
+      _id: 'FR-9902',
+      requestId: 'FR-9902',
+      user: 'Ankit Kumar',
+      userId: 'DST001',
+      role: 'DISTRIBUTOR',
+      amount: 100000,
+      paymentMethod: 'upi_transfer',
+      utrNumber: 'UPI772615102',
+      createdAt: '2026-08-01 11:30',
+      status: 'pending',
+    },
+    {
+      id: 'FR-9903',
+      _id: 'FR-9903',
+      requestId: 'FR-9903',
+      user: 'Vikram Singh',
+      userId: 'MD001',
+      role: 'MASTER DISTRIBUTOR',
+      amount: 250000,
+      paymentMethod: 'imps_deposit',
+      utrNumber: 'IMPS55192099',
+      createdAt: '2026-07-28 16:15',
+      status: 'approved',
+    },
+  ],
+  custom: [
+    {
+      id: 'FR-9901',
+      _id: 'FR-9901',
+      requestId: 'FR-9901',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 50000,
+      paymentMethod: 'bank_wire',
+      utrNumber: 'UTR998124891',
+      createdAt: '2026-08-02 12:45',
+      status: 'pending',
+    },
+  ],
+};
 
 const LOCAL_STORAGE_KEY = 'unipay_fund_requests_store';
 
 export default function FundRequestsPage() {
   const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
-  const [toastMessage, setToastMessage] = useState('');
-
-  // Date Filtering State
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
+  const [requests, setRequests] = useState([]);
+  const [toastMessage, setToastMessage] = useState('');
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Load from LocalStorage or Backend API
-  const fetchRequests = async () => {
+  useEffect(() => {
+    let dataset = MOCK_FUND_REQUESTS_PERIODS[dateRangePreset] || MOCK_FUND_REQUESTS_PERIODS.month;
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_${dateRangePreset}`);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setRequests(parsed);
-            return;
+            dataset = parsed;
           }
         } catch (e) {}
       }
     }
-
-    try {
-      const res = await fetch('/api/fund-requests');
-      const data = await res.json();
-      if (data.success && data.requests && data.requests.length > 0) {
-        const formatted = data.requests.map((r) => ({
-          ...r,
-          id: r.id || r._id || r.requestId,
-        }));
-        setRequests(formatted);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formatted));
-        }
-        return;
-      }
-    } catch (e) {}
-
-    setRequests(MOCK_FUND_REQUESTS);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(MOCK_FUND_REQUESTS));
-    }
-  };
-
-  useEffect(() => {
-    fetchRequests();
-  }, []);
+    setRequests(dataset);
+  }, [dateRangePreset]);
 
   const handleAction = async (targetId, action) => {
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
@@ -116,7 +177,7 @@ export default function FundRequestsPage() {
       });
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY}_${dateRangePreset}`, JSON.stringify(updated));
       }
       return updated;
     });
@@ -405,7 +466,7 @@ export default function FundRequestsPage() {
           iconColor="blue"
           title="Total Deposit Volume"
           value={`₹${totalVolume.toLocaleString('en-IN')}`}
-          subtext="Merchant Bank Wires"
+          subtext={`Filtered for ${dateRangePreset.toUpperCase()}`}
           badge="Deposit Volume"
           sparkline="0,20 10,18 20,14 30,10 40,8 50,4 60,1"
         />
@@ -433,7 +494,7 @@ export default function FundRequestsPage() {
 
       {/* Requests Directory Table */}
       <DataTable
-        title="Merchant Deposit Requests Directory"
+        title={`Merchant Deposit Requests Directory (${dateRangePreset.toUpperCase()})`}
         columns={columns}
         data={requests}
         searchable={true}

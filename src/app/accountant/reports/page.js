@@ -1,11 +1,74 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
-import { recentTransactions as initialTransactions } from '@/data/mockData';
+
+const MOCK_ACCOUNTANT_PERIODS = {
+  today: {
+    revenue: '₹62,400',
+    expenses: '₹41,200',
+    profit: '₹21,200',
+    receivables: '₹12,000',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: '14:30 Today' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: '12:15 Today' },
+    ],
+  },
+  yesterday: {
+    revenue: '₹84,500',
+    expenses: '₹55,000',
+    profit: '₹29,500',
+    receivables: '₹18,000',
+    data: [
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: '18:45 Yesterday' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: '15:20 Yesterday' },
+    ],
+  },
+  '7days': {
+    revenue: '₹4,85,000',
+    expenses: '₹3,20,000',
+    profit: '₹1,65,000',
+    receivables: '₹42,000',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  month: {
+    revenue: '₹18,45,000',
+    expenses: '₹12,30,000',
+    profit: '₹6,15,000',
+    receivables: '₹85,000',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  custom: {
+    revenue: '₹2,40,000',
+    expenses: '₹1,50,000',
+    profit: '₹90,000',
+    receivables: '₹25,000',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
+    ],
+  },
+};
 
 export default function AccountantReportsPage() {
   const [chartMetric, setChartMetric] = useState('revenue');
+  const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
+  const [fromDate, setFromDate] = useState('2026-08-01');
+  const [toDate, setToDate] = useState('2026-08-02');
+
+  const currentDataset = useMemo(() => {
+    return MOCK_ACCOUNTANT_PERIODS[dateRangePreset] || MOCK_ACCOUNTANT_PERIODS.month;
+  }, [dateRangePreset]);
 
   const columns = [
     {
@@ -79,7 +142,7 @@ export default function AccountantReportsPage() {
   ];
 
   const handleExportPDF = () => {
-    alert('Exporting Financial Audit Statement PDF...');
+    alert(`Exporting Financial Audit Statement PDF for ${dateRangePreset.toUpperCase()}...`);
   };
 
   return (
@@ -99,7 +162,7 @@ export default function AccountantReportsPage() {
             Financial Audit Reports
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-            Monthly profit/loss summaries, expense auditing, and outstanding merchant receivables.
+            Profit/loss summaries, expense auditing, and outstanding merchant receivables.
           </p>
         </div>
 
@@ -116,14 +179,93 @@ export default function AccountantReportsPage() {
         </button>
       </div>
 
+      {/* Date Range Preset Selector Bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        padding: '16px 20px',
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--border-color)',
+        marginBottom: '24px',
+        display: 'flex',
+        justify: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+      }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Select Date Horizon:
+          </span>
+
+          {[
+            { id: 'today', label: 'Today' },
+            { id: 'yesterday', label: 'Yesterday' },
+            { id: '7days', label: 'Last 7 Days' },
+            { id: 'month', label: 'This Month' },
+            { id: 'custom', label: 'Custom Range' },
+          ].map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => setDateRangePreset(preset.id)}
+              style={{
+                padding: '6px 14px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid',
+                borderColor: dateRangePreset === preset.id ? '#2563EB' : 'var(--border-color)',
+                background: dateRangePreset === preset.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                color: dateRangePreset === preset.id ? '#2563EB' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        {dateRangePreset === 'custom' && (
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>From:</span>
+              <input
+                type="date"
+                className="form-input"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>To:</span>
+              <input
+                type="date"
+                className="form-input"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Primary KPI Cards Grid */}
       <div className="stats-grid" style={{ marginBottom: '28px' }}>
         <DashboardCard
           icon="reports"
           iconColor="blue"
-          title="Monthly Gross Revenue"
-          value="₹18,45,000"
-          change="+15% vs last month"
+          title="Period Gross Revenue"
+          value={currentDataset.revenue}
+          change={`Filtered for ${dateRangePreset.toUpperCase()}`}
           changeType="positive"
           badge="Gross Turnover"
           sparkline="0,20 10,15 20,18 30,12 40,8 50,5 60,2"
@@ -131,8 +273,8 @@ export default function AccountantReportsPage() {
         <DashboardCard
           icon="zap"
           iconColor="green"
-          title="Monthly Operating Expenses"
-          value="₹12,30,000"
+          title="Operating Expenses"
+          value={currentDataset.expenses}
           subtext="API Switch + Commissions"
           badge="Total Outflow"
           sparkline="0,10 10,12 20,14 30,16 40,18 50,15 60,12"
@@ -141,7 +283,7 @@ export default function AccountantReportsPage() {
           icon="wallet"
           iconColor="orange"
           title="Net Profit Realized"
-          value="₹6,15,000"
+          value={currentDataset.profit}
           change="+22% profit yield"
           changeType="positive"
           badge="Net Margin"
@@ -151,8 +293,8 @@ export default function AccountantReportsPage() {
           icon="ticket"
           iconColor="red"
           title="Outstanding Receivables"
-          value="₹85,000"
-          change="8 Accounts Pending"
+          value={currentDataset.receivables}
+          change="Pending Merchant Dues"
           changeType="negative"
           badge="Receivables Queue"
           sparkline="0,5 10,8 20,12 30,15 40,18 50,20 60,22"
@@ -167,10 +309,10 @@ export default function AccountantReportsPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
-              Financial Profit &amp; Expense Realization Curve
+              Financial Profit &amp; Expense Realization Curve ({dateRangePreset.toUpperCase()})
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Monthly financial yield performance comparison.
+              Period financial yield performance comparison.
             </p>
           </div>
 
@@ -238,21 +380,14 @@ export default function AccountantReportsPage() {
               points="10,140 100,120 190,70 280,45 370,60 460,25"
             />
           </svg>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>
-            <span>Week 1</span>
-            <span>Week 2</span>
-            <span>Week 3</span>
-            <span>Week 4</span>
-          </div>
         </div>
       </div>
 
       {/* Transaction Summary Table */}
       <DataTable
-        title="Audited Transaction Ledger Summary"
+        title={`Audited Transaction Ledger Summary (${dateRangePreset.toUpperCase()})`}
         columns={columns}
-        data={initialTransactions}
+        data={currentDataset.data}
         searchable={true}
       />
     </>

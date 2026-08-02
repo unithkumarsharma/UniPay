@@ -3,55 +3,135 @@ import { useState, useEffect } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const MOCK_SETTLEMENTS = [
-  {
-    id: 'SET-8001',
-    user: 'Suresh Yadav',
-    userId: 'RTL001',
-    role: 'RETAILER',
-    amount: 12500,
-    bankName: 'HDFC Bank',
-    accountNo: '•••• 4892',
-    ifsc: 'HDFC0000123',
-    status: 'pending',
-    date: '2026-08-02',
-  },
-  {
-    id: 'SET-8002',
-    user: 'Ankit Kumar',
-    userId: 'DST001',
-    role: 'DISTRIBUTOR',
-    amount: 32500,
-    bankName: 'State Bank of India',
-    accountNo: '•••• 9912',
-    ifsc: 'SBIN0004567',
-    status: 'pending',
-    date: '2026-08-02',
-  },
-  {
-    id: 'SET-8003',
-    user: 'Vikram Singh',
-    userId: 'MD001',
-    role: 'MASTER DISTRIBUTOR',
-    amount: 234500,
-    bankName: 'ICICI Bank',
-    accountNo: '•••• 1102',
-    ifsc: 'ICIC0009876',
-    status: 'settled',
-    date: '2026-08-01',
-  },
-];
+const MOCK_SETTLEMENTS_PERIODS = {
+  today: [
+    {
+      id: 'SET-8001',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 12500,
+      bankName: 'HDFC Bank',
+      accountNo: '•••• 4892',
+      ifsc: 'HDFC0000123',
+      status: 'pending',
+      date: '2026-08-02',
+    },
+  ],
+  yesterday: [
+    {
+      id: 'SET-8002',
+      user: 'Ankit Kumar',
+      userId: 'DST001',
+      role: 'DISTRIBUTOR',
+      amount: 32500,
+      bankName: 'State Bank of India',
+      accountNo: '•••• 9912',
+      ifsc: 'SBIN0004567',
+      status: 'pending',
+      date: '2026-08-01',
+    },
+  ],
+  '7days': [
+    {
+      id: 'SET-8001',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 12500,
+      bankName: 'HDFC Bank',
+      accountNo: '•••• 4892',
+      ifsc: 'HDFC0000123',
+      status: 'pending',
+      date: '2026-08-02',
+    },
+    {
+      id: 'SET-8002',
+      user: 'Ankit Kumar',
+      userId: 'DST001',
+      role: 'DISTRIBUTOR',
+      amount: 32500,
+      bankName: 'State Bank of India',
+      accountNo: '•••• 9912',
+      ifsc: 'SBIN0004567',
+      status: 'pending',
+      date: '2026-08-01',
+    },
+    {
+      id: 'SET-8003',
+      user: 'Vikram Singh',
+      userId: 'MD001',
+      role: 'MASTER DISTRIBUTOR',
+      amount: 234500,
+      bankName: 'ICICI Bank',
+      accountNo: '•••• 1102',
+      ifsc: 'ICIC0009876',
+      status: 'settled',
+      date: '2026-07-29',
+    },
+  ],
+  month: [
+    {
+      id: 'SET-8001',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 12500,
+      bankName: 'HDFC Bank',
+      accountNo: '•••• 4892',
+      ifsc: 'HDFC0000123',
+      status: 'pending',
+      date: '2026-08-02',
+    },
+    {
+      id: 'SET-8002',
+      user: 'Ankit Kumar',
+      userId: 'DST001',
+      role: 'DISTRIBUTOR',
+      amount: 32500,
+      bankName: 'State Bank of India',
+      accountNo: '•••• 9912',
+      ifsc: 'SBIN0004567',
+      status: 'pending',
+      date: '2026-08-01',
+    },
+    {
+      id: 'SET-8003',
+      user: 'Vikram Singh',
+      userId: 'MD001',
+      role: 'MASTER DISTRIBUTOR',
+      amount: 234500,
+      bankName: 'ICICI Bank',
+      accountNo: '•••• 1102',
+      ifsc: 'ICIC0009876',
+      status: 'settled',
+      date: '2026-07-29',
+    },
+  ],
+  custom: [
+    {
+      id: 'SET-8001',
+      user: 'Suresh Yadav',
+      userId: 'RTL001',
+      role: 'RETAILER',
+      amount: 12500,
+      bankName: 'HDFC Bank',
+      accountNo: '•••• 4892',
+      ifsc: 'HDFC0000123',
+      status: 'pending',
+      date: '2026-08-02',
+    },
+  ],
+};
 
 const LOCAL_STORAGE_KEY = 'unipay_settlements_store';
 
 export default function SettlementsPage() {
-  const [settlementList, setSettlementList] = useState(MOCK_SETTLEMENTS);
-  const [toastMessage, setToastMessage] = useState('');
-  
-  // Date Filtering State
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
+  const [settlementList, setSettlementList] = useState([]);
+  const [toastMessage, setToastMessage] = useState('');
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -59,39 +139,41 @@ export default function SettlementsPage() {
   };
 
   useEffect(() => {
+    let dataset = MOCK_SETTLEMENTS_PERIODS[dateRangePreset] || MOCK_SETTLEMENTS_PERIODS.month;
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_${dateRangePreset}`);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setSettlementList(parsed);
+            dataset = parsed;
           }
         } catch (e) {}
       }
     }
-  }, []);
+    setSettlementList(dataset);
+  }, [dateRangePreset]);
 
   const handleProcessBatch = () => {
     setSettlementList((prev) => {
       const updated = prev.map((s) => ({ ...s, status: 'settled' }));
       if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY}_${dateRangePreset}`, JSON.stringify(updated));
       }
       return updated;
     });
-    showToast('All pending commission settlements processed & saved permanently!');
+    showToast('All pending commission settlements processed for selected date range!');
   };
 
   const handleSingleSettlement = (targetId) => {
     setSettlementList((prev) => {
       const updated = prev.map((s) => (s.id === targetId ? { ...s, status: 'settled' } : s));
       if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY}_${dateRangePreset}`, JSON.stringify(updated));
       }
       return updated;
     });
-    showToast(`Settlement #${targetId} processed & saved permanently!`);
+    showToast(`Settlement #${targetId} processed successfully!`);
   };
 
   const columns = [
@@ -192,7 +274,7 @@ export default function SettlementsPage() {
     },
   ];
 
-  // Dynamic live calculations from settlementList state
+  // Dynamic live calculations from current date-filtered list
   const pendingAmount = settlementList
     .filter((s) => s.status === 'pending')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -341,16 +423,16 @@ export default function SettlementsPage() {
           iconColor="purple"
           title="Pending Settlement Pool"
           value={`₹${pendingAmount.toLocaleString('en-IN')}`}
-          subtext="Awaiting Weekly Batch"
+          subtext={`Filtered for ${dateRangePreset.toUpperCase()}`}
           badge="Pending Pool"
           sparkline="0,18 10,14 20,16 30,12 40,9 50,6 60,3"
         />
         <DashboardCard
           icon="wallet"
           iconColor="green"
-          title="Settled This Month"
+          title="Settled Amount"
           value={`₹${settledAmount.toLocaleString('en-IN')}`}
-          change="Transactions cleared"
+          change={`${settlementList.filter(s => s.status === 'settled').length} batches cleared`}
           changeType="positive"
           badge="Escrow Dispatched"
           sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
@@ -358,17 +440,17 @@ export default function SettlementsPage() {
         <DashboardCard
           icon="zap"
           iconColor="blue"
-          title="Next Batch Dispatch"
-          value="Aug 5, 2026"
-          subtext="Auto Scheduled 23:30 IST"
-          badge="Auto-Scheduled"
+          title="Total Period Batches"
+          value={`${settlementList.length}`}
+          subtext="Filtered Record Count"
+          badge="Audit Count"
           sparkline="0,15 10,15 20,10 30,10 40,5 50,5 60,5"
         />
       </div>
 
       {/* Settlement Directory Table */}
       <DataTable
-        title="Pending &amp; Processed Merchant Payout Batches"
+        title={`Merchant Payout Batches (${dateRangePreset.toUpperCase()})`}
         columns={columns}
         data={settlementList}
         searchable={true}

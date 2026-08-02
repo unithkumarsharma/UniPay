@@ -1,19 +1,77 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
-import { ledgerEntries as initialLedger } from '@/data/mockData';
+
+const MOCK_LEDGER_PERIODS = {
+  today: {
+    credit: '₹1,50,000',
+    debit: '₹1,12,500',
+    balance: '₹5,10,650',
+    entries: [
+      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
+      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
+    ],
+  },
+  yesterday: {
+    credit: '₹2,10,000',
+    debit: '₹1,85,000',
+    balance: '₹4,73,150',
+    entries: [
+      { id: 'LDG-9003', date: '2026-08-01 16:45', description: 'Wallet Deposit UPI772615102 (Ankit Kumar)', type: 'credit', amount: 100000, balance: 473150 },
+      { id: 'LDG-9004', date: '2026-08-01 10:20', description: 'Grievance Refund Dispatched Txn TXN441092', type: 'debit', amount: 3000, balance: 373150 },
+    ],
+  },
+  '7days': {
+    credit: '₹12,40,000',
+    debit: '₹9,80,000',
+    balance: '₹5,10,650',
+    entries: [
+      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
+      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
+      { id: 'LDG-9003', date: '2026-08-01 16:45', description: 'Wallet Deposit UPI772615102 (Ankit Kumar)', type: 'credit', amount: 100000, balance: 473150 },
+      { id: 'LDG-9004', date: '2026-08-01 10:20', description: 'Grievance Refund Dispatched Txn TXN441092', type: 'debit', amount: 3000, balance: 373150 },
+    ],
+  },
+  month: {
+    credit: '₹45,20,850',
+    debit: '₹40,10,200',
+    balance: '₹5,10,650',
+    entries: [
+      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
+      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
+      { id: 'LDG-9003', date: '2026-08-01 16:45', description: 'Wallet Deposit UPI772615102 (Ankit Kumar)', type: 'credit', amount: 100000, balance: 473150 },
+      { id: 'LDG-9004', date: '2026-08-01 10:20', description: 'Grievance Refund Dispatched Txn TXN441092', type: 'debit', amount: 3000, balance: 373150 },
+    ],
+  },
+  custom: {
+    credit: '₹6,50,000',
+    debit: '₹5,20,000',
+    balance: '₹5,10,650',
+    entries: [
+      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
+      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
+    ],
+  },
+};
 
 export default function LedgerPage() {
+  const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
   const [typeFilter, setTypeFilter] = useState('All');
 
-  const filteredEntries = initialLedger.filter((entry) => {
-    if (typeFilter === 'Credit') return entry.type === 'credit';
-    if (typeFilter === 'Debit') return entry.type === 'debit';
-    return true;
-  });
+  const currentPeriod = useMemo(() => {
+    return MOCK_LEDGER_PERIODS[dateRangePreset] || MOCK_LEDGER_PERIODS.month;
+  }, [dateRangePreset]);
+
+  const filteredEntries = useMemo(() => {
+    return currentPeriod.entries.filter((entry) => {
+      if (typeFilter === 'Credit') return entry.type === 'credit';
+      if (typeFilter === 'Debit') return entry.type === 'debit';
+      return true;
+    });
+  }, [currentPeriod, typeFilter]);
 
   const columns = [
     {
@@ -78,7 +136,7 @@ export default function LedgerPage() {
   ];
 
   const handleExportCSV = () => {
-    alert('Exporting General Ledger Statements to CSV...');
+    alert(`Exporting General Ledger Statements to CSV for ${dateRangePreset.toUpperCase()}...`);
   };
 
   return (
@@ -114,14 +172,104 @@ export default function LedgerPage() {
         </button>
       </div>
 
+      {/* Date Range Preset Selector Bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        padding: '16px 20px',
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--border-color)',
+        marginBottom: '24px',
+        display: 'flex',
+        justify: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+      }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Ledger Period:
+          </span>
+
+          {[
+            { id: 'today', label: 'Today' },
+            { id: 'yesterday', label: 'Yesterday' },
+            { id: '7days', label: 'Last 7 Days' },
+            { id: 'month', label: 'This Month' },
+            { id: 'custom', label: 'Custom Range' },
+          ].map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => setDateRangePreset(preset.id)}
+              style={{
+                padding: '6px 14px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid',
+                borderColor: dateRangePreset === preset.id ? '#2563EB' : 'var(--border-color)',
+                background: dateRangePreset === preset.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                color: dateRangePreset === preset.id ? '#2563EB' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        {dateRangePreset === 'custom' && (
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>From:</span>
+              <input
+                type="date"
+                className="form-input"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>To:</span>
+              <input
+                type="date"
+                className="form-input"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
+              />
+            </div>
+          </div>
+        )}
+
+        <select
+          className="form-select"
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          style={{ width: '150px', fontSize: '0.82rem' }}
+        >
+          <option value="All">All Entry Types</option>
+          <option value="Credit">Credit Only</option>
+          <option value="Debit">Debit Only</option>
+        </select>
+      </div>
+
       {/* Primary KPI Cards */}
       <div className="stats-grid" style={{ marginBottom: '28px' }}>
         <DashboardCard
           icon="reports"
           iconColor="green"
-          title="Gross Credit Inflows"
-          value="₹45,20,850"
-          change="+18% volume"
+          title="Period Credit Inflows"
+          value={currentPeriod.credit}
+          change={`Filtered for ${dateRangePreset.toUpperCase()}`}
           changeType="positive"
           badge="Credit Stream"
           sparkline="0,20 10,18 20,14 30,10 40,8 50,4 60,1"
@@ -129,9 +277,9 @@ export default function LedgerPage() {
         <DashboardCard
           icon="zap"
           iconColor="red"
-          title="Gross Debit Outflows"
-          value="₹40,10,200"
-          change="-12% payouts"
+          title="Period Debit Outflows"
+          value={currentPeriod.debit}
+          change="Payouts Dispatched"
           changeType="negative"
           badge="Debit Stream"
           sparkline="0,10 10,12 20,14 30,16 40,18 50,15 60,12"
@@ -140,55 +288,16 @@ export default function LedgerPage() {
           icon="wallet"
           iconColor="blue"
           title="Closing Reserve Balance"
-          value="₹5,10,650"
+          value={currentPeriod.balance}
           subtext="Audited Escrow Balance"
           badge="Closing Pool"
           sparkline="0,15 10,15 20,12 30,14 40,10 50,8 60,4"
         />
       </div>
 
-      {/* Controls & Date Filter Bar */}
-      <div style={{ background: 'var(--bg-card)', padding: '16px 20px', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-color)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)' }}>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flex: 1, alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-            </svg>
-            Date &amp; Type Filter:
-          </span>
-
-          <input
-            type="date"
-            className="form-input"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            style={{ width: '150px', fontSize: '0.82rem', padding: '6px 10px' }}
-          />
-
-          <input
-            type="date"
-            className="form-input"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            style={{ width: '150px', fontSize: '0.82rem', padding: '6px 10px' }}
-          />
-
-          <select
-            className="form-select"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            style={{ width: '150px', fontSize: '0.82rem' }}
-          >
-            <option value="All">All Entry Types</option>
-            <option value="Credit">Credit Only</option>
-            <option value="Debit">Debit Only</option>
-          </select>
-        </div>
-      </div>
-
       {/* Ledger Table */}
       <DataTable
-        title="Double-Entry Ledger Audit Log"
+        title={`Double-Entry Ledger Audit Log (${dateRangePreset.toUpperCase()})`}
         columns={columns}
         data={filteredEntries}
         searchable={true}

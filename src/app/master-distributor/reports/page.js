@@ -1,13 +1,73 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
-import { recentTransactions } from '@/data/mockData';
+
+const MOCK_MD_PERIODS = {
+  today: {
+    earning: '₹3,250',
+    volume: '95 txns',
+    avgDaily: '₹3,250',
+    change: '+10% vs yesterday',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '28.50', status: 'success', time: '14:30 Today' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '45.00', status: 'success', time: '12:15 Today' },
+    ],
+  },
+  yesterday: {
+    earning: '₹4,100',
+    volume: '120 txns',
+    avgDaily: '₹4,100',
+    change: '+15% growth',
+    data: [
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '85.00', status: 'success', time: '18:45 Yesterday' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '42.00', status: 'success', time: '15:20 Yesterday' },
+    ],
+  },
+  '7days': {
+    earning: '₹24,500',
+    volume: '680 txns',
+    avgDaily: '₹3,500',
+    change: '+14% weekly avg',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '28.50', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '45.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '85.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '42.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  month: {
+    earning: '₹85,600',
+    volume: '2,340 txns',
+    avgDaily: '₹2,850',
+    change: '+18% growth',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '28.50', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '45.00', status: 'success', time: 'Aug 02, 12:15' },
+      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '85.00', status: 'success', time: 'Aug 01, 18:45' },
+      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '42.00', status: 'success', time: 'Aug 01, 15:20' },
+    ],
+  },
+  custom: {
+    earning: '₹12,400',
+    volume: '340 txns',
+    avgDaily: '₹3,100',
+    change: 'Custom Range Audit',
+    data: [
+      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '28.50', status: 'success', time: 'Aug 02, 14:30' },
+      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '45.00', status: 'success', time: 'Aug 02, 12:15' },
+    ],
+  },
+};
 
 export default function MDReportsPage() {
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
   const [fromDate, setFromDate] = useState('2026-08-01');
   const [toDate, setToDate] = useState('2026-08-02');
+
+  const currentDataset = useMemo(() => {
+    return MOCK_MD_PERIODS[dateRangePreset] || MOCK_MD_PERIODS.month;
+  }, [dateRangePreset]);
 
   const columns = [
     {
@@ -184,18 +244,18 @@ export default function MDReportsPage() {
           icon="commission"
           iconColor="green"
           title="Master Distributor Earnings"
-          value="₹85,600"
-          change="+18% growth vs last period"
+          value={currentDataset.earning}
+          change={currentDataset.change}
           changeType="positive"
-          badge="Net Margin"
+          badge={dateRangePreset.toUpperCase()}
           sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
         />
         <DashboardCard
           icon="reports"
           iconColor="blue"
           title="Master Network Volume"
-          value="2,340 txns"
-          subtext="Processed Across Network"
+          value={currentDataset.volume}
+          subtext={`Filtered for ${dateRangePreset.toUpperCase()}`}
           badge="Network Stream"
           sparkline="0,22 10,19 20,15 30,12 40,9 50,6 60,3"
         />
@@ -203,7 +263,7 @@ export default function MDReportsPage() {
           icon="zap"
           iconColor="purple"
           title="Average Daily Earning"
-          value="₹2,850"
+          value={currentDataset.avgDaily}
           subtext="Daily Yield Average"
           badge="Daily Yield"
           sparkline="0,15 10,15 20,12 30,14 40,10 50,8 60,4"
@@ -212,9 +272,9 @@ export default function MDReportsPage() {
 
       {/* Table */}
       <DataTable
-        title="Master Distributor Network Transaction History"
+        title={`Master Distributor Network Transaction History (${dateRangePreset.toUpperCase()})`}
         columns={columns}
-        data={recentTransactions}
+        data={currentDataset.data}
         searchable={true}
       />
     </>
