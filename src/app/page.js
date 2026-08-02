@@ -9,7 +9,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading) {
-      if (user) {
+      if (user && user.role) {
         const paths = {
           admin: '/admin',
           accountant: '/accountant',
@@ -17,9 +17,9 @@ export default function Home() {
           distributor: '/distributor',
           retailer: '/retailer',
         };
-        router.push(paths[user.role] || '/auth/login');
+        router.replace(paths[user.role] || '/auth/login');
       } else {
-        router.push('/auth/login');
+        router.replace('/auth/login');
       }
     }
   }, [user, isLoading, router]);
@@ -34,15 +34,15 @@ export default function Home() {
     }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
           border: '3px solid var(--border-color)',
           borderTopColor: 'var(--primary)',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite',
           margin: '0 auto 16px',
         }} />
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Loading UniPay...</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Redirecting to UniPay...</p>
       </div>
     </div>
   );
