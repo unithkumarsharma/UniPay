@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
@@ -42,6 +42,8 @@ const MOCK_SETTLEMENTS = [
   },
 ];
 
+const LOCAL_STORAGE_KEY = 'unipay_settlements_store';
+
 export default function SettlementsPage() {
   const [settlementList, setSettlementList] = useState(MOCK_SETTLEMENTS);
   const [toastMessage, setToastMessage] = useState('');
@@ -51,16 +53,40 @@ export default function SettlementsPage() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSettlementList(parsed);
+          }
+        } catch (e) {}
+      }
+    }
+  }, []);
+
   const handleProcessBatch = () => {
-    setSettlementList((prev) => prev.map((s) => ({ ...s, status: 'settled' })));
-    showToast('✅ All pending commission settlements processed & dispatched to Escrow Bank!');
+    setSettlementList((prev) => {
+      const updated = prev.map((s) => ({ ...s, status: 'settled' }));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+    showToast('✅ All pending commission settlements processed & saved permanently!');
   };
 
   const handleSingleSettlement = (targetId) => {
-    setSettlementList((prev) =>
-      prev.map((s) => (s.id === targetId ? { ...s, status: 'settled' } : s))
-    );
-    showToast(`✅ Settlement #${targetId} processed successfully!`);
+    setSettlementList((prev) => {
+      const updated = prev.map((s) => (s.id === targetId ? { ...s, status: 'settled' } : s));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+    showToast(`✅ Settlement #${targetId} processed & saved permanently!`);
   };
 
   const columns = [

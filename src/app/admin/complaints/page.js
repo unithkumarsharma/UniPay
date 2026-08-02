@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
@@ -55,6 +55,8 @@ const INITIAL_ADMIN_COMPLAINTS = [
   },
 ];
 
+const LOCAL_STORAGE_KEY = 'unipay_complaints_store';
+
 export default function AdminComplaintsPage() {
   const [complaintList, setComplaintList] = useState(INITIAL_ADMIN_COMPLAINTS);
   const [filter, setFilter] = useState('all');
@@ -65,6 +67,20 @@ export default function AdminComplaintsPage() {
   const [newStatus, setNewStatus] = useState('resolved');
   const [refundAmount, setRefundAmount] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setComplaintList(parsed);
+          }
+        } catch (e) {}
+      }
+    }
+  }, []);
 
   const handleResolveTicket = (e) => {
     e.preventDefault();
@@ -82,7 +98,11 @@ export default function AdminComplaintsPage() {
     });
 
     setComplaintList(updatedList);
-    setSuccessMsg(`Ticket #${selectedTicket.id} updated successfully!`);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedList));
+    }
+
+    setSuccessMsg(`Ticket #${selectedTicket.id} updated permanently!`);
     setTimeout(() => {
       setSelectedTicket(null);
       setSuccessMsg('');

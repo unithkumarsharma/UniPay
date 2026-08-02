@@ -46,9 +46,11 @@ const MOCK_FUND_REQUESTS = [
   },
 ];
 
+const LOCAL_STORAGE_KEY = 'unipay_fund_requests_store';
+
 export default function FundRequestsPage() {
   const { user } = useAuth();
-  const [requests, setRequests] = useState(MOCK_FUND_REQUESTS);
+  const [requests, setRequests] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
 
   const showToast = (msg) => {
@@ -56,22 +58,43 @@ export default function FundRequestsPage() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
+  // Load from LocalStorage or Backend API
   const fetchRequests = async () => {
+    // 1. Check local storage first for persistent state across navigation
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRequests(parsed);
+            return;
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 2. Fetch from backend API or fallback to mock
     try {
       const res = await fetch('/api/fund-requests');
       const data = await res.json();
       if (data.success && data.requests && data.requests.length > 0) {
-        const formatted = data.requests.map(r => ({
+        const formatted = data.requests.map((r) => ({
           ...r,
           id: r.id || r._id || r.requestId,
         }));
         setRequests(formatted);
-      } else {
-        setRequests(MOCK_FUND_REQUESTS);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formatted));
+        }
+        return;
       }
-    } catch (e) {
-      console.warn('Using fallback mock fund requests:', e.message);
-      setRequests(MOCK_FUND_REQUESTS);
+    } catch (e) {}
+
+    // Fallback to initial mock data
+    setRequests(MOCK_FUND_REQUESTS);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(MOCK_FUND_REQUESTS));
     }
   };
 
@@ -82,19 +105,24 @@ export default function FundRequestsPage() {
   const handleAction = async (targetId, action) => {
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
 
-    // 1. Immediate React state mutation for guaranteed instant live re-render
-    setRequests((prevRequests) =>
-      prevRequests.map((r) => {
+    // Update state + write permanently to LocalStorage
+    setRequests((prevRequests) => {
+      const updated = prevRequests.map((r) => {
         if (r.id === targetId || r._id === targetId || r.requestId === targetId) {
           return { ...r, status: nextStatus };
         }
         return r;
-      })
-    );
+      });
 
-    showToast(`✅ Request #${targetId} marked as ${nextStatus.toUpperCase()}! Wallet credited.`);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
 
-    // 2. Fire-and-forget backend sync attempt
+    showToast(`✅ Request #${targetId} marked as ${nextStatus.toUpperCase()} permanently!`);
+
+    // Async backend sync
     try {
       fetch(`/api/fund-requests/${targetId}`, {
         method: 'PATCH',
@@ -244,8 +272,8 @@ export default function FundRequestsPage() {
   ];
 
   // Dynamic live calculations from requests state
-  const pendingCount = requests.filter(r => r.status === 'pending').length;
-  const approvedCount = requests.filter(r => r.status === 'approved').length;
+  const pendingCount = requests.filter((r) => r.status === 'pending').length;
+  const approvedCount = requests.filter((r) => r.status === 'approved').length;
   const totalVolume = requests.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   return (
