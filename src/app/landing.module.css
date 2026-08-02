@@ -673,7 +673,7 @@
   position: relative;
   z-index: 1;
   padding: 95px 24px;
-  background: var(--bg-secondary);
+  background: transparent;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
 }
@@ -722,7 +722,7 @@
 .footer {
   position: relative;
   z-index: 1;
-  background: var(--bg-card);
+  background: transparent;
   border-top: 1px solid var(--border-color);
   padding: 75px 24px 35px;
 }
