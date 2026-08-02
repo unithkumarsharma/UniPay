@@ -1,10 +1,27 @@
 .landingWrapper {
   min-height: 100vh;
   background-color: var(--bg-primary);
+  background-image: url('https://images.unsplash.com/photo-1556740758-90de374c12ad?w=1920&auto=format&fit=crop&q=85');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
   position: relative;
+}
+
+.landingWrapper::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  opacity: 0.88;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* ===== AMBIENT GLOW SPHERES ===== */
