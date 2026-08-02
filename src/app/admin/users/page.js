@@ -227,7 +227,7 @@ export default function AdminUsersPage() {
   };
 
   const commonActions = (row) => (
-    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', minWidth: 'max-content' }}>
       <button
         className="btn btn-sm btn-primary"
         style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}

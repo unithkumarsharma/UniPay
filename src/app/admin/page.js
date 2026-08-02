@@ -622,7 +622,7 @@ export default function AdminDashboard() {
                   </svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.text}</div>
+                  <div style={{ color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.4, wordBreak: 'break-word', fontSize: '0.8rem' }}>{log.text}</div>
                 </div>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontWeight: 600, flexShrink: 0 }}>{log.time}</span>
               </div>

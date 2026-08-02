@@ -143,7 +143,7 @@ export default function AdminWalletPage() {
       key: 'actions',
       label: 'Actions',
       render: (row) => (
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', minWidth: 'max-content' }}>
           <button
             className="btn btn-sm btn-success"
             style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
