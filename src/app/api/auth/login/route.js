@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -8,61 +7,71 @@ const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'unipay-super-secret-key';
 
 const FALLBACK_USERS = {
   admin: {
-    _id: 'adm001_fallback',
+    id: 'adm001_fallback',
+    user_id: 'ADM001',
     userId: 'ADM001',
     name: 'Rahul Sharma (Admin)',
     email: 'admin@unipay.in',
     phone: '9876543210',
     role: 'admin',
+    wallet_balance: 5000000,
     walletBalance: 5000000,
     status: 'active',
     city: 'Delhi',
     state: 'Delhi',
   },
   accountant: {
-    _id: 'acc001_fallback',
+    id: 'acc001_fallback',
+    user_id: 'ACC001',
     userId: 'ACC001',
     name: 'Priya Gupta (Accountant)',
     email: 'accountant@unipay.in',
     phone: '9876543211',
     role: 'accountant',
+    wallet_balance: 0,
     walletBalance: 0,
     status: 'active',
     city: 'Delhi',
     state: 'Delhi',
   },
   master_distributor: {
-    _id: 'md001_fallback',
+    id: 'md001_fallback',
+    user_id: 'MD001',
     userId: 'MD001',
     name: 'Vikram Singh (MD)',
     email: 'md@unipay.in',
     phone: '9876543212',
     role: 'master_distributor',
+    wallet_balance: 250000,
     walletBalance: 250000,
     status: 'active',
     city: 'Delhi',
     state: 'Delhi',
   },
   distributor: {
-    _id: 'dst001_fallback',
+    id: 'dst001_fallback',
+    user_id: 'DST001',
     userId: 'DST001',
     name: 'Ankit Kumar (Distributor)',
     email: 'distributor@unipay.in',
     phone: '9876543213',
     role: 'distributor',
+    wallet_balance: 75000,
     walletBalance: 75000,
     status: 'active',
     city: 'Noida',
     state: 'UP',
   },
   retailer: {
-    _id: 'rtl001_fallback',
+    id: 'rtl001_fallback',
+    user_id: 'RTL001',
     userId: 'RTL001',
     name: 'Suresh Yadav (Retailer)',
     email: 'retailer@unipay.in',
     phone: '9876543214',
     role: 'retailer',
     shopName: 'Suresh Mobile Point',
+    wallet_balance: 12500,
     walletBalance: 12500,
     status: 'active',
     city: 'Noida',
@@ -81,31 +90,32 @@ export async function POST(request) {
       );
     }
 
+    const inputClean = String(phoneOrEmail).trim();
     const selectedRole = role || 'admin';
     let user = null;
 
-    // Fast DB lookup with 500ms max timeout to guarantee lightning-fast response
+    // 1. Query Supabase for User
     try {
-      const dbPromise = (async () => {
-        await dbConnect();
-        const query = {
-          $or: [{ phone: phoneOrEmail }, { email: phoneOrEmail.toLowerCase() }],
-        };
-        if (role) query.role = role;
-        return await User.findOne(query);
-      })();
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .or(`phone.eq.${inputClean},email.eq.${inputClean.toLowerCase()}`)
+        .limit(1)
+        .maybeSingle();
 
-      const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 500));
-      user = await Promise.race([dbPromise, timeoutPromise]);
-    } catch (dbErr) {
-      console.warn('Fast DB lookup notice:', dbErr.message);
+      if (!error && data) {
+        user = data;
+      }
+    } catch (sbErr) {
+      console.warn('Supabase login query note:', sbErr.message);
     }
 
-    // Fallback if DB query timed out or user not found
+    // 2. Fallback for quick demo login if DB user not found
     if (!user) {
       user = FALLBACK_USERS[selectedRole] || FALLBACK_USERS.admin;
     }
 
+    // 3. Status check
     if (user.status === 'blocked') {
       return NextResponse.json(
         { success: false, error: 'Your account is blocked. Please contact admin.' },
@@ -113,9 +123,9 @@ export async function POST(request) {
       );
     }
 
-    // Verify password if DB user with hash
-    if (user.password) {
-      const isMatch = await bcrypt.compare(password, user.password);
+    // 4. Verify Password
+    if (user.password_hash) {
+      const isMatch = await bcrypt.compare(password, user.password_hash);
       if (!isMatch && password !== '123456') {
         return NextResponse.json(
           { success: false, error: 'Invalid password' },
@@ -124,19 +134,27 @@ export async function POST(request) {
       }
     }
 
+    delete user.password_hash;
+
+    // Normalize user object for frontend consumption
+    const userObj = {
+      ...user,
+      userId: user.user_id || user.userId,
+      walletBalance: Number(user.wallet_balance ?? user.walletBalance ?? 0),
+    };
+
+    // 5. Generate JWT Token
     const token = jwt.sign(
       {
-        id: user._id,
-        userId: user.userId,
-        role: user.role,
-        name: user.name,
-        phone: user.phone,
+        id: userObj.id,
+        userId: userObj.userId,
+        role: userObj.role,
+        name: userObj.name,
+        phone: userObj.phone,
       },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
-
-    const userObj = user.toJSON ? user.toJSON() : user;
 
     return NextResponse.json({
       success: true,
@@ -144,7 +162,10 @@ export async function POST(request) {
       token,
     });
   } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('Login API error:', error);
+    return NextResponse.json(
+      { success: false, error: error.message || 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

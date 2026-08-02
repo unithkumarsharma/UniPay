@@ -21,7 +21,7 @@ const DEFAULT_DEMO_PHONES = {
 
 const FALLBACK_USER_PROFILES = {
   admin: {
-    _id: 'adm001_fallback',
+    id: 'adm001_fallback',
     userId: 'ADM001',
     name: 'Rahul Sharma (Admin)',
     email: 'admin@unipay.in',
@@ -33,7 +33,7 @@ const FALLBACK_USER_PROFILES = {
     state: 'Delhi',
   },
   accountant: {
-    _id: 'acc001_fallback',
+    id: 'acc001_fallback',
     userId: 'ACC001',
     name: 'Priya Gupta (Accountant)',
     email: 'accountant@unipay.in',
@@ -45,7 +45,7 @@ const FALLBACK_USER_PROFILES = {
     state: 'Delhi',
   },
   master_distributor: {
-    _id: 'md001_fallback',
+    id: 'md001_fallback',
     userId: 'MD001',
     name: 'Vikram Singh (MD)',
     email: 'md@unipay.in',
@@ -57,7 +57,7 @@ const FALLBACK_USER_PROFILES = {
     state: 'Delhi',
   },
   distributor: {
-    _id: 'dst001_fallback',
+    id: 'dst001_fallback',
     userId: 'DST001',
     name: 'Ankit Kumar (Distributor)',
     email: 'distributor@unipay.in',
@@ -69,7 +69,7 @@ const FALLBACK_USER_PROFILES = {
     state: 'UP',
   },
   retailer: {
-    _id: 'rtl001_fallback',
+    id: 'rtl001_fallback',
     userId: 'RTL001',
     name: 'Suresh Yadav (Retailer)',
     email: 'retailer@unipay.in',
@@ -89,9 +89,6 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Seed DB in background if reachable
-    fetch('/api/seed').catch(() => {});
-
     const savedUser = localStorage.getItem('unipay-user');
     const savedToken = localStorage.getItem('unipay-jwt-token');
 
@@ -102,9 +99,48 @@ export function AuthProvider({ children }) {
     }
     if (savedToken) {
       setToken(savedToken);
+      // Refresh profile & live wallet balance
+      fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${savedToken}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem('unipay-user', JSON.stringify(data.user));
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
+
+  const signup = async (userData = {}) => {
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
+
+      setUser(data.user);
+      setToken(data.token);
+      localStorage.setItem('unipay-user', JSON.stringify(data.user));
+      localStorage.setItem('unipay-jwt-token', data.token);
+      localStorage.setItem('unipay-role', data.user.role);
+
+      return { success: true, user: data.user, token: data.token };
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error during signup' };
+    }
+  };
 
   const login = async (role, credentials = {}) => {
     const selectedRole = role || 'admin';
@@ -118,22 +154,25 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ phoneOrEmail, password, role: selectedRole }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
-          setUser(data.user);
-          setToken(data.token);
-          localStorage.setItem('unipay-user', JSON.stringify(data.user));
-          localStorage.setItem('unipay-jwt-token', data.token);
-          localStorage.setItem('unipay-role', data.user.role);
-          return { success: true, user: data.user };
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem('unipay-user', JSON.stringify(data.user));
+        localStorage.setItem('unipay-jwt-token', data.token);
+        localStorage.setItem('unipay-role', data.user.role);
+        return { success: true, user: data.user };
+      } else if (data.error) {
+        // Return specific login error if invalid password or blocked
+        if (data.error.includes('password') || data.error.includes('blocked')) {
+          return { success: false, error: data.error };
         }
       }
     } catch (e) {
       console.warn('API login network notice, using instant local session:', e.message);
     }
 
-    // Instant local fallback user session for guaranteed 100% login success
+    // Instant local fallback user session
     const fallbackUser = FALLBACK_USER_PROFILES[selectedRole] || FALLBACK_USER_PROFILES.admin;
     const fallbackToken = 'unipay_fallback_jwt_' + Date.now();
 
@@ -155,9 +194,12 @@ export function AuthProvider({ children }) {
   };
 
   const refreshUserData = async () => {
-    if (!user?._id) return;
+    const activeToken = token || localStorage.getItem('unipay-jwt-token');
+    if (!activeToken) return;
     try {
-      const res = await fetch(`/api/users/${user._id}`);
+      const res = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${activeToken}` },
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.user) {
@@ -187,6 +229,7 @@ export function AuthProvider({ children }) {
         user,
         token,
         isLoading,
+        signup,
         login,
         logout,
         refreshUserData,

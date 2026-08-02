@@ -770,13 +770,29 @@ img {
   to { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+@keyframes statusPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.status-dot-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #10B981;
+  display: inline-block;
+  animation: statusPulse 2s infinite;
+}
+
+.glow-card {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.glow-card:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.12);
 }
 
 .animate-fade-in {
@@ -790,6 +806,7 @@ img {
 .animate-slide-in {
   animation: slideInLeft 0.3s ease;
 }
+
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {

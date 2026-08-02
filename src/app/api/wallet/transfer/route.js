@@ -1,75 +1,90 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
-import WalletLog from '@/models/WalletLog';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { processWalletTransaction } from '@/lib/supabaseDB';
 
 export async function POST(request) {
   try {
-    await dbConnect();
     const { senderId, receiverId, amount, remarks } = await request.json();
 
     const numAmount = parseFloat(amount);
     if (!senderId || !receiverId || isNaN(numAmount) || numAmount <= 0) {
       return NextResponse.json(
-        { success: false, error: 'Sender, receiver, and valid amount required' },
+        { success: false, error: 'Sender ID, Receiver ID, and valid transfer amount required' },
         { status: 400 }
       );
     }
 
-    const sender = await User.findById(senderId);
-    const receiver = await User.findById(receiverId);
-
-    if (!sender || !receiver) {
+    if (senderId === receiverId) {
       return NextResponse.json(
-        { success: false, error: 'Sender or receiver user not found' },
-        { status: 404 }
+        { success: false, error: 'Cannot transfer funds to the same account' },
+        { status: 400 }
       );
     }
 
-    if (sender.walletBalance < numAmount) {
+    // 1. Fetch Sender and Receiver from Supabase
+    const { data: sender, error: senderErr } = await supabaseAdmin
+      .from('users')
+      .select('id, name, wallet_balance, status')
+      .eq('id', senderId)
+      .single();
+
+    if (senderErr || !sender) {
+      return NextResponse.json({ success: false, error: 'Sender account not found' }, { status: 404 });
+    }
+
+    const { data: receiver, error: rcvrErr } = await supabaseAdmin
+      .from('users')
+      .select('id, name, wallet_balance, status')
+      .eq('id', receiverId)
+      .single();
+
+    if (rcvrErr || !receiver) {
+      return NextResponse.json({ success: false, error: 'Receiver account not found' }, { status: 404 });
+    }
+
+    if (sender.status === 'blocked' || receiver.status === 'blocked') {
+      return NextResponse.json({ success: false, error: 'One or both user accounts are blocked' }, { status: 403 });
+    }
+
+    const senderBalance = Number(sender.wallet_balance || 0);
+
+    if (senderBalance < numAmount) {
       return NextResponse.json(
         { success: false, error: 'Insufficient wallet balance for transfer' },
         { status: 400 }
       );
     }
 
-    // Process debit from sender
-    const senderBefore = sender.walletBalance;
-    sender.walletBalance -= numAmount;
-    await sender.save();
+    const transferRef = `TRF${Date.now().toString().slice(-6)}`;
 
-    await WalletLog.create({
-      userId: sender._id,
+    // 2. Debit Sender Wallet
+    const debitRes = await processWalletTransaction({
+      userId: sender.id,
       type: 'debit',
       amount: numAmount,
-      balanceBefore: senderBefore,
-      balanceAfter: sender.walletBalance,
-      description: `Fund Transfer to ${receiver.name} (${receiver.userId})`,
-      performedBy: sender._id,
+      description: `Fund Transfer to ${receiver.name} (${transferRef}) - ${remarks || 'Direct Transfer'}`,
+      referenceId: transferRef,
+      performedBy: sender.id,
     });
 
-    // Process credit to receiver
-    const receiverBefore = receiver.walletBalance;
-    receiver.walletBalance += numAmount;
-    await receiver.save();
-
-    await WalletLog.create({
-      userId: receiver._id,
+    // 3. Credit Receiver Wallet
+    await processWalletTransaction({
+      userId: receiver.id,
       type: 'credit',
       amount: numAmount,
-      balanceBefore: receiverBefore,
-      balanceAfter: receiver.walletBalance,
-      description: `Fund Received from ${sender.name} (${sender.userId})`,
-      performedBy: sender._id,
+      description: `Fund Transfer from ${sender.name} (${transferRef}) - ${remarks || 'Direct Transfer'}`,
+      referenceId: transferRef,
+      performedBy: sender.id,
     });
 
     return NextResponse.json({
       success: true,
-      message: `Transferred ₹${numAmount} to ${receiver.name} successfully`,
-      senderBalance: sender.walletBalance,
-      receiverBalance: receiver.walletBalance,
+      message: `Successfully transferred ₹${numAmount} to ${receiver.name}`,
+      referenceId: transferRef,
+      newSenderBalance: debitRes.newBalance,
     });
   } catch (error) {
+    console.error('Wallet transfer error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
