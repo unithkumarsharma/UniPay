@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -54,6 +55,11 @@ export default function LoginPage() {
         <div className={styles.circle2}></div>
         <div className={styles.circle3}></div>
       </div>
+
+      {/* Back to Home Button */}
+      <Link href="/" className={styles.backHomeBtn}>
+        ← Back to Home
+      </Link>
 
       {/* Theme toggle */}
       <div className={styles.themeToggle}>
