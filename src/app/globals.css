@@ -92,17 +92,17 @@
 
 /* ===== DARK THEME ===== */
 [data-theme="dark"] {
-  --primary: #3B82F6;
-  --primary-hover: #2563EB;
+  --primary: #60A5FA;
+  --primary-hover: #3B82F6;
   --primary-light: #1E293B;
-  --primary-dark: #60A5FA;
-  --primary-gradient: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+  --primary-dark: #93C5FD;
+  --primary-gradient: linear-gradient(135deg, #60A5FA 0%, #34D399 100%);
 
-  --accent: #10B981;
-  --accent-hover: #059669;
+  --accent: #34D399;
+  --accent-hover: #10B981;
   --accent-light: #064E3B;
 
-  --success: #10B981;
+  --success: #34D399;
   --success-light: #064E3B;
   --warning: #FBBF24;
   --warning-light: #78350F;
@@ -124,19 +124,28 @@
   --text-secondary: #CBD5E1;
   --text-tertiary: #94A3B8;
   --text-inverse: #0F172A;
-  --text-link: #3B82F6;
+  --text-link: #60A5FA;
 
   --border-color: #334155;
   --border-light: #1E293B;
-  --border-focus: #3B82F6;
+  --border-focus: #60A5FA;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.25);
+  --shadow-glow: 0 0 20px rgba(96, 165, 250, 0.3);
 
   --glass-bg: rgba(30, 41, 59, 0.85);
   --glass-border: rgba(51, 65, 85, 0.8);
+}
+
+/* Universal Dark Mode Logo Image Backdrop */
+[data-theme="dark"] img[src*="logo"] {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 0 14px rgba(96, 165, 250, 0.5);
+  transition: all 0.3s ease;
 }
 
 /* ===== BASE STYLES ===== */
