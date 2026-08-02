@@ -128,6 +128,12 @@ export default function AccountantDashboard() {
         const formatted = data.requests.map((r) => ({
           ...r,
           id: r.id || r._id || r.requestId,
+          user: (typeof r.userId === 'object' && r.userId?.name) ? r.userId.name : (r.user || 'Partner'),
+          role: (typeof r.userId === 'object' && r.userId?.role) ? r.userId.role : (r.role || 'PARTNER'),
+          userCode: (typeof r.userId === 'object' && r.userId?.userId) ? r.userId.userId : (typeof r.userId === 'string' ? r.userId : ''),
+          paymentMethod: r.payment_mode || r.paymentMethod || 'NEFT',
+          utrNumber: r.reference_no || r.utrNumber || '',
+          createdAt: r.created_at || r.createdAt || '',
         }));
         setFundRequests(formatted);
       }
@@ -157,6 +163,8 @@ export default function AccountantDashboard() {
           status: 'approved',
         }),
       });
+      // Re-fetch to guarantee sync with Supabase
+      await fetchFundRequestsFromDb();
     } catch (e) {
       console.error('Database Sync Error:', e);
     }
@@ -301,9 +309,9 @@ export default function AccountantDashboard() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                     <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 800, color: '#2563EB', fontSize: '0.85rem' }}>{req.id}</span>
-                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{req.user}</strong>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{typeof req.user === 'object' ? req.user?.name : req.user}</strong>
                     <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', padding: '1px 6px', borderRadius: '4px' }}>
-                      {req.role} ({req.userId})
+                      {req.role || ''} {req.userCode ? `(${req.userCode})` : ''}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
