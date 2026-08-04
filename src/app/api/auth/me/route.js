@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import jwt from 'jsonwebtoken';
+import { getMemoryStore } from '@/lib/walletStore';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'unipay-super-secret-key';
 
@@ -25,35 +26,47 @@ export async function GET(request) {
       );
     }
 
-    // Query fresh user profile & wallet_balance from Supabase
-    const { data: user, error } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('id', decoded.id)
-      .single();
+    let userObj = null;
 
-    if (error || !user) {
-      // Fallback return decoded token info if DB user not found
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: decoded.id,
-          userId: decoded.userId,
-          name: decoded.name,
-          phone: decoded.phone,
-          role: decoded.role,
-          walletBalance: 0,
-        },
-      });
+    // Check memoryStore user first for live real-time state
+    const store = getMemoryStore();
+    const memUser = store.users.find(u => u.id === decoded.id || u.email === decoded.email || u.role === decoded.role);
+    if (memUser) {
+      userObj = {
+        ...memUser,
+        walletBalance: Number(memUser.walletBalance || 0),
+      };
+    } else {
+      // Query fresh user profile from Supabase
+      try {
+        const { data: dbUser } = await supabaseAdmin
+          .from('users')
+          .select('*')
+          .eq('id', decoded.id)
+          .single();
+
+        if (dbUser) {
+          delete dbUser.password_hash;
+          userObj = {
+            ...dbUser,
+            userId: dbUser.user_id || dbUser.userId,
+            walletBalance: Number(dbUser.wallet_balance || 0),
+          };
+        }
+      } catch (e) {}
     }
 
-    delete user.password_hash;
-
-    const userObj = {
-      ...user,
-      userId: user.user_id || user.userId,
-      walletBalance: Number(user.wallet_balance || 0),
-    };
+    if (!userObj) {
+      const defaultBal = decoded.role === 'admin' ? 50000 : decoded.role === 'master_distributor' ? 10000 : decoded.role === 'distributor' ? 5000 : decoded.role === 'retailer' ? 2000 : 0;
+      userObj = {
+        id: decoded.id,
+        userId: decoded.userId,
+        name: decoded.name,
+        phone: decoded.phone,
+        role: decoded.role,
+        walletBalance: defaultBal,
+      };
+    }
 
     return NextResponse.json({
       success: true,

@@ -24,26 +24,26 @@ export const recentTransactions = [
 
 // ===== USERS LIST =====
 export const masterDistributors = [
-  { id: 'MD001', name: 'Vikram Singh', phone: '9876543212', city: 'Delhi', balance: 250000, status: 'active', distributors: 8, joined: '2024-01-15' },
-  { id: 'MD002', name: 'Raj Patel', phone: '9876543220', city: 'Mumbai', balance: 180000, status: 'active', distributors: 12, joined: '2024-02-20' },
-  { id: 'MD003', name: 'Ajay Chauhan', phone: '9876543225', city: 'Lucknow', balance: 95000, status: 'active', distributors: 6, joined: '2024-03-10' },
-  { id: 'MD004', name: 'Manish Tiwari', phone: '9876543230', city: 'Jaipur', balance: 320000, status: 'active', distributors: 15, joined: '2024-01-28' },
+  { id: 'MD001', name: 'Vikram Singh', phone: '9876543212', city: 'Delhi', balance: 10000, status: 'active', distributors: 8, joined: '2024-01-15' },
+  { id: 'MD002', name: 'Raj Patel', phone: '9876543220', city: 'Mumbai', balance: 8000, status: 'active', distributors: 12, joined: '2024-02-20' },
+  { id: 'MD003', name: 'Ajay Chauhan', phone: '9876543225', city: 'Lucknow', balance: 5000, status: 'active', distributors: 6, joined: '2024-03-10' },
+  { id: 'MD004', name: 'Manish Tiwari', phone: '9876543230', city: 'Jaipur', balance: 12000, status: 'active', distributors: 15, joined: '2024-01-28' },
   { id: 'MD005', name: 'Sunil Gupta', phone: '9876543235', city: 'Bhopal', balance: 0, status: 'blocked', distributors: 3, joined: '2024-04-05' },
 ];
 
 export const distributors = [
-  { id: 'DST001', name: 'Ankit Kumar', phone: '9876543213', city: 'Noida', balance: 75000, status: 'active', retailers: 18, parentMD: 'MD001', joined: '2024-02-01' },
-  { id: 'DST002', name: 'Rohit Sharma', phone: '9876543240', city: 'Gurgaon', balance: 45000, status: 'active', retailers: 22, parentMD: 'MD001', joined: '2024-02-15' },
-  { id: 'DST003', name: 'Gaurav Mishra', phone: '9876543245', city: 'Pune', balance: 62000, status: 'active', retailers: 10, parentMD: 'MD002', joined: '2024-03-01' },
-  { id: 'DST004', name: 'Vikas Yadav', phone: '9876543250', city: 'Kanpur', balance: 18000, status: 'active', retailers: 8, parentMD: 'MD003', joined: '2024-03-20' },
+  { id: 'DST001', name: 'Ankit Kumar', phone: '9876543213', city: 'Noida', balance: 5000, status: 'active', retailers: 18, parentMD: 'MD001', joined: '2024-02-01' },
+  { id: 'DST002', name: 'Rohit Sharma', phone: '9876543240', city: 'Gurgaon', balance: 4500, status: 'active', retailers: 22, parentMD: 'MD001', joined: '2024-02-15' },
+  { id: 'DST003', name: 'Gaurav Mishra', phone: '9876543245', city: 'Pune', balance: 6000, status: 'active', retailers: 10, parentMD: 'MD002', joined: '2024-03-01' },
+  { id: 'DST004', name: 'Vikas Yadav', phone: '9876543250', city: 'Kanpur', balance: 1800, status: 'active', retailers: 8, parentMD: 'MD003', joined: '2024-03-20' },
   { id: 'DST005', name: 'Pradeep Singh', phone: '9876543255', city: 'Ahmedabad', balance: 0, status: 'blocked', retailers: 5, parentMD: 'MD002', joined: '2024-04-10' },
 ];
 
 export const retailers = [
-  { id: 'RTL001', name: 'Suresh Yadav', phone: '9876543214', shopName: 'Suresh Mobile Point', city: 'Noida', balance: 12500, status: 'active', parentDist: 'DST001', joined: '2024-03-01' },
-  { id: 'RTL002', name: 'Ramesh Verma', phone: '9876543260', shopName: 'Verma Telecom', city: 'Noida', balance: 8900, status: 'active', parentDist: 'DST001', joined: '2024-03-10' },
-  { id: 'RTL003', name: 'Amit Pal', phone: '9876543265', shopName: 'Amit Digital Seva', city: 'Gurgaon', balance: 22000, status: 'active', parentDist: 'DST002', joined: '2024-03-15' },
-  { id: 'RTL004', name: 'Deepak Jha', phone: '9876543270', shopName: 'Jha Services', city: 'Pune', balance: 5600, status: 'active', parentDist: 'DST003', joined: '2024-04-01' },
+  { id: 'RTL001', name: 'Suresh Yadav', phone: '9876543214', shopName: 'Suresh Mobile Point', city: 'Noida', balance: 2000, status: 'active', parentDist: 'DST001', joined: '2024-03-01' },
+  { id: 'RTL002', name: 'Ramesh Verma', phone: '9876543260', shopName: 'Verma Telecom', city: 'Noida', balance: 1800, status: 'active', parentDist: 'DST001', joined: '2024-03-10' },
+  { id: 'RTL003', name: 'Amit Pal', phone: '9876543265', shopName: 'Amit Digital Seva', city: 'Gurgaon', balance: 2200, status: 'active', parentDist: 'DST002', joined: '2024-03-15' },
+  { id: 'RTL004', name: 'Deepak Jha', phone: '9876543270', shopName: 'Jha Services', city: 'Pune', balance: 1500, status: 'active', parentDist: 'DST003', joined: '2024-04-01' },
   { id: 'RTL005', name: 'Ravi Tiwari', phone: '9876543275', shopName: 'Ravi Point', city: 'Kanpur', balance: 0, status: 'blocked', parentDist: 'DST004', joined: '2024-04-15' },
 ];
 

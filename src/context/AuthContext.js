@@ -103,6 +103,11 @@ export function AuthProvider({ children }) {
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
+        if (parsed.role === 'admin' && (parsed.walletBalance > 50000 || parsed.wallet_balance > 50000)) {
+          parsed.walletBalance = 50000;
+          parsed.wallet_balance = 50000;
+          localStorage.setItem('unipay-user', JSON.stringify(parsed));
+        }
         setUser(parsed);
         setIsLoading(false); // Instant hydration - zero blocking delay!
       } catch (e) {
