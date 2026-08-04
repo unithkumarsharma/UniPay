@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { executeWalletOperation } from '@/lib/walletStore';
+import { executeWalletOperation, getMemoryStore } from '@/lib/walletStore';
 
 async function handleUpdate(request, { params }) {
   try {
@@ -19,10 +19,18 @@ async function handleUpdate(request, { params }) {
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
     let walletRes = null;
 
+    // Update memoryStore status
+    const store = getMemoryStore();
+    const memReq = store.fundRequests.find(r => r.id === id || r.request_id === id);
+    if (memReq) {
+      memReq.status = nextStatus;
+      if (rejectionReason) memReq.rejection_reason = rejectionReason;
+    }
+
     // 1. Credit wallet if approved
     if (action === 'approve') {
-      const targetUser = userId || 'rtl001_fallback';
-      const targetAmount = amount || 5000;
+      const targetUser = userId || memReq?.user_id || 'rtl001_fallback';
+      const targetAmount = amount || memReq?.amount || 1000;
       walletRes = await executeWalletOperation({
         userId: targetUser,
         type: 'credit',

@@ -41,10 +41,11 @@ export default function MDFundRequestPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          userRole: 'master_distributor',
           amount: parseFloat(amount),
           paymentMethod: method,
           utrNumber,
-          remarks,
+          remarks: remarks || 'MD Wallet Request to Accountant',
         }),
       });
       const data = await res.json();
@@ -53,7 +54,7 @@ export default function MDFundRequestPage() {
         setUtrNumber('');
         setRemarks('');
         fetchRequests();
-        alert('Fund request submitted to Admin!');
+        alert('Fund request submitted to Accountant (Priya Gupta) successfully!');
       } else {
         alert(data.error || 'Failed to submit request');
       }

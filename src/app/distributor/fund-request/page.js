@@ -60,11 +60,12 @@ export default function DistFundRequestPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          userRole: 'distributor',
           amount: Number(amount),
           paymentMethod: method,
           utrNumber: utr,
           bankName: 'HDFC Bank',
-          remarks: 'Distributor Wallet Deposit Request',
+          remarks: 'Distributor Wallet Request to MD',
         }),
       });
 
@@ -72,7 +73,7 @@ export default function DistFundRequestPage() {
       if (data.success) {
         setAmount('');
         setUtr('');
-        showToast(`Fund Request of ₹${Number(amount).toLocaleString('en-IN')} submitted successfully!`);
+        showToast(`Fund Request submitted to Master Distributor (MD) successfully!`);
         fetchRequests();
       } else {
         showToast(data.error || 'Failed to submit request');

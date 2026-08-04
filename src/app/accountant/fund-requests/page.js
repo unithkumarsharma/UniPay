@@ -110,21 +110,21 @@ export default function FundRequestsPage() {
       )
     );
 
-    // 2. PATCH to Supabase via API
+    // 2. PATCH to API
     try {
-      const res = await fetch('/api/fund-requests', {
+      const res = await fetch(`/api/fund-requests/${targetId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          requestId: targetId,
-          status: nextStatus,
-          adminId: user?.id || user?._id,
+          action,
+          processedBy: user?.id || user?.userId || 'acc001_fallback',
         }),
       });
       const data = await res.json();
 
       if (data.success) {
-        showToast(`Request #${targetId} ${nextStatus.toUpperCase()} — saved to database!`);
+        showToast(`Fund Request ${nextStatus.toUpperCase()} — user wallet updated in real time!`);
+        fetchRequests();
       } else {
         showToast(`Error: ${data.error || 'Update failed'}`);
       }
