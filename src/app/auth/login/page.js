@@ -7,17 +7,17 @@ import ThemeToggle from '@/components/ThemeToggle';
 import styles from './login.module.css';
 
 const ROLES = [
-  { key: 'admin', label: 'Admin', icon: '👑', desc: 'Full system control', defaultPhone: '9876543210' },
-  { key: 'accountant', label: 'Accountant', icon: '📊', desc: 'Financial management', defaultPhone: '9876543211' },
-  { key: 'master_distributor', label: 'Master Distributor', icon: '🏛️', desc: 'State/Zone level', defaultPhone: '9876543212' },
-  { key: 'distributor', label: 'Distributor', icon: '🏪', desc: 'City/District level', defaultPhone: '9876543213' },
-  { key: 'retailer', label: 'Retailer', icon: '🛒', desc: 'Shop level operations', defaultPhone: '9876543214' },
+  { key: 'admin', label: 'Admin', icon: '👑', desc: 'Full system control', defaultEmail: 'admin@unipay.com', defaultPhone: '9999900001' },
+  { key: 'accountant', label: 'Accountant', icon: '📊', desc: 'Financial management', defaultEmail: 'accountant@unipay.com', defaultPhone: '9999900002' },
+  { key: 'master_distributor', label: 'Master Distributor', icon: '🏛️', desc: 'Vikram Singh', defaultEmail: 'vikramsingh@unipay.com', defaultPhone: '9999900003' },
+  { key: 'distributor', label: 'Distributor', icon: '🏪', desc: 'Ankit Kumar', defaultEmail: 'ankitkumar@unipay.com', defaultPhone: '9999900004' },
+  { key: 'retailer', label: 'Retailer', icon: '🛒', desc: 'Suresh Yadav', defaultEmail: 'sureshyadav@unipay.com', defaultPhone: '9999900005' },
 ];
 
 export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState('admin');
-  const [phoneOrEmail, setPhoneOrEmail] = useState('9876543210');
-  const [password, setPassword] = useState('123456');
+  const [phoneOrEmail, setPhoneOrEmail] = useState('admin@unipay.com');
+  const [password, setPassword] = useState('unipay@980');
   const [isLogging, setIsLogging] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const { login, getRolePath } = useAuth();
@@ -27,7 +27,8 @@ export default function LoginPage() {
     setSelectedRole(roleKey);
     const roleObj = ROLES.find((r) => r.key === roleKey);
     if (roleObj) {
-      setPhoneOrEmail(roleObj.defaultPhone);
+      setPhoneOrEmail(roleObj.defaultEmail);
+      setPassword('unipay@980');
     }
   };
 
@@ -46,6 +47,8 @@ export default function LoginPage() {
     }
     setIsLogging(false);
   };
+
+  const activeRoleObj = ROLES.find(r => r.key === selectedRole);
 
   return (
     <div className={styles.container}>
@@ -110,11 +113,11 @@ export default function LoginPage() {
           )}
 
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Mobile Number / Email</label>
+            <label className={styles.formLabel}>Mobile Number / Email ID</label>
             <input
               type="text"
               className={styles.formInput}
-              placeholder="Enter mobile or email"
+              placeholder="e.g. sureshyadav@unipay.com"
               value={phoneOrEmail}
               onChange={(e) => setPhoneOrEmail(e.target.value)}
               required
@@ -140,13 +143,22 @@ export default function LoginPage() {
             {isLogging ? (
               <span className={styles.spinner}></span>
             ) : (
-              <>Login as {selectedRole ? ROLES.find(r => r.key === selectedRole)?.label : '...'}</>
+              <>Login as {activeRoleObj?.label || '...'}</>
             )}
           </button>
 
-          <p className={styles.demoNote}>
-            🔐 Real DB Auth Active — Default password: <code>123456</code>
-          </p>
+          <div style={{
+            padding: '10px',
+            borderRadius: '8px',
+            backgroundColor: 'var(--bg-hover)',
+            border: '1px solid var(--border-color)',
+            fontSize: '0.78rem',
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+            marginTop: '8px',
+          }}>
+            🔑 <strong>Demo Credentials:</strong> <code>{activeRoleObj?.defaultEmail}</code> | Pass: <code>unipay@980</code>
+          </div>
         </form>
       </div>
     </div>

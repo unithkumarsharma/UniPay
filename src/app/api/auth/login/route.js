@@ -11,8 +11,8 @@ const FALLBACK_USERS = {
     user_id: 'ADM001',
     userId: 'ADM001',
     name: 'Rahul Sharma (Admin)',
-    email: 'admin@unipay.in',
-    phone: '9876543210',
+    email: 'admin@unipay.com',
+    phone: '9999900001',
     role: 'admin',
     wallet_balance: 5000000,
     walletBalance: 5000000,
@@ -25,8 +25,8 @@ const FALLBACK_USERS = {
     user_id: 'ACC001',
     userId: 'ACC001',
     name: 'Priya Gupta (Accountant)',
-    email: 'accountant@unipay.in',
-    phone: '9876543211',
+    email: 'accountant@unipay.com',
+    phone: '9999900002',
     role: 'accountant',
     wallet_balance: 0,
     walletBalance: 0,
@@ -39,8 +39,8 @@ const FALLBACK_USERS = {
     user_id: 'MD001',
     userId: 'MD001',
     name: 'Vikram Singh (MD)',
-    email: 'md@unipay.in',
-    phone: '9876543212',
+    email: 'vikramsingh@unipay.com',
+    phone: '9999900003',
     role: 'master_distributor',
     wallet_balance: 250000,
     walletBalance: 250000,
@@ -53,8 +53,8 @@ const FALLBACK_USERS = {
     user_id: 'DST001',
     userId: 'DST001',
     name: 'Ankit Kumar (Distributor)',
-    email: 'distributor@unipay.in',
-    phone: '9876543213',
+    email: 'ankitkumar@unipay.com',
+    phone: '9999900004',
     role: 'distributor',
     wallet_balance: 75000,
     walletBalance: 75000,
@@ -67,8 +67,8 @@ const FALLBACK_USERS = {
     user_id: 'RTL001',
     userId: 'RTL001',
     name: 'Suresh Yadav (Retailer)',
-    email: 'retailer@unipay.in',
-    phone: '9876543214',
+    email: 'sureshyadav@unipay.com',
+    phone: '9999900005',
     role: 'retailer',
     shopName: 'Suresh Mobile Point',
     wallet_balance: 12500,
@@ -77,6 +77,40 @@ const FALLBACK_USERS = {
     city: 'Noida',
     state: 'UP',
   },
+};
+
+// Map name-based and role-based emails to exact user roles
+const EMAIL_ALIAS_TO_ROLE = {
+  // Admin
+  'rahulsharma@unipay.com': 'admin',
+  'rahul@unipay.com': 'admin',
+  'admin@unipay.com': 'admin',
+
+  // Accountant
+  'priyagupta@unipay.com': 'accountant',
+  'priya@unipay.com': 'accountant',
+  'accountant@unipay.com': 'accountant',
+
+  // Master Distributor
+  'vikramsingh@unipay.com': 'master_distributor',
+  'vikram@unipay.com': 'master_distributor',
+  'masterdistributor@unipay.com': 'master_distributor',
+  'md@unipay.com': 'master_distributor',
+
+  // Distributor
+  'ankitkumar@unipay.com': 'distributor',
+  'ankit@unipay.com': 'distributor',
+  'distributor@unipay.com': 'distributor',
+  'rohitsharma@unipay.com': 'distributor',
+  'gauravmishra@unipay.com': 'distributor',
+
+  // Retailer
+  'sureshyadav@unipay.com': 'retailer',
+  'suresh@unipay.com': 'retailer',
+  'retailer@unipay.com': 'retailer',
+  'rameshverma@unipay.com': 'retailer',
+  'amitpal@unipay.com': 'retailer',
+  'deepakjha@unipay.com': 'retailer',
 };
 
 export async function POST(request) {
@@ -91,7 +125,14 @@ export async function POST(request) {
     }
 
     const inputClean = String(phoneOrEmail).trim();
-    const selectedRole = role || 'admin';
+    let selectedRole = role || 'admin';
+
+    // Check if input email specifies an explicit role alias
+    const matchedAliasRole = EMAIL_ALIAS_TO_ROLE[inputClean.toLowerCase()];
+    if (matchedAliasRole) {
+      selectedRole = matchedAliasRole;
+    }
+
     let user = null;
 
     // 1. Query Supabase for User
@@ -110,12 +151,32 @@ export async function POST(request) {
       console.warn('Supabase login query note:', sbErr.message);
     }
 
-    // 2. Fallback for quick demo login if DB user not found
+    // 2. If DB user found, validate role matches the selected role
+    if (user) {
+      if (user.role !== selectedRole) {
+        const roleLabels = {
+          admin: 'Admin',
+          accountant: 'Accountant',
+          master_distributor: 'Master Distributor',
+          distributor: 'Distributor',
+          retailer: 'Retailer',
+        };
+        return NextResponse.json(
+          {
+            success: false,
+            error: `This account is registered as "${roleLabels[user.role] || user.role}". Please select the correct role to login.`,
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // 3. Fallback for quick demo login if DB user not found
     if (!user) {
       user = FALLBACK_USERS[selectedRole] || FALLBACK_USERS.admin;
     }
 
-    // 3. Status check
+    // 4. Status check
     if (user.status === 'blocked') {
       return NextResponse.json(
         { success: false, error: 'Your account is blocked. Please contact admin.' },
@@ -123,10 +184,18 @@ export async function POST(request) {
       );
     }
 
-    // 4. Verify Password
+    // 5. Verify Password
+    const VALID_DEMO_PASSWORDS = ['unipay@980', '123456'];
     if (user.password_hash) {
       const isMatch = await bcrypt.compare(password, user.password_hash);
-      if (!isMatch && password !== '123456') {
+      if (!isMatch && !VALID_DEMO_PASSWORDS.includes(password)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid password' },
+          { status: 401 }
+        );
+      }
+    } else {
+      if (!VALID_DEMO_PASSWORDS.includes(password)) {
         return NextResponse.json(
           { success: false, error: 'Invalid password' },
           { status: 401 }
@@ -143,7 +212,7 @@ export async function POST(request) {
       walletBalance: Number(user.wallet_balance ?? user.walletBalance ?? 0),
     };
 
-    // 5. Generate JWT Token
+    // 6. Generate JWT Token
     const token = jwt.sign(
       {
         id: userObj.id,

@@ -5,10 +5,10 @@ import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 
 const INITIAL_MOCK_USERS = [
-  { _id: 'USR101', id: 'USR101', userId: 'RTL001', name: 'Suresh Yadav', role: 'retailer', phone: '9876543210', walletBalance: 24500, status: 'active' },
-  { _id: 'USR102', id: 'USR102', userId: 'DST001', name: 'Ankit Kumar', role: 'distributor', phone: '9876543211', walletBalance: 150000, status: 'active' },
-  { _id: 'USR103', id: 'USR103', userId: 'MD001', name: 'Vikram Singh', role: 'master_distributor', phone: '9876543212', walletBalance: 450000, status: 'active' },
-  { _id: 'USR104', id: 'USR104', userId: 'ACC001', name: 'Rahul Verma', role: 'accountant', phone: '9876543213', walletBalance: 5000, status: 'active' },
+  { id: 'USR101', userId: 'RTL001', name: 'Suresh Yadav', role: 'retailer', phone: '9999900005', walletBalance: 24500, status: 'active' },
+  { id: 'USR102', userId: 'DST001', name: 'Ankit Kumar', role: 'distributor', phone: '9999900004', walletBalance: 150000, status: 'active' },
+  { id: 'USR103', userId: 'MD001', name: 'Vikram Singh', role: 'master_distributor', phone: '9999900003', walletBalance: 450000, status: 'active' },
+  { id: 'USR104', userId: 'ACC001', name: 'Rahul Verma', role: 'accountant', phone: '9999900002', walletBalance: 5000, status: 'active' },
 ];
 
 export default function AdminWalletPage() {
@@ -30,7 +30,7 @@ export default function AdminWalletPage() {
       const res = await fetch('/api/users');
       const data = await res.json();
       if (data.success && Array.isArray(data.users)) {
-        const formatted = data.users.map(u => ({ ...u, id: u.id || u._id || u.userId }));
+        const formatted = data.users.map(u => ({ ...u, id: u.id || u.userId }));
         setUsers(formatted);
       }
     } catch (e) {
@@ -55,12 +55,12 @@ export default function AdminWalletPage() {
     if (!selectedUser || !amount) return;
 
     const numAmount = parseFloat(amount);
-    const targetUserId = selectedUser._id || selectedUser.id || selectedUser.userId;
+    const targetUserId = selectedUser.id || selectedUser.userId;
 
     // 1. Instant local UI state update for live real-time re-rendering
     setUsers((prevUsers) =>
       prevUsers.map((u) => {
-        const uid = u._id || u.id || u.userId;
+        const uid = u.id || u.userId;
         if (uid === targetUserId) {
           const currentBal = Number(u.walletBalance || 0);
           const newBal = modalAction === 'add' ? currentBal + numAmount : Math.max(0, currentBal - numAmount);

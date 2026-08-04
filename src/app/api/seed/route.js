@@ -12,12 +12,12 @@ export async function POST() {
     await dbConnect();
 
     // 1. Seed Default Users if not existing
-    const hashedPassword = await bcrypt.hash('123456', 10);
+    const hashedPassword = await bcrypt.hash('unipay@980', 10);
 
     const defaultUsers = [
       {
         name: 'Rahul Sharma (Admin)',
-        email: 'admin@unipay.in',
+        email: 'admin@unipay.com',
         phone: '9876543210',
         password: hashedPassword,
         role: 'admin',
@@ -27,7 +27,7 @@ export async function POST() {
       },
       {
         name: 'Priya Gupta (Accountant)',
-        email: 'accountant@unipay.in',
+        email: 'accountant@unipay.com',
         phone: '9876543211',
         password: hashedPassword,
         role: 'accountant',
@@ -37,7 +37,7 @@ export async function POST() {
       },
       {
         name: 'Vikram Singh (MD)',
-        email: 'md@unipay.in',
+        email: 'vikramsingh@unipay.com',
         phone: '9876543212',
         password: hashedPassword,
         role: 'master_distributor',
@@ -47,7 +47,7 @@ export async function POST() {
       },
       {
         name: 'Ankit Kumar (Distributor)',
-        email: 'distributor@unipay.in',
+        email: 'ankitkumar@unipay.com',
         phone: '9876543213',
         password: hashedPassword,
         role: 'distributor',
@@ -57,7 +57,7 @@ export async function POST() {
       },
       {
         name: 'Suresh Yadav (Retailer)',
-        email: 'retailer@unipay.in',
+        email: 'sureshyadav@unipay.com',
         phone: '9876543214',
         password: hashedPassword,
         role: 'retailer',

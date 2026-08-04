@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { processWalletTransaction } from '@/lib/supabaseDB';
+import { executeWalletOperation } from '@/lib/walletStore';
 
 export async function POST(request) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request) {
 
     const type = action === 'deduct' ? 'debit' : 'credit';
 
-    const result = await processWalletTransaction({
+    const result = await executeWalletOperation({
       userId,
       type,
       amount: numAmount,
@@ -25,11 +25,10 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: `Wallet ${type === 'credit' ? 'credited' : 'debited'} successfully in Supabase`,
+      message: `Wallet ${type === 'credit' ? 'credited' : 'debited'} successfully`,
       newBalance: result.newBalance,
-      log: result.log,
     });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Operation failed' }, { status: 400 });
   }
 }

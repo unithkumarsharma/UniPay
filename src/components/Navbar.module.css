@@ -1,3 +1,5 @@
+/* Header Navbar CSS Module - Premium Fintech Aesthetics */
+
 .navbar {
   position: fixed;
   top: 0;
@@ -28,80 +30,120 @@
 }
 
 .menuBtn {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: none;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .menuBtn:hover {
   background: var(--bg-hover);
+  border-color: var(--primary);
 }
 
 .menuIcon {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  width: 20px;
+  width: 18px;
 }
 
 .menuIcon span {
   display: block;
   height: 2px;
-  background: var(--text-secondary);
+  background: var(--text-primary);
   border-radius: 2px;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .menuIcon span:nth-child(2) {
-  width: 14px;
+  width: 13px;
 }
 
 .menuBtn:hover .menuIcon span {
   background: var(--primary);
 }
 
-/* Search */
+/* Search Box */
 .searchBox {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .searchIcon {
   position: absolute;
-  left: 12px;
-  font-size: 0.85rem;
+  left: 14px;
+  color: var(--text-tertiary);
   pointer-events: none;
 }
 
 .searchInput {
-  width: 280px;
-  padding: 8px 14px 8px 38px;
+  width: 100%;
+  padding: 9px 16px 9px 40px;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 600;
   color: var(--text-primary);
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   outline: none;
-  transition: all var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .searchInput:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  width: 340px;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+  background: var(--bg-card);
 }
 
 .searchInput::placeholder {
   color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Search Dropdown */
+.searchDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.searchItem {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+
+.searchItem:hover {
+  background: var(--bg-hover);
+  transform: translateX(2px);
 }
 
 /* Right section */
@@ -111,42 +153,83 @@
   gap: 14px;
 }
 
-/* Wallet badge */
+/* Help Badge */
+.helpBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* Live Wallet Badge */
 .walletBadge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 10px;
+  padding: 6px 16px;
   background: var(--success-light);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 800;
   color: var(--success);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
 }
 
-.walletIcon {
-  font-size: 0.9rem;
+.walletAmount {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 900;
+  letter-spacing: -0.01em;
 }
 
-/* Notification */
+.refreshBtn {
+  background: none;
+  border: none;
+  color: var(--success);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.refreshBtn:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Notification Button */
 .notifBtn {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--border-color);
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 1rem;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .notifBtn:hover {
   border-color: var(--primary);
   background: var(--primary-light);
+  color: var(--primary);
 }
 
 .notifDot {
@@ -158,57 +241,71 @@
   background: var(--danger);
   border-radius: 50%;
   border: 2px solid var(--bg-card);
+  box-shadow: 0 0 6px var(--danger);
 }
 
-/* Profile */
+/* User Profile Badge */
 .profile {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 12px 4px 4px;
+  padding: 4px 14px 4px 5px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .profile:hover {
-  background: var(--bg-hover);
+  border-color: var(--primary);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .profileAvatar {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--primary-gradient);
-  color: white;
+  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 0.85rem;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
 
 .profileInfo {
   display: flex;
   flex-direction: column;
+  line-height: 1.1;
 }
 
 .profileName {
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 800;
   color: var(--text-primary);
-  line-height: 1.2;
 }
 
 .profileRole {
   font-size: 0.68rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
-/* Responsive */
+/* Responsive Hide Rules */
+@media (max-width: 900px) {
+  .helpBadge {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
     left: 0;
+    padding: 0 16px;
   }
 
   .navbar.expanded {
@@ -224,10 +321,6 @@
   }
 
   .walletAmount {
-    display: none;
-  }
-
-  .walletBadge {
-    padding: 6px 10px;
+    font-size: 0.78rem;
   }
 }

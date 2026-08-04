@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: selectedUserForFund._id,
+          userId: selectedUserForFund.id,
           amount: parseFloat(fundAmount),
           remark: fundNote || 'Admin Wallet Top-up',
         }),
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
     if (!selectedUserForEdit) return;
 
     try {
-      const res = await fetch(`/api/users/${selectedUserForEdit._id}`, {
+      const res = await fetch(`/api/users/${selectedUserForEdit.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editFormData),
@@ -196,7 +196,7 @@ export default function AdminUsersPage() {
     if (!selectedUserForDelete) return;
 
     try {
-      const res = await fetch(`/api/users/${selectedUserForDelete._id}`, {
+      const res = await fetch(`/api/users/${selectedUserForDelete.id}`, {
         method: 'DELETE',
       });
 
@@ -263,7 +263,7 @@ export default function AdminUsersPage() {
         className={`btn btn-sm ${row.status === 'active' ? 'btn-warning' : 'btn-success'}`}
         style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
         title={row.status === 'active' ? 'Block User' : 'Unblock User'}
-        onClick={() => handleToggleStatus(row._id, row.status)}
+        onClick={() => handleToggleStatus(row.id, row.status)}
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />

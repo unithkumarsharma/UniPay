@@ -99,8 +99,8 @@
 }
 
 .navItem.active {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563EB;
+  background: var(--primary-light);
+  color: var(--primary);
   font-weight: 700;
 }
 
@@ -112,7 +112,7 @@
   bottom: 6px;
   width: 3.5px;
   border-radius: 0 4px 4px 0;
-  background: #2563EB;
+  background: var(--primary);
 }
 
 .navItem:hover .navIcon {

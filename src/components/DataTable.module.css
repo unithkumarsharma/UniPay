@@ -102,35 +102,35 @@
 }
 
 .success {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  background: var(--success-light);
+  color: var(--success);
 }
 .success .statusDot {
-  background: #10B981;
+  background: var(--success);
 }
 
 .warning {
-  background: rgba(245, 158, 11, 0.12);
-  color: #D97706;
+  background: var(--warning-light);
+  color: var(--warning);
 }
 .warning .statusDot {
-  background: #F59E0B;
+  background: var(--warning);
 }
 
 .danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #DC2626;
+  background: var(--danger-light);
+  color: var(--danger);
 }
 .danger .statusDot {
-  background: #EF4444;
+  background: var(--danger);
 }
 
 .info {
-  background: rgba(37, 99, 235, 0.12);
-  color: #2563EB;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 .info .statusDot {
-  background: #2563EB;
+  background: var(--primary);
 }
 
 /* Amount & Txn ID */
@@ -144,8 +144,8 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 700;
   font-size: 0.8rem;
-  color: #2563EB;
-  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+  background: var(--primary-light);
   padding: 2px 8px;
   border-radius: 4px;
 }

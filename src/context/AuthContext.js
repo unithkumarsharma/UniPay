@@ -11,12 +11,20 @@ const ROLE_LABELS = {
   retailer: 'Retailer',
 };
 
+const DEFAULT_DEMO_EMAILS = {
+  admin: 'admin@unipay.com',
+  accountant: 'accountant@unipay.com',
+  master_distributor: 'vikramsingh@unipay.com',
+  distributor: 'ankitkumar@unipay.com',
+  retailer: 'sureshyadav@unipay.com',
+};
+
 const DEFAULT_DEMO_PHONES = {
-  admin: '9876543210',
-  accountant: '9876543211',
-  master_distributor: '9876543212',
-  distributor: '9876543213',
-  retailer: '9876543214',
+  admin: '9999900001',
+  accountant: '9999900002',
+  master_distributor: '9999900003',
+  distributor: '9999900004',
+  retailer: '9999900005',
 };
 
 const FALLBACK_USER_PROFILES = {
@@ -24,8 +32,8 @@ const FALLBACK_USER_PROFILES = {
     id: 'adm001_fallback',
     userId: 'ADM001',
     name: 'Rahul Sharma (Admin)',
-    email: 'admin@unipay.in',
-    phone: '9876543210',
+    email: 'admin@unipay.com',
+    phone: '9999900001',
     role: 'admin',
     walletBalance: 5000000,
     status: 'active',
@@ -36,8 +44,8 @@ const FALLBACK_USER_PROFILES = {
     id: 'acc001_fallback',
     userId: 'ACC001',
     name: 'Priya Gupta (Accountant)',
-    email: 'accountant@unipay.in',
-    phone: '9876543211',
+    email: 'accountant@unipay.com',
+    phone: '9999900002',
     role: 'accountant',
     walletBalance: 0,
     status: 'active',
@@ -48,8 +56,8 @@ const FALLBACK_USER_PROFILES = {
     id: 'md001_fallback',
     userId: 'MD001',
     name: 'Vikram Singh (MD)',
-    email: 'md@unipay.in',
-    phone: '9876543212',
+    email: 'vikramsingh@unipay.com',
+    phone: '9999900003',
     role: 'master_distributor',
     walletBalance: 250000,
     status: 'active',
@@ -60,8 +68,8 @@ const FALLBACK_USER_PROFILES = {
     id: 'dst001_fallback',
     userId: 'DST001',
     name: 'Ankit Kumar (Distributor)',
-    email: 'distributor@unipay.in',
-    phone: '9876543213',
+    email: 'ankitkumar@unipay.com',
+    phone: '9999900004',
     role: 'distributor',
     walletBalance: 75000,
     status: 'active',
@@ -72,8 +80,8 @@ const FALLBACK_USER_PROFILES = {
     id: 'rtl001_fallback',
     userId: 'RTL001',
     name: 'Suresh Yadav (Retailer)',
-    email: 'retailer@unipay.in',
-    phone: '9876543214',
+    email: 'sureshyadav@unipay.com',
+    phone: '9999900005',
     role: 'retailer',
     shopName: 'Suresh Mobile Point',
     walletBalance: 12500,
@@ -148,8 +156,8 @@ export function AuthProvider({ children }) {
 
   const login = async (role, credentials = {}) => {
     const selectedRole = role || 'admin';
-    const phoneOrEmail = credentials.phoneOrEmail || DEFAULT_DEMO_PHONES[selectedRole] || '9876543210';
-    const password = credentials.password || '123456';
+    const phoneOrEmail = credentials.phoneOrEmail || DEFAULT_DEMO_EMAILS[selectedRole] || 'admin@unipay.com';
+    const password = credentials.password || 'unipay@980';
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -214,6 +222,13 @@ export function AuthProvider({ children }) {
     } catch (e) {}
   };
 
+  const updateWalletBalance = (newBalance) => {
+    if (!user) return;
+    const updatedUser = { ...user, walletBalance: Number(newBalance) };
+    setUser(updatedUser);
+    localStorage.setItem('unipay-user', JSON.stringify(updatedUser));
+  };
+
   const getRoleLabel = (role) => ROLE_LABELS[role] || role;
 
   const getRolePath = (role) => {
@@ -237,6 +252,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         refreshUserData,
+        updateWalletBalance,
         getRoleLabel,
         getRolePath,
       }}

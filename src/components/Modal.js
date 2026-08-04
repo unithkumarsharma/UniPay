@@ -2,7 +2,10 @@
 import styles from './Modal.module.css';
 
 export default function Modal({ isOpen, onClose, title, children }) {
-  if (!isOpen) return null;
+  // Support both patterns:
+  // 1. <Modal isOpen={showModal}> (controlled by isOpen prop)
+  // 2. {condition && <Modal>} (always visible when rendered, isOpen not passed)
+  if (isOpen !== undefined && !isOpen) return null;
 
   return (
     <div className={styles.overlay} onClick={onClose}>

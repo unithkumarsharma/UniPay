@@ -7,7 +7,7 @@ import Navbar from './Navbar';
 
 export default function DashboardLayout({ children, requiredRole }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // collapsed by default on mobile
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, getRolePath } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -21,10 +21,11 @@ export default function DashboardLayout({ children, requiredRole }) {
     if (!isLoading && !user) {
       router.push('/auth/login');
     }
+    // If user is logged in but on wrong panel, redirect to their correct panel
     if (!isLoading && user && requiredRole && user.role !== requiredRole) {
-      router.push('/auth/login');
+      router.push(getRolePath(user.role));
     }
-  }, [user, isLoading, requiredRole, router]);
+  }, [user, isLoading, requiredRole, router, getRolePath]);
 
   if (isLoading || !user) {
     return (
