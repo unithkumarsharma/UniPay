@@ -5,10 +5,10 @@ import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 
 const INITIAL_MOCK_USERS = [
-  { id: 'USR101', userId: 'RTL001', name: 'Suresh Yadav', role: 'retailer', phone: '9999900005', walletBalance: 24500, status: 'active' },
-  { id: 'USR102', userId: 'DST001', name: 'Ankit Kumar', role: 'distributor', phone: '9999900004', walletBalance: 150000, status: 'active' },
-  { id: 'USR103', userId: 'MD001', name: 'Vikram Singh', role: 'master_distributor', phone: '9999900003', walletBalance: 450000, status: 'active' },
-  { id: 'USR104', userId: 'ACC001', name: 'Rahul Verma', role: 'accountant', phone: '9999900002', walletBalance: 5000, status: 'active' },
+  { id: 'rtl001_fallback', userId: 'RTL001', name: 'Suresh Yadav', role: 'retailer', phone: '9999900005', walletBalance: 2000, status: 'active' },
+  { id: 'dst001_fallback', userId: 'DST001', name: 'Ankit Kumar', role: 'distributor', phone: '9999900004', walletBalance: 5000, status: 'active' },
+  { id: 'md001_fallback', userId: 'MD001', name: 'Vikram Singh', role: 'master_distributor', phone: '9999900003', walletBalance: 10000, status: 'active' },
+  { id: 'acc001_fallback', userId: 'ACC001', name: 'Priya Gupta', role: 'accountant', phone: '9999900002', walletBalance: 0, status: 'active' },
 ];
 
 export default function AdminWalletPage() {

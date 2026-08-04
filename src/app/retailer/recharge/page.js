@@ -19,7 +19,7 @@ const plans = [
 ];
 
 export default function RechargePage() {
-  const { user, refreshUserData } = useAuth();
+  const { user, refreshUserData, updateWalletBalance } = useAuth();
   const [selectedOp, setSelectedOp] = useState(null);
   const [mobile, setMobile] = useState('');
   const [customAmount, setCustomAmount] = useState('');
@@ -43,7 +43,7 @@ export default function RechargePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id || user._id,
+          userId: user.id || user._id || user.userId,
           type: 'recharge',
           amount: amountToCharge,
           serviceDetails: {
@@ -57,7 +57,11 @@ export default function RechargePage() {
       const data = await res.json();
       if (data.success) {
         setMessage({ type: 'success', text: `Recharge Successful! Txn ID: ${data.transaction.txnId}. Commission earned: ₹${data.transaction.commission}` });
-        await refreshUserData();
+        if (data.newBalance !== undefined && data.newBalance !== null) {
+          updateWalletBalance(data.newBalance);
+        } else {
+          await refreshUserData();
+        }
         setMobile('');
         setSelectedPlan(null);
         setCustomAmount('');

@@ -8,26 +8,26 @@ import { supabaseAdmin } from './supabaseAdmin';
 // In-Memory Fallback State for zero-latency UI updates & fallback demo sessions
 let memoryStore = {
   users: [
-    { id: 'adm001_fallback', userId: 'ADM001', name: 'Rahul Sharma (Admin)', role: 'admin', phone: '9999900001', email: 'admin@unipay.com', walletBalance: 5000000 },
-    { id: 'acc001_fallback', userId: 'ACC001', name: 'Priya Gupta (Accountant)', role: 'accountant', phone: '9999900002', email: 'accountant@unipay.com', walletBalance: 50000 },
-    { id: 'md001_fallback', userId: 'MD001', name: 'Vikram Singh (MD)', role: 'master_distributor', phone: '9999900003', email: 'vikramsingh@unipay.com', walletBalance: 250000 },
-    { id: 'dst001_fallback', userId: 'DST001', name: 'Ankit Kumar (Distributor)', role: 'distributor', phone: '9999900004', email: 'ankitkumar@unipay.com', walletBalance: 75000 },
-    { id: 'rtl001_fallback', userId: 'RTL001', name: 'Suresh Yadav (Retailer)', role: 'retailer', phone: '9999900005', email: 'sureshyadav@unipay.com', walletBalance: 12500 },
+    { id: 'adm001_fallback', userId: 'ADM001', name: 'Rahul Sharma (Admin)', role: 'admin', phone: '9999900001', email: 'admin@unipay.com', walletBalance: 50000 },
+    { id: 'acc001_fallback', userId: 'ACC001', name: 'Priya Gupta (Accountant)', role: 'accountant', phone: '9999900002', email: 'accountant@unipay.com', walletBalance: 0 },
+    { id: 'md001_fallback', userId: 'MD001', name: 'Vikram Singh (MD)', role: 'master_distributor', phone: '9999900003', email: 'vikramsingh@unipay.com', walletBalance: 10000 },
+    { id: 'dst001_fallback', userId: 'DST001', name: 'Ankit Kumar (Distributor)', role: 'distributor', phone: '9999900004', email: 'ankitkumar@unipay.com', walletBalance: 5000 },
+    { id: 'rtl001_fallback', userId: 'RTL001', name: 'Suresh Yadav (Retailer)', role: 'retailer', phone: '9999900005', email: 'sureshyadav@unipay.com', walletBalance: 2000 },
   ],
   logs: [
-    { id: 'LED001', date: new Date().toISOString(), type: 'credit', description: 'Initial System Reserve Fund', amount: 5000000, balance: 5000000, user_id: 'adm001_fallback' },
-    { id: 'LED002', date: new Date().toISOString(), type: 'credit', description: 'Opening Balance MD001 Vikram Singh', amount: 250000, balance: 250000, user_id: 'md001_fallback' },
-    { id: 'LED003', date: new Date().toISOString(), type: 'credit', description: 'Opening Balance DST001 Ankit Kumar', amount: 75000, balance: 75000, user_id: 'dst001_fallback' },
-    { id: 'LED004', date: new Date().toISOString(), type: 'credit', description: 'Opening Balance RTL001 Suresh Yadav', amount: 12500, balance: 12500, user_id: 'rtl001_fallback' },
+    { id: 'LED001', date: new Date().toISOString(), type: 'credit', description: 'Company Capital Fund Pool', amount: 50000, balance: 50000, user_id: 'adm001_fallback' },
+    { id: 'LED002', date: new Date().toISOString(), type: 'credit', description: 'Opening Balance MD001 Vikram Singh', amount: 10000, balance: 10000, user_id: 'md001_fallback' },
+    { id: 'LED003', date: new Date().toISOString(), type: 'credit', description: 'Opening Balance DST001 Ankit Kumar', amount: 5000, balance: 5000, user_id: 'dst001_fallback' },
+    { id: 'LED004', date: new Date().toISOString(), type: 'credit', description: 'Opening Balance RTL001 Suresh Yadav', amount: 2000, balance: 2000, user_id: 'rtl001_fallback' },
   ],
   fundRequests: [
-    { id: 'FR001', request_id: 'REQ100001', user_id: 'md001_fallback', user: 'Vikram Singh (MD001)', amount: 50000, payment_mode: 'IMPS', reference_no: 'UTR982374912', status: 'pending', created_at: new Date().toISOString() },
-    { id: 'FR002', request_id: 'REQ100002', user_id: 'dst001_fallback', user: 'Ankit Kumar (DST001)', amount: 20000, payment_mode: 'UPI', reference_no: 'UPI883471029', status: 'pending', created_at: new Date().toISOString() },
-    { id: 'FR003', request_id: 'REQ100003', user_id: 'rtl001_fallback', user: 'Suresh Yadav (RTL001)', amount: 5000, payment_mode: 'UPI', reference_no: 'UPI321654987', status: 'approved', created_at: new Date().toISOString() },
+    { id: 'FR001', request_id: 'REQ100001', user_id: 'md001_fallback', user: 'Vikram Singh (MD001)', amount: 5000, payment_mode: 'IMPS', reference_no: 'UTR982374912', status: 'pending', created_at: new Date().toISOString() },
+    { id: 'FR002', request_id: 'REQ100002', user_id: 'dst001_fallback', user: 'Ankit Kumar (DST001)', amount: 2000, payment_mode: 'UPI', reference_no: 'UPI883471029', status: 'pending', created_at: new Date().toISOString() },
+    { id: 'FR003', request_id: 'REQ100003', user_id: 'rtl001_fallback', user: 'Suresh Yadav (RTL001)', amount: 1000, payment_mode: 'UPI', reference_no: 'UPI321654987', status: 'approved', created_at: new Date().toISOString() },
   ],
   transactions: [
     { id: 'TXN001', txn_id: 'TXN99012', user: 'Suresh Yadav (RTL001)', user_id: 'rtl001_fallback', type: 'recharge', amount: 299, status: 'success', service_name: 'Jio Mobile Prepaid', commission: 4.5, created_at: new Date().toISOString() },
-    { id: 'TXN002', txn_id: 'TXN99013', user: 'Suresh Yadav (RTL001)', user_id: 'rtl001_fallback', type: 'bill_payment', amount: 1850, status: 'success', service_name: 'Tata Power Electricity', commission: 12, created_at: new Date().toISOString() },
+    { id: 'TXN002', txn_id: 'TXN99013', user: 'Suresh Yadav (RTL001)', user_id: 'rtl001_fallback', type: 'bill_payment', amount: 450, status: 'success', service_name: 'Torrent Power Electricity', commission: 5, created_at: new Date().toISOString() },
   ]
 };
 

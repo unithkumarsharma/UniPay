@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import styles from './ServiceActionModal.module.css';
 import ReceiptModal from './ReceiptModal';
 import ServiceIcon from './ServiceIcon';
 
-export default function ServiceActionModal({ service, onClose, onRefreshWallet }) {
+export default function ServiceActionModal({ service, isOpen, onClose, onRefreshWallet }) {
+  const { user, updateWalletBalance, refreshUserData } = useAuth();
   const [step, setStep] = useState(1); // 1: Form, 2: Confirm, 3: Success
   const [formData, setFormData] = useState({});
   const [isScanning, setIsScanning] = useState(false);
@@ -15,7 +17,7 @@ export default function ServiceActionModal({ service, onClose, onRefreshWallet }
   const [txnResult, setTxnResult] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
 
-  if (!service) return null;
+  if (!isOpen || !service) return null;
 
   const handleInputChange = (field, val) => {
     setFormData(prev => ({ ...prev, [field]: val }));
@@ -47,7 +49,7 @@ export default function ServiceActionModal({ service, onClose, onRefreshWallet }
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'rtl001_fallback',
+          userId: user?.id || user?.userId || 'rtl001_fallback',
           type: service.name,
           amount: amount,
           serviceDetails: {
@@ -72,12 +74,22 @@ export default function ServiceActionModal({ service, onClose, onRefreshWallet }
 
       setTxnResult(newTxn);
       setStep(3);
-      if (onRefreshWallet) onRefreshWallet();
+      if (data.success && data.newBalance !== undefined && data.newBalance !== null) {
+        updateWalletBalance(data.newBalance);
+        if (onRefreshWallet) onRefreshWallet(data.newBalance);
+      } else if (refreshUserData) {
+        refreshUserData();
+      }
     } catch (err) {
+      const amount = Number(formData.amount || 1000);
+      const currentBal = Number(user?.walletBalance || 2000);
+      const newBal = Math.max(0, currentBal - amount);
+      updateWalletBalance(newBal);
+
       setTxnResult({
         id: 'TXN' + Math.floor(100000 + Math.random() * 900000),
         type: service.name,
-        amount: Number(formData.amount || 1000),
+        amount: amount,
         commission: 15,
         status: 'success',
         time: 'Just now',
