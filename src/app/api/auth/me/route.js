@@ -28,32 +28,36 @@ export async function GET(request) {
 
     let userObj = null;
 
-    // Check memoryStore user first for live real-time state
-    const store = getMemoryStore();
-    const memUser = store.users.find(u => u.id === decoded.id || u.email === decoded.email || u.role === decoded.role);
-    if (memUser) {
-      userObj = {
-        ...memUser,
-        walletBalance: Number(memUser.walletBalance || 0),
-      };
-    } else {
-      // Query fresh user profile from Supabase
-      try {
-        const { data: dbUser } = await supabaseAdmin
-          .from('users')
-          .select('*')
-          .eq('id', decoded.id)
-          .single();
+    // 1. Query fresh user profile from Supabase DB first
+    try {
+      const { data: dbUser } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .or(`id.eq.${decoded.id},email.eq.${decoded.email || ''}`)
+        .maybeSingle();
 
-        if (dbUser) {
-          delete dbUser.password_hash;
-          userObj = {
-            ...dbUser,
-            userId: dbUser.user_id || dbUser.userId,
-            walletBalance: Number(dbUser.wallet_balance || 0),
-          };
-        }
-      } catch (e) {}
+      if (dbUser) {
+        delete dbUser.password_hash;
+        userObj = {
+          ...dbUser,
+          userId: dbUser.user_id || dbUser.userId,
+          walletBalance: Number(dbUser.wallet_balance || 0),
+        };
+      }
+    } catch (e) {
+      console.warn('/api/auth/me DB lookup notice:', e.message);
+    }
+
+    // 2. Memory store sync fallback
+    if (!userObj) {
+      const store = getMemoryStore();
+      const memUser = store.users.find(u => u.id === decoded.id || u.email === decoded.email || u.role === decoded.role);
+      if (memUser) {
+        userObj = {
+          ...memUser,
+          walletBalance: Number(memUser.walletBalance || 0),
+        };
+      }
     }
 
     if (!userObj) {
