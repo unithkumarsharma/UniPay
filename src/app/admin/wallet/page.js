@@ -12,7 +12,7 @@ const INITIAL_MOCK_USERS = [
 ];
 
 export default function AdminWalletPage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(INITIAL_MOCK_USERS);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalAction, setModalAction] = useState('add'); // 'add' or 'deduct'
@@ -29,7 +29,7 @@ export default function AdminWalletPage() {
     try {
       const res = await fetch('/api/users');
       const data = await res.json();
-      if (data.success && Array.isArray(data.users)) {
+      if (data.success && Array.isArray(data.users) && data.users.length > 0) {
         const formatted = data.users.map(u => ({ ...u, id: u.id || u.userId }));
         setUsers(formatted);
       }

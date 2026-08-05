@@ -48,17 +48,20 @@ function DashboardContent() {
 
   // Sync active service from URL param
   useEffect(() => {
-    if (serviceParam) {
-      const found = allServices.find(s => s.id === serviceParam);
-      if (found) {
-        setActiveService(found);
-        setTxnResult(null);
-        setFormData({});
-        setIsBiometricDone(false);
+    const timer = setTimeout(() => {
+      if (serviceParam) {
+        const found = allServices.find(s => s.id === serviceParam);
+        if (found) {
+          setActiveService(found);
+          setTxnResult(null);
+          setFormData({});
+          setIsBiometricDone(false);
+        }
+      } else {
+        setActiveService(null);
       }
-    } else {
-      setActiveService(null);
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [serviceParam]);
 
   const handleFundSubmit = async (e) => {
@@ -160,7 +163,6 @@ function DashboardContent() {
         user: formData.mobile || 'Customer Ref',
         utr: 'UTR' + Math.floor(100000000000 + Math.random() * 900000000000),
       });
-    }
     }
 
     setIsProcessing(false);

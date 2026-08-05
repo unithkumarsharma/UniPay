@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { processWalletTransaction, createTransactionRecord } from '@/lib/supabaseDB';
+import { executeWalletOperation } from '@/lib/walletStore';
+import { createTransactionRecord } from '@/lib/supabaseDB';
 
 const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
@@ -50,7 +51,7 @@ export async function POST(request) {
       const numAmount = parseFloat(amount);
       if (!isNaN(numAmount) && numAmount > 0) {
         try {
-          const walletRes = await processWalletTransaction({
+          const walletRes = await executeWalletOperation({
             userId,
             type: 'credit',
             amount: numAmount,

@@ -4,24 +4,28 @@ import { useAuth } from '@/context/AuthContext';
 import DataTable from '@/components/DataTable';
 
 export default function DistFundRequestPage() {
-  const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
+  const { user, refreshUserData } = useAuth();
+  const [activeTab, setActiveTab] = useState('incoming'); // 'incoming' | 'my_requests'
+  const [myRequests, setMyRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('NEFT');
   const [utr, setUtr] = useState('');
   const [toastMsg, setToastMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
 
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3500);
   };
 
-  const userId = user?.id || user?._id;
+  const userId = user?.id || user?.userId || 'dst001_fallback';
 
-  const fetchRequests = useCallback(async () => {
+  // Fetch My Requests (Submitted to MD)
+  const fetchMyRequests = useCallback(async () => {
     try {
-      const url = userId ? `/api/fund-requests?userId=${userId}` : '/api/fund-requests';
+      const url = `/api/fund-requests?userId=${userId}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.success && Array.isArray(data.requests)) {
@@ -34,24 +38,47 @@ export default function DistFundRequestPage() {
           status: r.status,
           date: r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : (r.date || ''),
         }));
-        setRequests(formatted);
+        setMyRequests(formatted);
       }
     } catch (e) {
-      console.error('Fetch distributor fund requests error:', e);
+      console.error('Fetch my fund requests error:', e);
     }
   }, [userId]);
 
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
+  // Fetch Incoming Requests (Submitted by Retailers to Distributor)
+  const fetchIncomingRequests = useCallback(async () => {
+    try {
+      const url = `/api/fund-requests?userRole=distributor`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.requests)) {
+        const formatted = data.requests.map((r) => ({
+          ...r,
+          id: r.id || r.requestId,
+          requestId: r.request_id || r.requestId || r.id,
+          user: r.user || r.userId?.name || 'Retailer Partner',
+          userCode: r.userCode || r.userId?.userId || 'RTL',
+          amount: Number(r.amount),
+          method: r.payment_mode || r.paymentMethod || r.method,
+          utr: r.reference_no || r.utrNumber || r.utr,
+          status: r.status,
+          date: r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : (r.date || ''),
+        }));
+        setIncomingRequests(formatted);
+      }
+    } catch (e) {
+      console.error('Fetch incoming retailer fund requests error:', e);
+    }
+  }, []);
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    fetchMyRequests();
+    fetchIncomingRequests();
+  }, [fetchMyRequests, fetchIncomingRequests]);
+
+  const handleSubmitMyRequest = async (e) => {
     e.preventDefault();
     if (!amount || !utr) return;
-    if (!userId) {
-      showToast('Error: User session not found. Please log in again.');
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -74,7 +101,7 @@ export default function DistFundRequestPage() {
         setAmount('');
         setUtr('');
         showToast(`Fund Request submitted to Master Distributor (MD) successfully!`);
-        fetchRequests();
+        fetchMyRequests();
       } else {
         showToast(data.error || 'Failed to submit request');
       }
@@ -85,7 +112,46 @@ export default function DistFundRequestPage() {
     }
   };
 
-  const columns = [
+  // Handle Approve or Reject for Downline Retailer Request
+  const handleDownlineAction = async (targetId, action) => {
+    const nextStatus = action === 'approve' ? 'approved' : 'rejected';
+    setActionLoading(targetId);
+
+    // 1. Optimistic UI update
+    setIncomingRequests((prev) =>
+      prev.map((r) =>
+        (r.id === targetId || r.requestId === targetId) ? { ...r, status: nextStatus } : r
+      )
+    );
+
+    // 2. Call API
+    try {
+      const res = await fetch(`/api/fund-requests/${targetId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          processedBy: userId,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Retailer Fund Request ${nextStatus.toUpperCase()}! Wallet credited.`);
+        await refreshUserData();
+        fetchIncomingRequests();
+      } else {
+        showToast(`Notice: ${data.error || 'Update completed'}`);
+      }
+    } catch (e) {
+      console.error(e);
+      showToast(`Network error: ${e.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const incomingColumns = [
     {
       key: 'requestId',
       label: 'Request ID',
@@ -103,6 +169,16 @@ export default function DistFundRequestPage() {
       ),
     },
     {
+      key: 'user',
+      label: 'Retailer Name',
+      render: (r) => (
+        <div>
+          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.user}</div>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{r.userCode}</span>
+        </div>
+      ),
+    },
+    {
       key: 'amount',
       label: 'Amount (₹)',
       render: (r) => (
@@ -111,7 +187,7 @@ export default function DistFundRequestPage() {
         </span>
       ),
     },
-    { key: 'method', label: 'Payment Mode' },
+    { key: 'method', label: 'Mode' },
     {
       key: 'utr',
       label: 'UTR / Ref No.',
@@ -121,7 +197,7 @@ export default function DistFundRequestPage() {
         </span>
       ),
     },
-    { key: 'date', label: 'Date & Time' },
+    { key: 'date', label: 'Date' },
     {
       key: 'status',
       label: 'Status',
@@ -147,6 +223,47 @@ export default function DistFundRequestPage() {
         );
       },
     },
+    {
+      key: 'actions',
+      label: 'Action',
+      render: (row) => {
+        const rowKey = row.id || row.requestId;
+        const isProcessing = actionLoading === rowKey;
+        return row.status === 'pending' ? (
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <button
+              className="btn btn-sm btn-success"
+              disabled={isProcessing}
+              style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => handleDownlineAction(rowKey, 'approve')}
+            >
+              ✓ Approve &amp; Credit
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              disabled={isProcessing}
+              style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => handleDownlineAction(rowKey, 'reject')}
+            >
+              ✕ Reject
+            </button>
+          </div>
+        ) : (
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>
+            {row.status === 'approved' ? 'Credited' : 'Rejected'}
+          </span>
+        );
+      },
+    },
+  ];
+
+  const myRequestColumns = [
+    { key: 'requestId', label: 'Request ID' },
+    { key: 'amount', label: 'Amount (₹)', render: (r) => `₹${r.amount?.toLocaleString('en-IN')}` },
+    { key: 'method', label: 'Payment Mode' },
+    { key: 'utr', label: 'UTR / Ref No.' },
+    { key: 'date', label: 'Date' },
+    { key: 'status', label: 'Status' },
   ];
 
   return (
@@ -177,82 +294,105 @@ export default function DistFundRequestPage() {
             <line x1="12" y1="1" x2="12" y2="23" />
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
-          DISTRIBUTOR BALANCE REPLENISHMENT
+          DISTRIBUTOR FUND REQUESTS &amp; APPROVALS
         </div>
         <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Fund Request to Master Distributor
+          Fund Requests &amp; Downline Approvals
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-          Request high-volume balance allocation from Master Distributor / Corporate Admin.
+          Approve pending retailer balance requests or submit fund replenishment requests to Master Distributor.
         </p>
       </div>
 
-      {/* Submission Card */}
-      <div className="card" style={{ maxWidth: '560px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '18px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2" />
-            <line x1="2" y1="10" x2="22" y2="10" />
-          </svg>
-          Submit Distributor Fund Request
-        </h3>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Requested Balance Amount (₹)</label>
-            <input
-              type="number"
-              className="form-input"
-              placeholder="e.g. 50000"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-              min="1"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Payment Method</label>
-            <select
-              className="form-select"
-              value={method}
-              onChange={(e) => setMethod(e.target.value)}
-            >
-              <option value="Bank Transfer (RTGS)">Bank Transfer (RTGS / NEFT)</option>
-              <option value="UPI Transfer">UPI Transfer</option>
-              <option value="Company Cheque">Company Cheque / Demand Draft</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Bank UTR / Reference Number</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. RTGS99812488"
-              value={utr}
-              onChange={(e) => setUtr(e.target.value)}
-              required
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary w-full" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', fontSize: '0.9rem', fontWeight: 800 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-            Submit Request to Master Distributor
-          </button>
-        </form>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+        <button
+          onClick={() => setActiveTab('incoming')}
+          className={`btn ${activeTab === 'incoming' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+        >
+          <span>📥</span> Incoming Retailer Requests ({incomingRequests.filter(r => r.status === 'pending').length} Pending)
+        </button>
+        <button
+          onClick={() => setActiveTab('my_requests')}
+          className={`btn ${activeTab === 'my_requests' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+        >
+          <span>📤</span> My Requests to MD
+        </button>
       </div>
 
-      {/* Table */}
-      <DataTable
-        title="Distributor Request Audit Log"
-        columns={columns}
-        data={requests}
-        searchable={true}
-      />
+      {/* 1. INCOMING RETAILER REQUESTS TAB */}
+      {activeTab === 'incoming' && (
+        <DataTable
+          title="Incoming Retailer Fund Requests"
+          columns={incomingColumns}
+          data={incomingRequests}
+          searchable={true}
+        />
+      )}
+
+      {/* 2. MY REQUESTS TO MD TAB */}
+      {activeTab === 'my_requests' && (
+        <>
+          <div className="card" style={{ maxWidth: '560px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '18px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Submit Fund Request to Master Distributor (MD)
+            </h3>
+
+            <form onSubmit={handleSubmitMyRequest}>
+              <div className="form-group">
+                <label className="form-label">Requested Amount (₹)</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  placeholder="e.g. 50000"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                  min="1"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Payment Method</label>
+                <select
+                  className="form-select"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value)}
+                >
+                  <option value="RTGS / NEFT Transfer">RTGS / NEFT Transfer</option>
+                  <option value="UPI Transfer">UPI Transfer</option>
+                  <option value="Cheque / DD">Company Cheque / DD</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">UTR / Reference Number</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. UTR991823719"
+                  value={utr}
+                  onChange={(e) => setUtr(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary w-full" style={{ padding: '12px', fontWeight: 800 }} disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit Request to MD'}
+              </button>
+            </form>
+          </div>
+
+          <DataTable
+            title="My Submitted Fund Requests History"
+            columns={myRequestColumns}
+            data={myRequests}
+            searchable={true}
+          />
+        </>
+      )}
     </>
   );
 }

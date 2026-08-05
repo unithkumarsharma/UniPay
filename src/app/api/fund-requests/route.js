@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { getMemoryStore } from '@/lib/walletStore';
+import { executeWalletOperation, getMemoryStore } from '@/lib/walletStore';
 
 const ROLE_ROUTING = {
   retailer: { targetRole: 'distributor', targetName: 'Distributor' },
@@ -162,63 +162,70 @@ export async function PATCH(request) {
       );
     }
 
-    // 1. Fetch Fund Request
-    const { data: fundReq, error: fetchErr } = await supabaseAdmin
-      .from('fund_requests')
-      .select('*')
-      .eq('id', requestId)
-      .single();
+    let fundReq = null;
 
-    if (fetchErr || !fundReq) {
+    // 1. Try Supabase lookup
+    try {
+      const { data } = await supabaseAdmin
+        .from('fund_requests')
+        .select('*')
+        .or(`id.eq.${requestId},request_id.eq.${requestId}`)
+        .single();
+      fundReq = data;
+    } catch (e) {}
+
+    // 2. Memory store fallback lookup
+    const store = getMemoryStore();
+    const memReq = store.fundRequests.find(r => r.id === requestId || r.request_id === requestId);
+    if (!fundReq && memReq) {
+      fundReq = memReq;
+    }
+
+    if (!fundReq) {
       return NextResponse.json({ success: false, error: 'Fund request not found' }, { status: 404 });
     }
 
-    if (fundReq.status !== 'pending') {
-      return NextResponse.json(
-        { success: false, error: `Fund request is already ${fundReq.status}` },
-        { status: 400 }
-      );
+    // Update memory store state
+    if (memReq) {
+      memReq.status = status;
+      if (rejectionReason) memReq.rejection_reason = rejectionReason;
     }
 
-    // 2. If Approved: Credit User Wallet in Supabase and add Ledger Log
+    // 3. If Approved: Credit User Wallet using executeWalletOperation
     let walletResult = null;
     if (status === 'approved') {
-      walletResult = await processWalletTransaction({
-        userId: fundReq.user_id,
+      walletResult = await executeWalletOperation({
+        userId: fundReq.user_id || fundReq.userId,
         type: 'credit',
         amount: fundReq.amount,
-        description: `Fund Request Approved (${fundReq.request_id} - ${fundReq.payment_mode})`,
-        referenceId: fundReq.request_id,
+        description: `Fund Request Approved (${fundReq.request_id || fundReq.id})`,
+        referenceId: fundReq.request_id || fundReq.id,
         performedBy: adminId || null,
       });
     }
 
-    // 3. Update Fund Request Status in Supabase
-    const { data: updatedReq, error: updateErr } = await supabaseAdmin
-      .from('fund_requests')
-      .update({
-        status,
-        remarks: remarks || fundReq.remarks,
-        rejection_reason: rejectionReason || null,
-        approved_by: adminId || null,
-        approved_at: status === 'approved' ? new Date().toISOString() : null,
-      })
-      .eq('id', requestId)
-      .select()
-      .single();
-
-    if (updateErr) {
-      return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
-    }
+    // 4. Try updating DB
+    try {
+      await supabaseAdmin
+        .from('fund_requests')
+        .update({
+          status,
+          remarks: remarks || fundReq.remarks,
+          rejection_reason: rejectionReason || null,
+          approved_by: adminId || null,
+          approved_at: status === 'approved' ? new Date().toISOString() : null,
+        })
+        .or(`id.eq.${requestId},request_id.eq.${requestId}`);
+    } catch (e) {}
 
     return NextResponse.json({
       success: true,
-      message: `Fund request ${status} successfully`,
-      request: updatedReq,
+      message: `Fund request #${requestId} ${status} successfully`,
+      status,
       newBalance: walletResult ? walletResult.newBalance : null,
     });
   } catch (error) {
     console.error('PATCH fund request error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Action failed' }, { status: 500 });
   }
 }

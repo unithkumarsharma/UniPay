@@ -104,7 +104,7 @@ export async function executeWalletOperation({ userId, type, amount, description
   try {
     const { data: dbUser } = await supabaseAdmin
       .from('users')
-      .select('id, wallet_balance, name, role')
+      .select('id, user_id, wallet_balance, name, role')
       .or(`id.eq.${userId},user_id.eq.${userId}`)
       .single();
 
@@ -135,20 +135,20 @@ export async function executeWalletOperation({ userId, type, amount, description
     console.warn('Supabase DB wallet execution notice:', e.message);
   }
 
-  // 2. Fallback / Synchronous Memory Store Update
-  if (!isSupabaseSuccess) {
-    let memUser = memoryStore.users.find(u => u.id === userId || u.userId === userId || u.role === userId);
-    if (!memUser) {
-      memUser = { id: userId, name: 'User', walletBalance: 50000 };
-      memoryStore.users.push(memUser);
-    }
+  // 2. Always sync memoryStore state (as fallback or dual sync)
+  let memUser = memoryStore.users.find(u => u.id === userId || u.userId === userId || u.role === userId);
+  if (!memUser && !isSupabaseSuccess) {
+    memUser = { id: userId, userId, name: 'User', walletBalance: 50000 };
+    memoryStore.users.push(memUser);
+  }
 
+  if (memUser) {
     const currentBal = Number(memUser.walletBalance || 0);
-    if (type === 'debit' && currentBal < numAmount) {
+    if (!isSupabaseSuccess && type === 'debit' && currentBal < numAmount) {
       throw new Error('Insufficient wallet balance');
     }
 
-    const newBal = type === 'debit' ? currentBal - numAmount : currentBal + numAmount;
+    const newBal = userObj ? userObj.walletBalance : (type === 'debit' ? currentBal - numAmount : currentBal + numAmount);
     memUser.walletBalance = newBal;
 
     const logEntry = {
@@ -165,13 +165,15 @@ export async function executeWalletOperation({ userId, type, amount, description
     };
     memoryStore.logs.unshift(logEntry);
 
-    userObj = { ...memUser, walletBalance: newBal };
+    if (!userObj) {
+      userObj = { ...memUser, walletBalance: newBal };
+    }
   }
 
   return {
     success: true,
     user: userObj,
-    newBalance: userObj.walletBalance,
+    newBalance: userObj ? userObj.walletBalance : 0,
   };
 }
 

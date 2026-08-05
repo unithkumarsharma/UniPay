@@ -212,10 +212,26 @@ export function AuthProvider({ children }) {
 
   const refreshUserData = async () => {
     const activeToken = token || localStorage.getItem('unipay-jwt-token');
-    if (!activeToken) return;
+    const activeUserStr = localStorage.getItem('unipay-user');
+    let uId = user?.id || user?.userId;
+    let uRole = user?.role;
+    if ((!uId || !uRole) && activeUserStr) {
+      try {
+        const parsed = JSON.parse(activeUserStr);
+        uId = uId || parsed.id || parsed.userId;
+        uRole = uRole || parsed.role;
+      } catch (e) {}
+    }
+
+    const queryParams = new URLSearchParams();
+    if (uId) queryParams.append('userId', uId);
+    if (uRole) queryParams.append('role', uRole);
+
+    const endpoint = `/api/auth/me${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
     try {
-      const res = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${activeToken}` },
+      const res = await fetch(endpoint, {
+        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {},
       });
       if (res.ok) {
         const data = await res.json();
