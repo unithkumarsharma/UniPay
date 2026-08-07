@@ -7,9 +7,8 @@ import Modal from '@/components/Modal';
 import Link from 'next/link';
 
 const FALLBACK_RETAILERS = [
-  { id: 'rtl001_fallback', userId: 'RTL001', name: 'Suresh Yadav', role: 'retailer', phone: '9999900005', walletBalance: 2000, city: 'Noida', status: 'active' },
-  { id: 'rtl002_fallback', userId: 'RTL002', name: 'Ramesh Verma', role: 'retailer', phone: '9876543210', walletBalance: 1500, city: 'Delhi', status: 'active' },
-  { id: 'rtl003_fallback', userId: 'RTL003', name: 'Pooja Electronics', role: 'retailer', phone: '9811223344', walletBalance: 3200, city: 'Noida', status: 'active' },
+  { id: 'rtl001_fallback', userId: 'RTL001', name: 'Rohan', role: 'retailer', phone: '9876543214', walletBalance: 20000, city: 'Noida', status: 'active' },
+  { id: 'rtl002_fallback', userId: 'RTL002', name: 'Mohan', role: 'retailer', phone: '9876543215', walletBalance: 20000, city: 'Noida', status: 'active' },
 ];
 
 export default function DistWalletPage() {

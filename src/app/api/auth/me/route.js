@@ -77,12 +77,12 @@ export async function GET(request) {
     }
 
     if (!userObj) {
-      const defaultBal = targetRole === 'admin' ? 50000 : targetRole === 'master_distributor' ? 10000 : targetRole === 'distributor' ? 5000 : targetRole === 'retailer' ? 2000 : 0;
+      const defaultBal = targetRole === 'admin' ? 200000 : targetRole === 'accountant' ? 150000 : targetRole === 'master_distributor' ? 100000 : targetRole === 'distributor' ? 50000 : targetRole === 'retailer' ? 20000 : 0;
       userObj = {
         id: targetId || 'user_fallback',
         userId: targetId || 'USR000',
         name: 'UniPay User',
-        phone: '9999900000',
+        phone: '9876543210',
         role: targetRole || 'retailer',
         walletBalance: defaultBal,
       };

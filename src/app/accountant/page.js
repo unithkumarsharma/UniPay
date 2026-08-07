@@ -5,47 +5,7 @@ import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import { ledgerEntries } from '@/data/mockData';
 
-const INITIAL_FUND_REQUESTS = [
-  {
-    id: 'FR-9901',
-    _id: 'FR-9901',
-    requestId: 'FR-9901',
-    user: 'Suresh Yadav',
-    userId: 'RTL001',
-    role: 'RETAILER',
-    amount: 50000,
-    paymentMethod: 'bank_wire',
-    utrNumber: 'UTR998124891',
-    createdAt: '2026-08-02 12:45',
-    status: 'pending',
-  },
-  {
-    id: 'FR-9902',
-    _id: 'FR-9902',
-    requestId: 'FR-9902',
-    user: 'Ankit Kumar',
-    userId: 'DST001',
-    role: 'DISTRIBUTOR',
-    amount: 100000,
-    paymentMethod: 'upi_transfer',
-    utrNumber: 'UPI772615102',
-    createdAt: '2026-08-02 11:30',
-    status: 'pending',
-  },
-  {
-    id: 'FR-9903',
-    _id: 'FR-9903',
-    requestId: 'FR-9903',
-    user: 'Vikram Singh',
-    userId: 'MD001',
-    role: 'MASTER DISTRIBUTOR',
-    amount: 250000,
-    paymentMethod: 'imps_deposit',
-    utrNumber: 'IMPS55192099',
-    createdAt: '2026-08-01 16:15',
-    status: 'approved',
-  },
-];
+const INITIAL_FUND_REQUESTS = [];
 
 const LOCAL_STORAGE_KEY = 'unipay_fund_requests_store';
 

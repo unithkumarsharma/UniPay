@@ -7,8 +7,7 @@ import Modal from '@/components/Modal';
 import Link from 'next/link';
 
 const FALLBACK_DISTRIBUTORS = [
-  { id: 'dst001_fallback', userId: 'DST001', name: 'Ankit Kumar', role: 'distributor', phone: '9999900004', walletBalance: 5000, city: 'Noida', status: 'active' },
-  { id: 'dst002_fallback', userId: 'DST002', name: 'Vikas Telecom', role: 'distributor', phone: '9810011223', walletBalance: 12000, city: 'Gurgaon', status: 'active' },
+  { id: 'dst001_fallback', userId: 'DST001', name: 'Ram', role: 'distributor', phone: '9876543213', walletBalance: 50000, city: 'Noida', status: 'active' },
 ];
 
 export default function MDWalletPage() {

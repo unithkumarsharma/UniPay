@@ -102,14 +102,27 @@ export function AuthProvider({ children }) {
 
     if (savedUser) {
       try {
-        const parsed = JSON.parse(savedUser);
-        if (parsed.role === 'admin' && (parsed.walletBalance > 50000 || parsed.wallet_balance > 50000)) {
-          parsed.walletBalance = 50000;
-          parsed.wallet_balance = 50000;
-          localStorage.setItem('unipay-user', JSON.stringify(parsed));
+        let parsed = JSON.parse(savedUser);
+        
+        // Auto-update stale browser cache if user profile or balance is outdated
+        const freshProfile = FALLBACK_USER_PROFILES[parsed.role];
+        if (freshProfile) {
+          // If cached user has old name or old balance, update to fresh profile
+          if (
+            parsed.name?.includes('Rahul') || 
+            parsed.name?.includes('Suresh') || 
+            parsed.name?.includes('Priya') || 
+            parsed.name?.includes('Vikram') ||
+            parsed.name?.includes('Ankit') ||
+            parsed.walletBalance !== freshProfile.walletBalance
+          ) {
+            parsed = { ...parsed, ...freshProfile };
+            localStorage.setItem('unipay-user', JSON.stringify(parsed));
+          }
         }
+
         setUser(parsed);
-        setIsLoading(false); // Instant hydration - zero blocking delay!
+        setIsLoading(false);
       } catch (e) {
         setIsLoading(false);
       }
@@ -119,7 +132,6 @@ export function AuthProvider({ children }) {
 
     if (savedToken) {
       setToken(savedToken);
-      // Refresh live profile in background without blocking UI
       fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${savedToken}` },
       })
