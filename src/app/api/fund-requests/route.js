@@ -22,7 +22,17 @@ export async function GET(request) {
         `)
         .order('created_at', { ascending: false });
 
-      if (userId) query = query.eq('user_id', userId);
+      if (userId) {
+        // Find exact UUID or user_id tag
+        const { data: uObj } = await supabaseAdmin
+          .from('users')
+          .select('id')
+          .or(`id.eq.${userId},user_id.eq.${userId}`)
+          .maybeSingle();
+        const searchId = uObj ? uObj.id : userId;
+        query = query.eq('user_id', searchId);
+      }
+
       if (status) query = query.eq('status', status);
 
       const { data: requests, error } = await query;
@@ -36,10 +46,43 @@ export async function GET(request) {
             name: req.users.name,
             role: req.users.role,
           } : null,
+          user: req.users?.name || 'Partner',
+          userCode: req.users?.user_id || 'USR',
+          role: req.users?.role || 'partner',
           amount: Number(req.amount),
           paymentMethod: req.payment_mode,
           utrNumber: req.reference_no,
         }));
+      } else {
+        // Fallback plain query if foreign key join returns no rows
+        let plainQuery = supabaseAdmin
+          .from('fund_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (status) plainQuery = plainQuery.eq('status', status);
+
+        const { data: plainReqs } = await plainQuery;
+        if (plainReqs && plainReqs.length > 0) {
+          // Fetch user details for all requests
+          const { data: allUsers } = await supabaseAdmin.from('users').select('id, user_id, name, role');
+          const userMap = new Map((allUsers || []).map(u => [u.id, u]));
+
+          formattedRequests = plainReqs.map(r => {
+            const u = userMap.get(r.user_id);
+            return {
+              ...r,
+              requestId: r.request_id || r.id,
+              userId: u ? { id: u.id, userId: u.user_id, name: u.name, role: u.role } : null,
+              user: u?.name || 'Partner',
+              userCode: u?.user_id || 'USR',
+              role: u?.role || 'partner',
+              amount: Number(r.amount),
+              paymentMethod: r.payment_mode,
+              utrNumber: r.reference_no,
+            };
+          });
+        }
       }
     } catch (e) {
       console.warn('DB fetch fund requests notice:', e.message);
@@ -91,7 +134,24 @@ export async function POST(request) {
       );
     }
 
-    const role = (userRole || 'retailer').toLowerCase();
+    // Resolve userId string to actual Supabase UUID
+    let actualUuid = userId;
+    let actualRole = userRole || 'retailer';
+
+    try {
+      const { data: matchedUser } = await supabaseAdmin
+        .from('users')
+        .select('id, user_id, role, name')
+        .or(`id.eq.${userId},user_id.eq.${userId},email.eq.${userId}`)
+        .maybeSingle();
+
+      if (matchedUser) {
+        actualUuid = matchedUser.id;
+        actualRole = matchedUser.role;
+      }
+    } catch (e) {}
+
+    const role = actualRole.toLowerCase();
     const payMode = (paymentMethod || 'UPI').toUpperCase().replace(/[_ ]/g, '');
     const isCash = payMode === 'CASH';
 
@@ -111,7 +171,7 @@ export async function POST(request) {
         targetName = 'Accountant / Admin';
       }
     } else {
-      // ALL Online Top-Ups (Company Bank Transfer) go directly to Accountant
+      // ALL Online Top-Ups go directly to Accountant
       targetRole = 'accountant';
       targetName = 'Accountant Desk';
     }
@@ -122,7 +182,7 @@ export async function POST(request) {
     const newReq = {
       id: requestId,
       request_id: requestId,
-      user_id: userId,
+      user_id: actualUuid,
       requester_role: role,
       target_approver_role: targetRole,
       target_approver_name: targetName,
@@ -140,11 +200,11 @@ export async function POST(request) {
 
     getMemoryStore().fundRequests.unshift(newReq);
 
-    // Try DB Insert
+    // DB Insert into Supabase with actualUuid
     try {
-      await supabaseAdmin.from('fund_requests').insert([{
+      const { error: dbErr } = await supabaseAdmin.from('fund_requests').insert([{
         request_id: requestId,
-        user_id: userId,
+        user_id: actualUuid,
         amount: numAmount,
         payment_mode: payMode,
         reference_no: refNo,
@@ -153,6 +213,12 @@ export async function POST(request) {
         receipt_url: receiptUrl || null,
         status: 'pending',
       }]);
+
+      if (dbErr) {
+        console.error('Supabase DB fund request insert error:', dbErr.message);
+      } else {
+        console.log(`✅ Fund Request #${requestId} inserted successfully to Supabase DB for user ${actualUuid}!`);
+      }
     } catch (e) {
       console.warn('DB create fund request notice:', e.message);
     }
@@ -201,7 +267,6 @@ export async function PATCH(request) {
       return NextResponse.json({ success: false, error: 'Fund request not found' }, { status: 404 });
     }
 
-    // Update memory store state
     if (memReq) {
       memReq.status = status;
       if (rejectionReason) memReq.rejection_reason = rejectionReason;
@@ -215,7 +280,6 @@ export async function PATCH(request) {
       const isCash = (fundReq.payment_mode || '').toUpperCase() === 'CASH';
 
       if (isCash && adminId) {
-        // Cash Top-Up approval: Deduct from Upline Wallet (adminId/Distributor/MD) & Credit to Downline
         try {
           walletResult = await executeDirectTransfer({
             senderId: adminId,
@@ -230,7 +294,6 @@ export async function PATCH(request) {
           );
         }
       } else {
-        // Online Bank Top-Up (Company Bank Transfer): Credit Requester Wallet directly
         walletResult = await executeWalletOperation({
           userId: requesterId,
           type: 'credit',

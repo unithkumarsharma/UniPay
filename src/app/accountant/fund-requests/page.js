@@ -6,9 +6,9 @@ import DataTable from '@/components/DataTable';
 
 export default function FundRequestsPage() {
   const { user } = useAuth();
-  const [dateRangePreset, setDateRangePreset] = useState('month');
-  const [fromDate, setFromDate] = useState('2026-08-01');
-  const [toDate, setToDate] = useState('2026-08-02');
+  const [dateRangePreset, setDateRangePreset] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [allRequests, setAllRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
@@ -36,12 +36,15 @@ export default function FundRequestsPage() {
           userCode: r.userId?.userId || r.userCode || '',
         }));
         setAllRequests(formatted);
+        setFilteredRequests(formatted);
       } else {
         setAllRequests([]);
+        setFilteredRequests([]);
       }
     } catch (e) {
       console.error('Fetch fund requests error:', e);
       setAllRequests([]);
+      setFilteredRequests([]);
     }
     setLoading(false);
   }, []);
@@ -55,6 +58,11 @@ export default function FundRequestsPage() {
   useEffect(() => {
     if (allRequests.length === 0) {
       setFilteredRequests([]);
+      return;
+    }
+
+    if (dateRangePreset === 'all') {
+      setFilteredRequests(allRequests);
       return;
     }
 
@@ -84,11 +92,12 @@ export default function FundRequestsPage() {
         endDate = toDate ? new Date(new Date(toDate).getTime() + 86400000) : new Date();
         break;
       default:
-        startDate = new Date(0);
-        endDate = new Date();
+        setFilteredRequests(allRequests);
+        return;
     }
 
     const filtered = allRequests.filter((r) => {
+      if (!r.createdAt && !r.created_at) return true;
       const d = new Date(r.createdAt || r.created_at);
       return d >= startDate && d < endDate;
     });
