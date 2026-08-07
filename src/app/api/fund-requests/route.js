@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { executeWalletOperation, getMemoryStore } from '@/lib/walletStore';
-
-const ROLE_ROUTING = {
-  retailer: { targetRole: 'distributor', targetName: 'Distributor' },
-  distributor: { targetRole: 'master_distributor', targetName: 'Master Distributor' },
-  master_distributor: { targetRole: 'accountant', targetName: 'Accountant' },
-  accountant: { targetRole: 'admin', targetName: 'Admin' },
-  admin: { targetRole: 'system', targetName: 'System Treasury' },
-};
+import { executeWalletOperation, executeDirectTransfer, getMemoryStore } from '@/lib/walletStore';
 
 export async function GET(request) {
   try {
@@ -62,7 +54,6 @@ export async function GET(request) {
       } else if (targetRole) {
         allReqs = allReqs.filter(r => r.target_approver_role === targetRole || r.targetRole === targetRole);
       } else if (userRole) {
-        // Approver Role view
         const approverMap = {
           distributor: 'distributor',
           master_distributor: 'master_distributor',
@@ -90,7 +81,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { userId, userRole, amount, paymentMethod, utrNumber, bankName, remarks } = await request.json();
+    const { userId, userRole, amount, paymentMethod, utrNumber, bankName, remarks, receiptUrl } = await request.json();
 
     const numAmount = parseFloat(amount);
     if (!userId || isNaN(numAmount) || numAmount <= 0) {
@@ -101,7 +92,30 @@ export async function POST(request) {
     }
 
     const role = (userRole || 'retailer').toLowerCase();
-    const route = ROLE_ROUTING[role] || ROLE_ROUTING.retailer;
+    const payMode = (paymentMethod || 'UPI').toUpperCase().replace(/[_ ]/g, '');
+    const isCash = payMode === 'CASH';
+
+    // Route target approver based on Online vs Cash Top-Up rules
+    let targetRole = 'accountant';
+    let targetName = 'Accountant Desk';
+
+    if (isCash) {
+      if (role === 'retailer') {
+        targetRole = 'distributor';
+        targetName = 'Distributor';
+      } else if (role === 'distributor') {
+        targetRole = 'master_distributor';
+        targetName = 'Master Distributor';
+      } else {
+        targetRole = 'accountant';
+        targetName = 'Accountant / Admin';
+      }
+    } else {
+      // ALL Online Top-Ups (Company Bank Transfer) go directly to Accountant
+      targetRole = 'accountant';
+      targetName = 'Accountant Desk';
+    }
+
     const requestId = `REQ${Date.now().toString().slice(-6)}`;
     const refNo = utrNumber || `UTR${Date.now()}`;
 
@@ -110,15 +124,16 @@ export async function POST(request) {
       request_id: requestId,
       user_id: userId,
       requester_role: role,
-      target_approver_role: route.targetRole,
-      target_approver_name: route.targetName,
+      target_approver_role: targetRole,
+      target_approver_name: targetName,
       amount: numAmount,
-      payment_mode: (paymentMethod || 'UPI').toUpperCase().replace(/[_ ]/g, ''),
-      paymentMethod: (paymentMethod || 'UPI').toUpperCase(),
+      payment_mode: payMode,
+      paymentMethod: payMode,
       reference_no: refNo,
       utrNumber: refNo,
-      bank_name: bankName || 'HDFC Bank',
-      remarks: remarks || `Fund Request for ${route.targetName}`,
+      bank_name: bankName || 'Company HDFC Escrow',
+      remarks: remarks || `${isCash ? 'Cash Top-Up' : 'Online Company Bank Deposit'} Request`,
+      receipt_url: receiptUrl || null,
       status: 'pending',
       created_at: new Date().toISOString(),
     };
@@ -131,10 +146,11 @@ export async function POST(request) {
         request_id: requestId,
         user_id: userId,
         amount: numAmount,
-        payment_mode: newReq.payment_mode,
+        payment_mode: payMode,
         reference_no: refNo,
-        bank_name: bankName || 'HDFC Bank',
+        bank_name: bankName || 'Company HDFC Escrow',
         remarks: newReq.remarks,
+        receipt_url: receiptUrl || null,
         status: 'pending',
       }]);
     } catch (e) {
@@ -143,7 +159,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: `Fund request submitted to ${route.targetName} successfully`,
+      message: `Fund request submitted to ${targetName} (${isCash ? 'Cash Top-Up' : 'Company Bank Online'}) successfully`,
       request: newReq,
     });
   } catch (error) {
@@ -164,7 +180,7 @@ export async function PATCH(request) {
 
     let fundReq = null;
 
-    // 1. Try Supabase lookup
+    // 1. Supabase lookup
     try {
       const { data } = await supabaseAdmin
         .from('fund_requests')
@@ -174,7 +190,7 @@ export async function PATCH(request) {
       fundReq = data;
     } catch (e) {}
 
-    // 2. Memory store fallback lookup
+    // 2. Memory store lookup
     const store = getMemoryStore();
     const memReq = store.fundRequests.find(r => r.id === requestId || r.request_id === requestId);
     if (!fundReq && memReq) {
@@ -191,20 +207,42 @@ export async function PATCH(request) {
       if (rejectionReason) memReq.rejection_reason = rejectionReason;
     }
 
-    // 3. If Approved: Credit User Wallet using executeWalletOperation
     let walletResult = null;
+
+    // 3. Approval Workflow Rules
     if (status === 'approved') {
-      walletResult = await executeWalletOperation({
-        userId: fundReq.user_id || fundReq.userId,
-        type: 'credit',
-        amount: fundReq.amount,
-        description: `Fund Request Approved (${fundReq.request_id || fundReq.id})`,
-        referenceId: fundReq.request_id || fundReq.id,
-        performedBy: adminId || null,
-      });
+      const requesterId = fundReq.user_id || fundReq.userId;
+      const isCash = (fundReq.payment_mode || '').toUpperCase() === 'CASH';
+
+      if (isCash && adminId) {
+        // Cash Top-Up approval: Deduct from Upline Wallet (adminId/Distributor/MD) & Credit to Downline
+        try {
+          walletResult = await executeDirectTransfer({
+            senderId: adminId,
+            receiverId: requesterId,
+            amount: fundReq.amount,
+            remarks: `Cash Top-Up Approval (#${fundReq.request_id || fundReq.id})`,
+          });
+        } catch (transferErr) {
+          return NextResponse.json(
+            { success: false, error: transferErr.message || 'Approver has insufficient wallet balance for this cash top-up.' },
+            { status: 400 }
+          );
+        }
+      } else {
+        // Online Bank Top-Up (Company Bank Transfer): Credit Requester Wallet directly
+        walletResult = await executeWalletOperation({
+          userId: requesterId,
+          type: 'credit',
+          amount: fundReq.amount,
+          description: `Company Bank Top-Up Approved (#${fundReq.request_id || fundReq.id})`,
+          referenceId: fundReq.request_id || fundReq.id,
+          performedBy: adminId || null,
+        });
+      }
     }
 
-    // 4. Try updating DB
+    // 4. Update Supabase DB
     try {
       await supabaseAdmin
         .from('fund_requests')

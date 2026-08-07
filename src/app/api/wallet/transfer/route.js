@@ -20,6 +20,55 @@ export async function POST(request) {
       );
     }
 
+    // Retrieve roles of sender and receiver from DB
+    let senderRole = null;
+    let receiverRole = null;
+
+    try {
+      const { data: senderObj } = await supabaseAdmin
+        .from('users')
+        .select('role, name')
+        .or(`id.eq.${senderId},user_id.eq.${senderId}`)
+        .single();
+      if (senderObj) senderRole = senderObj.role;
+
+      const { data: receiverObj } = await supabaseAdmin
+        .from('users')
+        .select('role, name')
+        .or(`id.eq.${receiverId},user_id.eq.${receiverId}`)
+        .single();
+      if (receiverObj) receiverRole = receiverObj.role;
+    } catch (e) {}
+
+    // Strict Hierarchy Validation Rules
+    if (senderRole && receiverRole) {
+      if (senderRole === 'retailer') {
+        return NextResponse.json(
+          { success: false, error: 'Retailers cannot transfer wallet balance to other accounts. Use Fund Request for cash deposit.' },
+          { status: 400 }
+        );
+      }
+      if (senderRole === receiverRole) {
+        const roleLabel = senderRole.replace('_', ' ').toUpperCase();
+        return NextResponse.json(
+          { success: false, error: `${roleLabel} cannot transfer balance directly to another ${roleLabel}.` },
+          { status: 400 }
+        );
+      }
+      if (senderRole === 'distributor' && receiverRole !== 'retailer') {
+        return NextResponse.json(
+          { success: false, error: 'Distributors can only transfer wallet balance to Retailers.' },
+          { status: 400 }
+        );
+      }
+      if (senderRole === 'master_distributor' && receiverRole !== 'distributor') {
+        return NextResponse.json(
+          { success: false, error: 'Master Distributors can only transfer wallet balance to Distributors.' },
+          { status: 400 }
+        );
+      }
+    }
+
     const transferRef = `TRF${Date.now().toString().slice(-6)}`;
 
     // 1. Debit Sender Wallet
