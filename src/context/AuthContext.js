@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const AuthContext = createContext();
 
@@ -11,140 +11,77 @@ const ROLE_LABELS = {
   retailer: 'Retailer',
 };
 
-const DEFAULT_DEMO_EMAILS = {
-  admin: 'admin@unipay.com',
-  accountant: 'accountant@unipay.com',
-  master_distributor: 'ajay@unipay.com',
-  distributor: 'ram@unipay.com',
-  retailer: 'rohan@unipay.com',
-};
-
-const DEFAULT_DEMO_PHONES = {
-  admin: '9876543210',
-  accountant: '9876543211',
-  master_distributor: '9876543212',
-  distributor: '9876543213',
-  retailer: '9876543214',
-};
-
-const FALLBACK_USER_PROFILES = {
-  admin: {
-    id: 'adm001_fallback',
-    userId: 'ADM001',
-    name: 'Surya (Admin)',
-    email: 'admin@unipay.com',
-    phone: '9876543210',
-    role: 'admin',
-    walletBalance: 200000,
-    status: 'active',
-    city: 'Delhi',
-    state: 'Delhi',
-  },
-  accountant: {
-    id: 'acc001_fallback',
-    userId: 'ACC001',
-    name: 'Unith (Accountant)',
-    email: 'accountant@unipay.com',
-    phone: '9876543211',
-    role: 'accountant',
-    walletBalance: 150000,
-    status: 'active',
-    city: 'Delhi',
-    state: 'Delhi',
-  },
-  master_distributor: {
-    id: 'md001_fallback',
-    userId: 'MD001',
-    name: 'Ajay (MD)',
-    email: 'ajay@unipay.com',
-    phone: '9876543212',
-    role: 'master_distributor',
-    walletBalance: 100000,
-    status: 'active',
-    city: 'Delhi',
-    state: 'Delhi',
-  },
-  distributor: {
-    id: 'dst001_fallback',
-    userId: 'DST001',
-    name: 'Ram (Distributor)',
-    email: 'ram@unipay.com',
-    phone: '9876543213',
-    role: 'distributor',
-    walletBalance: 50000,
-    status: 'active',
-    city: 'Noida',
-    state: 'UP',
-  },
-  retailer: {
-    id: 'rtl001_fallback',
-    userId: 'RTL001',
-    name: 'Rohan (Retailer)',
-    email: 'rohan@unipay.com',
-    phone: '9876543214',
-    role: 'retailer',
-    shopName: 'Rohan Mobile Point',
-    walletBalance: 20000,
-    status: 'active',
-    city: 'Noida',
-    state: 'UP',
-  },
-};
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // On mount: restore session from sessionStorage (NOT localStorage) — only for session continuity, NOT balance
   useEffect(() => {
-    const savedUser = localStorage.getItem('unipay-user');
-    const savedToken = localStorage.getItem('unipay-jwt-token');
+    const savedToken = sessionStorage.getItem('unipay-token');
+    const savedRole = sessionStorage.getItem('unipay-role');
+    const savedUserId = sessionStorage.getItem('unipay-userId');
 
-    if (savedUser) {
-      try {
-        let parsed = JSON.parse(savedUser);
-        
-        // Auto-update stale browser cache if user profile or balance is outdated
-        const freshProfile = FALLBACK_USER_PROFILES[parsed.role];
-        if (freshProfile) {
-          // If cached user has old name or old balance, update to fresh profile
-          if (
-            parsed.name?.includes('Rahul') || 
-            parsed.name?.includes('Suresh') || 
-            parsed.name?.includes('Priya') || 
-            parsed.name?.includes('Vikram') ||
-            parsed.name?.includes('Ankit') ||
-            parsed.walletBalance !== freshProfile.walletBalance
-          ) {
-            parsed = { ...parsed, ...freshProfile };
-            localStorage.setItem('unipay-user', JSON.stringify(parsed));
-          }
+    if (savedToken && savedUserId) {
+      setToken(savedToken);
+      // Immediately fetch fresh user from DB
+      fetchUserFromDB(savedToken, savedUserId, savedRole).finally(() => setIsLoading(false));
+    } else {
+      // Also check legacy localStorage and migrate
+      const legacyToken = localStorage.getItem('unipay-jwt-token');
+      const legacyUser = localStorage.getItem('unipay-user');
+      if (legacyToken && legacyUser) {
+        try {
+          const parsed = JSON.parse(legacyUser);
+          const uid = parsed.id || parsed.userId;
+          const uRole = parsed.role;
+          // Migrate to sessionStorage
+          sessionStorage.setItem('unipay-token', legacyToken);
+          if (uid) sessionStorage.setItem('unipay-userId', uid);
+          if (uRole) sessionStorage.setItem('unipay-role', uRole);
+          setToken(legacyToken);
+          fetchUserFromDB(legacyToken, uid, uRole).finally(() => {
+            // Clear legacy localStorage
+            localStorage.removeItem('unipay-user');
+            localStorage.removeItem('unipay-jwt-token');
+            localStorage.removeItem('unipay-role');
+            setIsLoading(false);
+          });
+        } catch {
+          localStorage.removeItem('unipay-user');
+          localStorage.removeItem('unipay-jwt-token');
+          localStorage.removeItem('unipay-role');
+          setIsLoading(false);
         }
-
-        setUser(parsed);
-        setIsLoading(false);
-      } catch (e) {
+      } else {
         setIsLoading(false);
       }
-    } else {
-      setIsLoading(false);
-    }
-
-    if (savedToken) {
-      setToken(savedToken);
-      fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${savedToken}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.user) {
-            setUser(data.user);
-            localStorage.setItem('unipay-user', JSON.stringify(data.user));
-          }
-        })
-        .catch(() => {});
     }
   }, []);
+
+  // Fetch fresh user profile from Supabase via /api/auth/me
+  const fetchUserFromDB = async (authToken, userId, role) => {
+    try {
+      const params = new URLSearchParams();
+      if (userId) params.append('userId', userId);
+      if (role) params.append('role', role);
+
+      const res = await fetch(`/api/auth/me?${params.toString()}`, {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          setUser(data.user);
+          return data.user;
+        }
+      }
+    } catch (e) {
+      console.warn('DB user fetch error:', e.message);
+    }
+    return null;
+  };
 
   const signup = async (userData = {}) => {
     try {
@@ -161,9 +98,10 @@ export function AuthProvider({ children }) {
 
       setUser(data.user);
       setToken(data.token);
-      localStorage.setItem('unipay-user', JSON.stringify(data.user));
-      localStorage.setItem('unipay-jwt-token', data.token);
-      localStorage.setItem('unipay-role', data.user.role);
+      // Save to sessionStorage only
+      sessionStorage.setItem('unipay-token', data.token);
+      sessionStorage.setItem('unipay-userId', data.user.id || data.user.userId);
+      sessionStorage.setItem('unipay-role', data.user.role);
 
       return { success: true, user: data.user, token: data.token };
     } catch (e) {
@@ -173,7 +111,14 @@ export function AuthProvider({ children }) {
 
   const login = async (role, credentials = {}) => {
     const selectedRole = role || 'admin';
-    const phoneOrEmail = credentials.phoneOrEmail || DEFAULT_DEMO_EMAILS[selectedRole] || 'admin@unipay.com';
+    const DEFAULT_EMAILS = {
+      admin: 'admin@unipay.com',
+      accountant: 'accountant@unipay.com',
+      master_distributor: 'ajay@unipay.com',
+      distributor: 'ram@unipay.com',
+      retailer: 'rohan@unipay.com',
+    };
+    const phoneOrEmail = credentials.phoneOrEmail || DEFAULT_EMAILS[selectedRole] || 'admin@unipay.com';
     const password = credentials.password || 'unipay@980';
 
     try {
@@ -187,80 +132,61 @@ export function AuthProvider({ children }) {
       if (res.ok && data.success && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('unipay-user', JSON.stringify(data.user));
-        localStorage.setItem('unipay-jwt-token', data.token);
-        localStorage.setItem('unipay-role', data.user.role);
+        // Save to sessionStorage — no localStorage
+        sessionStorage.setItem('unipay-token', data.token);
+        sessionStorage.setItem('unipay-userId', data.user.id || data.user.userId);
+        sessionStorage.setItem('unipay-role', data.user.role);
+
         return { success: true, user: data.user };
       } else if (data.error) {
-        // Return specific login error if invalid password or blocked
-        if (data.error.includes('password') || data.error.includes('blocked')) {
-          return { success: false, error: data.error };
-        }
+        return { success: false, error: data.error };
       }
     } catch (e) {
-      console.warn('API login network notice, using instant local session:', e.message);
+      console.warn('Login API network error:', e.message);
     }
 
-    // Instant local fallback user session
-    const fallbackUser = FALLBACK_USER_PROFILES[selectedRole] || FALLBACK_USER_PROFILES.admin;
-    const fallbackToken = 'unipay_fallback_jwt_' + Date.now();
-
-    setUser(fallbackUser);
-    setToken(fallbackToken);
-    localStorage.setItem('unipay-user', JSON.stringify(fallbackUser));
-    localStorage.setItem('unipay-jwt-token', fallbackToken);
-    localStorage.setItem('unipay-role', fallbackUser.role);
-
-    return { success: true, user: fallbackUser };
+    return { success: false, error: 'Login failed. Check your connection and try again.' };
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
+    sessionStorage.removeItem('unipay-token');
+    sessionStorage.removeItem('unipay-userId');
+    sessionStorage.removeItem('unipay-role');
+    // Also clean any legacy localStorage
     localStorage.removeItem('unipay-user');
     localStorage.removeItem('unipay-jwt-token');
     localStorage.removeItem('unipay-role');
   };
 
-  const refreshUserData = async () => {
-    const activeToken = token || localStorage.getItem('unipay-jwt-token');
-    const activeUserStr = localStorage.getItem('unipay-user');
-    let uId = user?.id || user?.userId;
-    let uRole = user?.role;
-    if ((!uId || !uRole) && activeUserStr) {
-      try {
-        const parsed = JSON.parse(activeUserStr);
-        uId = uId || parsed.id || parsed.userId;
-        uRole = uRole || parsed.role;
-      } catch (e) {}
-    }
+  // Refresh user data directly from Supabase DB — no localStorage
+  const refreshUserData = useCallback(async () => {
+    const activeToken = token || sessionStorage.getItem('unipay-token');
+    const userId = user?.id || user?.userId || sessionStorage.getItem('unipay-userId');
+    const userRole = user?.role || sessionStorage.getItem('unipay-role');
+    await fetchUserFromDB(activeToken, userId, userRole);
+  }, [token, user?.id, user?.userId, user?.role]);
 
-    const queryParams = new URLSearchParams();
-    if (uId) queryParams.append('userId', uId);
-    if (uRole) queryParams.append('role', uRole);
-
-    const endpoint = `/api/auth/me${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-
-    try {
-      const res = await fetch(endpoint, {
-        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
-          setUser(data.user);
-          localStorage.setItem('unipay-user', JSON.stringify(data.user));
-        }
-      }
-    } catch (e) {}
-  };
-
-  const updateWalletBalance = (newBalance) => {
+  // Update wallet balance: write to DB AND local state simultaneously
+  const updateWalletBalance = useCallback(async (newBalance) => {
     if (!user) return;
-    const updatedUser = { ...user, walletBalance: Number(newBalance) };
-    setUser(updatedUser);
-    localStorage.setItem('unipay-user', JSON.stringify(updatedUser));
-  };
+    const numBal = Number(newBalance);
+    // Update React state immediately for instant UI feedback
+    setUser(prev => ({ ...prev, walletBalance: numBal }));
+
+    // Write to Supabase DB in background
+    try {
+      const userId = user.id || user.userId;
+      await fetch('/api/wallet/sync-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, newBalance: numBal }),
+      });
+    } catch (e) {
+      console.warn('Balance sync to DB notice:', e.message);
+    }
+  }, [user]);
 
   const getRoleLabel = (role) => ROLE_LABELS[role] || role;
 

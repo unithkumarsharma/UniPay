@@ -63,6 +63,7 @@ export default function RetailerFundRequestPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          userRole: user?.role || 'retailer',
           amount: Number(amount),
           paymentMethod: method,
           utrNumber: utr,

@@ -77,9 +77,9 @@ export default function AdminWalletPage() {
       `₹${numAmount.toLocaleString('en-IN')} ${modalAction === 'add' ? 'credited to' : 'deducted from'} ${selectedUser.name}'s wallet!`
     );
 
-    // 2. Background API sync attempt
+    // 2. API call to update Supabase DB
     try {
-      fetch('/api/wallet/add', {
+      const res = await fetch('/api/wallet/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -88,8 +88,17 @@ export default function AdminWalletPage() {
           action: modalAction,
           description: remarks || `${modalAction === 'add' ? 'Added' : 'Deducted'} by Admin`,
         }),
-      }).catch(() => {});
-    } catch (e) {}
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Re-fetch all users from DB to get accurate balances
+        await fetchUsers();
+      } else {
+        showToast(`DB Error: ${data.error || 'Operation failed in database'}`);
+      }
+    } catch (e) {
+      console.error('Wallet API error:', e);
+    }
   };
 
   const totalPool = users.reduce((sum, u) => sum + (u.walletBalance || 0), 0);

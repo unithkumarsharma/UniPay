@@ -16,13 +16,30 @@ export async function GET(request) {
     if (role) query = query.eq('role', role);
     if (parentId) query = query.eq('parent_id', parentId);
 
-    const { data: users, error } = await query;
+    let { data: users, error } = await query;
+
+    if (parentId && role && (!users || users.length === 0)) {
+      const fallbackQuery = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('role', role)
+        .order('created_at', { ascending: false });
+      if (fallbackQuery.data) {
+        users = fallbackQuery.data;
+      }
+    }
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, count: users?.length || 0, users: users || [] });
+    const formatted = (users || []).map(u => ({
+      ...u,
+      userId: u.user_id || u.userId,
+      walletBalance: Number(u.wallet_balance ?? u.walletBalance ?? 0),
+    }));
+
+    return NextResponse.json({ success: true, count: formatted.length, users: formatted });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
