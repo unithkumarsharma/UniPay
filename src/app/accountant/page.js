@@ -123,6 +123,7 @@ export default function AccountantDashboard() {
         body: JSON.stringify({
           requestId: targetId,
           status: 'approved',
+          adminId: user?.id || user?.userId || 'acc001_fallback',
         }),
       });
       // Re-fetch to guarantee sync with Supabase
