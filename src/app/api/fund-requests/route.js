@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { executeWalletOperation, executeDirectTransfer, getMemoryStore } from '@/lib/walletStore';
-import { createFundRequestDualDB, fetchFundRequestsDualDB, syncBalanceDualDB } from '@/lib/dualDatabase';
+import { createFundRequestDualDB, fetchFundRequestsDualDB } from '@/lib/dualDatabase';
 
 const UUID_MAP = {
   // Master Distributor
@@ -65,6 +65,7 @@ export async function GET(request) {
           user: u?.name || r.user || 'Partner',
           userCode: u?.user_id || r.userCode || 'USR',
           role: u?.role || r.role || 'partner',
+          target_approver_role: r.target_approver_role || r.targetRole || 'accountant',
           amount: Number(r.amount),
           paymentMethod: r.payment_mode || r.paymentMethod,
           utrNumber: r.reference_no || r.utrNumber,
@@ -74,6 +75,19 @@ export async function GET(request) {
       // Filter by userId if specified
       if (userId) {
         formattedRequests = formattedRequests.filter(r => r.user_id === userId || r.user_id === rawUserId || r.userId?.id === userId || r.userId?.userId === rawUserId);
+      } else if (targetRole) {
+        formattedRequests = formattedRequests.filter(r => r.target_approver_role === targetRole || r.targetRole === targetRole);
+      } else if (userRole) {
+        const targetMap = {
+          distributor: 'distributor',
+          master_distributor: 'master_distributor',
+          accountant: 'accountant',
+          admin: 'accountant',
+        };
+        const neededTarget = targetMap[userRole];
+        if (neededTarget) {
+          formattedRequests = formattedRequests.filter(r => r.target_approver_role === neededTarget || r.targetRole === neededTarget);
+        }
       }
     }
 
@@ -84,7 +98,21 @@ export async function GET(request) {
 
       if (rawUserId || userId) {
         allReqs = allReqs.filter(r => r.user_id === userId || r.user_id === rawUserId || r.userId?.id === userId);
+      } else if (targetRole) {
+        allReqs = allReqs.filter(r => r.target_approver_role === targetRole || r.targetRole === targetRole);
+      } else if (userRole) {
+        const targetMap = {
+          distributor: 'distributor',
+          master_distributor: 'master_distributor',
+          accountant: 'accountant',
+          admin: 'accountant',
+        };
+        const neededTarget = targetMap[userRole];
+        if (neededTarget) {
+          allReqs = allReqs.filter(r => r.target_approver_role === neededTarget || r.targetRole === neededTarget);
+        }
       }
+
       if (status) {
         allReqs = allReqs.filter(r => r.status === status);
       }
@@ -146,7 +174,7 @@ export async function POST(request) {
         targetName = 'Accountant / Admin';
       }
     } else {
-      // ALL Online Top-Ups go directly to Accountant
+      // ALL Online Top-Ups (Retailer, Distributor, MD) go directly to Accountant
       targetRole = 'accountant';
       targetName = 'Accountant Desk';
     }
@@ -160,6 +188,7 @@ export async function POST(request) {
       user_id: actualUuid,
       requester_role: role,
       target_approver_role: targetRole,
+      targetRole: targetRole,
       target_approver_name: targetName,
       amount: numAmount,
       payment_mode: payMode,
