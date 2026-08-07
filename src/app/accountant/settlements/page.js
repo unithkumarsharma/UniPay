@@ -4,9 +4,9 @@ import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
 export default function SettlementsPage() {
-  const [dateRangePreset, setDateRangePreset] = useState('month');
-  const [fromDate, setFromDate] = useState('2026-08-01');
-  const [toDate, setToDate] = useState('2026-08-02');
+  const [dateRangePreset, setDateRangePreset] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [allSettlements, setAllSettlements] = useState([]);
   const [filteredSettlements, setFilteredSettlements] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
@@ -26,12 +26,15 @@ export default function SettlementsPage() {
       const data = await res.json();
       if (data.success && Array.isArray(data.settlements)) {
         setAllSettlements(data.settlements);
+        setFilteredSettlements(data.settlements);
       } else {
         setAllSettlements([]);
+        setFilteredSettlements([]);
       }
     } catch (e) {
       console.error('Fetch settlements error:', e);
       setAllSettlements([]);
+      setFilteredSettlements([]);
     }
     setLoading(false);
   }, []);
@@ -44,6 +47,11 @@ export default function SettlementsPage() {
   useEffect(() => {
     if (allSettlements.length === 0) {
       setFilteredSettlements([]);
+      return;
+    }
+
+    if (dateRangePreset === 'all') {
+      setFilteredSettlements(allSettlements);
       return;
     }
 
@@ -73,11 +81,12 @@ export default function SettlementsPage() {
         endDate = toDate ? new Date(new Date(toDate).getTime() + 86400000) : new Date();
         break;
       default:
-        startDate = new Date(0);
-        endDate = new Date();
+        setFilteredSettlements(allSettlements);
+        return;
     }
 
     const filtered = allSettlements.filter((s) => {
+      if (!s.created_at && !s.date) return true;
       const d = new Date(s.created_at || s.date);
       return d >= startDate && d < endDate;
     });

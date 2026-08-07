@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
+const UUID_MAP = {
+  'md001_fallback': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'MD001': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'dst001_fallback': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'DST001': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'rtl001_fallback': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'RTL001': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'rtl002_fallback': '3263eec7-ee31-436b-b08e-1ef111169164',
+  'RTL002': '3263eec7-ee31-436b-b08e-1ef111169164',
+  'acc001_fallback': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'ACC001': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'adm001_fallback': '3d790ac7-850b-4377-b540-83dc9ce29829',
+  'ADM001': '3d790ac7-850b-4377-b540-83dc9ce29829',
+};
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -33,8 +48,9 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { userId, userName, userRole, userCode, amount, bankName, accountNo, ifsc } = body;
+    const { userId: rawUserId, userName, userRole, userCode, amount, bankName, accountNo, ifsc } = body;
 
+    const actualUuid = UUID_MAP[rawUserId] || rawUserId;
     const settlementId = `SET-${Date.now().toString().slice(-4)}`;
 
     const { data: settlement, error } = await supabaseAdmin
@@ -42,7 +58,7 @@ export async function POST(request) {
       .insert([
         {
           settlement_id: settlementId,
-          user_id: userId || null,
+          user_id: actualUuid || null,
           user_name: userName || 'Partner',
           user_role: userRole || 'RETAILER',
           user_code: userCode || '',
@@ -76,14 +92,13 @@ export async function PATCH(request) {
 
     const nextStatus = status || 'settled';
 
-    // Try by id column first, then by settlement_id
     let result;
     const { data: byId, error: byIdErr } = await supabaseAdmin
       .from('settlements')
       .update({ status: nextStatus, settled_at: new Date().toISOString() })
       .eq('id', settlementId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (!byIdErr && byId) {
       result = byId;
@@ -93,16 +108,12 @@ export async function PATCH(request) {
         .update({ status: nextStatus, settled_at: new Date().toISOString() })
         .eq('settlement_id', settlementId)
         .select()
-        .single();
+        .maybeSingle();
 
       result = bySid;
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `Settlement ${nextStatus} in Supabase Database`,
-      settlement: result,
-    });
+    return NextResponse.json({ success: true, settlement: result });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
