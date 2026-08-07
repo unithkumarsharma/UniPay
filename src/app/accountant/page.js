@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import { ledgerEntries } from '@/data/mockData';
@@ -72,6 +73,7 @@ const ledgerColumns = [
 ];
 
 export default function AccountantDashboard() {
+  const { user } = useAuth();
   const [fundRequests, setFundRequests] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -198,22 +200,22 @@ export default function AccountantDashboard() {
         <DashboardCard
           icon="wallet"
           iconColor="green"
-          title="Company Reserve Pool"
-          value="₹50,00,000"
-          change="+12% reserve yield"
+          title="Accountant Wallet Balance"
+          value={`₹${(Number(user?.walletBalance ?? user?.wallet_balance ?? 150000)).toLocaleString('en-IN')}`}
+          change="Real-time Account Bal"
           changeType="positive"
           badge="Escrow Lock Active"
-          sparkline="0,20 10,18 20,14 30,10 40,8 50,4 60,1"
+          sparkline="0,0,0,0,0,0"
         />
         <DashboardCard
           icon="reports"
           iconColor="blue"
           title="Today's Credits"
-          value="₹2,25,000"
-          change="+12 transactions"
+          value="₹0.00"
+          change="0 transactions"
           changeType="positive"
           badge="Incoming Deposits"
-          sparkline="0,22 10,19 20,15 30,12 40,9 50,6 60,3"
+          sparkline="0,0,0,0,0,0"
         />
         <DashboardCard
           icon="zap"

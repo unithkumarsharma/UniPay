@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
@@ -60,6 +61,7 @@ const chartDataSets = {
 };
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [chartRange, setChartRange] = useState('7d');
   const [chartMetric, setChartMetric] = useState('volume'); // 'volume' | 'revenue'
   const [isStreaming, setIsStreaming] = useState(true);
@@ -208,10 +210,10 @@ export default function AdminDashboard() {
       }}>
         <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '24px' }}>
           <div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-secondary)' }}>Total Escrow Reserve Pool</span>
-            <div style={{ fontSize: '2.3rem', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px', letterSpacing: '-0.03em' }}>₹1,24,50,000</div>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-secondary)' }}>Admin Wallet Balance</span>
+            <div style={{ fontSize: '2.3rem', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px', letterSpacing: '-0.03em' }}>₹{(Number(user?.walletBalance ?? user?.wallet_balance ?? 200000)).toLocaleString('en-IN')}</div>
             <span style={{ fontSize: '0.76rem', background: 'var(--success-light)', color: 'var(--success)', padding: '3px 10px', borderRadius: 'var(--radius-full)', marginTop: '8px', display: 'inline-block', fontWeight: 700 }}>
-              🔒 Bank Escrow Lock Active
+              🔒 Live Escrow Active
             </span>
           </div>
 

@@ -1,4 +1,5 @@
 'use client';
+import { useAuth } from '@/context/AuthContext';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import { recentTransactions } from '@/data/mockData';
@@ -14,6 +15,8 @@ const columns = [
 ];
 
 export default function DistributorDashboard() {
+  const { user } = useAuth();
+
   return (
     <>
       <div className="page-header">
@@ -23,18 +26,18 @@ export default function DistributorDashboard() {
 
       <div className="wallet-card mb-lg">
         <div className="wallet-label">Available Balance</div>
-        <div className="wallet-balance">₹75,000</div>
+        <div className="wallet-balance">₹{(user?.walletBalance ?? user?.wallet_balance ?? 50000).toLocaleString('en-IN')}</div>
         <div className="wallet-actions">
-          <button className="wallet-btn">Request Funds</button>
-          <button className="wallet-btn">Transfer to Retailer</button>
+          <button className="wallet-btn" onClick={() => window.location.href = '/distributor/fund-request'}>Request Funds</button>
+          <button className="wallet-btn" onClick={() => window.location.href = '/distributor/wallet'}>Transfer to Retailer</button>
         </div>
       </div>
 
       <div className="stats-grid">
-        <DashboardCard icon="🛒" iconColor="blue" title="My Retailers" value="18" change="+3 this month" changeType="positive" />
-        <DashboardCard icon="💳" iconColor="green" title="Today's Transactions" value="124" change="+8% vs yesterday" changeType="positive" />
-        <DashboardCard icon="💎" iconColor="purple" title="Today's Margin" value="₹890" change="From retailer txns" />
-        <DashboardCard icon="📈" iconColor="orange" title="Monthly Earning" value="₹24,500" change="+14% growth" changeType="positive" />
+        <DashboardCard icon="🛒" iconColor="blue" title="My Retailers" value="2" change="Active Roster" changeType="positive" />
+        <DashboardCard icon="💳" iconColor="green" title="Today's Transactions" value="0" change="0% vs yesterday" changeType="positive" />
+        <DashboardCard icon="💎" iconColor="purple" title="Today's Margin" value="₹0.00" change="From retailer txns" />
+        <DashboardCard icon="📈" iconColor="orange" title="Monthly Earning" value="₹0.00" change="0% growth" changeType="positive" />
       </div>
 
       <DataTable title="Recent Transactions" columns={columns} data={recentTransactions.slice(0, 5)} />

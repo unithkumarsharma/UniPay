@@ -403,7 +403,7 @@ function DashboardContent() {
               <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>Execute Transaction</span>
                 <span style={{ fontSize: '0.75rem', background: 'var(--success-light)', color: 'var(--success)', padding: '3px 10px', borderRadius: '12px', fontWeight: 700 }}>
-                  Wallet Balance: ₹{(user?.balance || 12500).toLocaleString('en-IN')}
+                  Wallet Balance: ₹{(user?.walletBalance ?? user?.wallet_balance ?? 20000).toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -646,7 +646,7 @@ function DashboardContent() {
               </div>
 
               <div className={styles.walletBalanceAmount}>
-                {showBalance ? `₹${(user?.balance || 12500).toLocaleString('en-IN')}` : '••••••••'}
+                {showBalance ? `₹${(Number(user?.walletBalance ?? user?.wallet_balance ?? 20000)).toLocaleString('en-IN')}` : '••••••••'}
               </div>
 
               <div className={styles.walletMetaRow}>
@@ -675,11 +675,11 @@ function DashboardContent() {
             <div className={styles.statsGrid}>
               <DashboardCard
                 title="Today's Transactions"
-                value="24"
-                change="+18.4% vs yesterday"
+                value="0"
+                change="0% vs yesterday"
                 changeType="positive"
                 iconColor="blue"
-                sparkline="5,8,12,10,16,20,24"
+                sparkline="0,0,0,0,0,0,0"
                 icon={
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -689,11 +689,11 @@ function DashboardContent() {
               />
               <DashboardCard
                 title="Today's Earning"
-                value="₹156.00"
-                change="+₹24.50 Commission"
+                value="₹0.00"
+                change="₹0.00 Commission"
                 changeType="positive"
                 iconColor="green"
-                sparkline="20,45,70,95,120,156"
+                sparkline="0,0,0,0,0,0"
                 icon={
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <line x1="12" y1="1" x2="12" y2="23" />
@@ -703,11 +703,11 @@ function DashboardContent() {
               />
               <DashboardCard
                 title="Monthly Earning"
-                value="₹4,230.00"
-                change="+14.2% Growth"
+                value="₹0.00"
+                change="0% Growth"
                 changeType="positive"
                 iconColor="purple"
-                sparkline="1200,1800,2400,3100,3800,4230"
+                sparkline="0,0,0,0,0,0"
                 icon={
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
