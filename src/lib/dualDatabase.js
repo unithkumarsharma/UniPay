@@ -1,27 +1,25 @@
-import { supabaseAdmin } from './supabaseAdmin';
+import { supabaseAdmin } from './supabaseAdmin.js';
 
 const FIREBASE_RTDB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || 'https://unipay-3b9c6-default-rtdb.firebaseio.com';
 
-/**
- * Universal Dual-Database Failover & Sync Engine
- * Primary: Supabase SQL DB
- * Secondary / Failover & Live Broadcast: Firebase Realtime Database
- */
+function normalizePaymentMode(mode) {
+  const m = (mode || '').toUpperCase().trim();
+  if (m === 'RTGS') return 'RTGS';
+  if (m === 'NEFT') return 'NEFT';
+  if (m === 'IMPS') return 'IMPS';
+  if (m === 'CASH' || m === 'CASH_TOPUP') return 'NEFT';
+  return 'UPI';
+}
 
 // Helper to write to Firebase RTDB via HTTP REST API
 export async function writeToFirebase(path, data, method = 'PATCH') {
   try {
     const url = `${FIREBASE_RTDB_URL}/${path}.json`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000);
-
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-      signal: controller.signal,
     });
-    clearTimeout(timeout);
     return res.ok;
   } catch (e) {
     console.warn(`Firebase RTDB write notice (${path}):`, e.message);
@@ -33,11 +31,7 @@ export async function writeToFirebase(path, data, method = 'PATCH') {
 export async function readFromFirebase(path) {
   try {
     const url = `${FIREBASE_RTDB_URL}/${path}.json`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000);
-
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
+    const res = await fetch(url);
 
     if (res.ok) {
       const data = await res.json();
@@ -89,23 +83,42 @@ export async function createFundRequestDualDB(reqData) {
   let supabaseSuccess = false;
   let firebaseSuccess = false;
 
-  const payload = {
-    ...reqData,
+  const validMode = normalizePaymentMode(reqData.payment_mode || reqData.paymentMethod);
+
+  const dbPayload = {
     request_id: requestId,
+    user_id: reqData.user_id,
+    amount: Number(reqData.amount),
+    payment_mode: validMode,
+    reference_no: reqData.reference_no || reqData.utrNumber || `UTR${Date.now()}`,
+    bank_name: reqData.bank_name || 'Company Bank Escrow',
+    remarks: reqData.remarks || '',
+    status: reqData.status || 'pending',
+  };
+
+  const fbPayload = {
+    ...reqData,
+    ...dbPayload,
     id: requestId,
+    paymentMethod: reqData.payment_mode || reqData.paymentMethod || validMode,
     updated_at: new Date().toISOString(),
   };
 
-  // 1. Supabase Insert
+  // 1. Supabase Insert with exact allowed payment_mode
   try {
-    const { error } = await supabaseAdmin.from('fund_requests').insert([payload]);
-    if (!error) supabaseSuccess = true;
+    const { error } = await supabaseAdmin.from('fund_requests').insert([dbPayload]);
+    if (!error) {
+      supabaseSuccess = true;
+      console.log(`✅ Fund Request #${requestId} saved to Supabase DB successfully!`);
+    } else {
+      console.error('Supabase fund request DB error:', error.message);
+    }
   } catch (e) {
-    console.warn('Supabase fund request insert failed, writing to Firebase RTDB:', e.message);
+    console.warn('Supabase fund request insert failed:', e.message);
   }
 
   // 2. Firebase RTDB Insert
-  firebaseSuccess = await writeToFirebase(`fund_requests/${requestId}`, payload, 'PUT');
+  firebaseSuccess = await writeToFirebase(`fund_requests/${requestId}`, fbPayload, 'PUT');
 
   return { success: supabaseSuccess || firebaseSuccess, requestId, supabaseSuccess, firebaseSuccess };
 }
