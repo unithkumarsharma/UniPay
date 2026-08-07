@@ -8,12 +8,12 @@ export default function RetailerFundRequestPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('UPI');
+  const [method, setMethod] = useState('CASH');
   const [utr, setUtr] = useState('');
   const [toastMsg, setToastMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [razorpayAmount, setRazorpayAmount] = useState('500');
-  const [activeTab, setActiveTab] = useState('razorpay'); // 'razorpay' | 'manual'
+  const [activeTab, setActiveTab] = useState('cash'); // 'cash' | 'online' | 'razorpay'
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -48,13 +48,15 @@ export default function RetailerFundRequestPage() {
     fetchRequests();
   }, [fetchRequests]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, payModeOverride) => {
     e.preventDefault();
-    if (!amount || !utr) return;
+    if (!amount) return;
     if (!userId) {
       showToast('Error: User session not found. Please log in again.');
       return;
     }
+
+    const payMode = payModeOverride || method || 'CASH';
 
     setIsSubmitting(true);
     try {
@@ -65,10 +67,10 @@ export default function RetailerFundRequestPage() {
           userId,
           userRole: user?.role || 'retailer',
           amount: Number(amount),
-          paymentMethod: method,
-          utrNumber: utr,
-          bankName: 'HDFC Bank',
-          remarks: 'Retailer Wallet Deposit Request',
+          paymentMethod: payMode,
+          utrNumber: utr || (payMode === 'CASH' ? 'CASH_HANDOVER' : `UTR${Date.now()}`),
+          bankName: payMode === 'CASH' ? 'Distributor Cash Handover' : 'HDFC Escrow',
+          remarks: payMode === 'CASH' ? 'Retailer Cash Handover to Distributor' : 'Retailer Online Bank Deposit',
         }),
       });
 
@@ -76,7 +78,11 @@ export default function RetailerFundRequestPage() {
       if (data.success) {
         setAmount('');
         setUtr('');
-        showToast(`Fund request of ₹${Number(amount).toLocaleString('en-IN')} submitted successfully!`);
+        showToast(
+          payMode === 'CASH'
+            ? `Cash Top-Up request of ₹${Number(amount).toLocaleString('en-IN')} sent to Distributor successfully!`
+            : `Online UTR request of ₹${Number(amount).toLocaleString('en-IN')} submitted to Accountant successfully!`
+        );
         fetchRequests();
       } else {
         showToast(data.error || 'Failed to submit fund request');
@@ -114,7 +120,18 @@ export default function RetailerFundRequestPage() {
         </span>
       ),
     },
-    { key: 'method', label: 'Payment Mode' },
+    {
+      key: 'method',
+      label: 'Mode',
+      render: (r) => {
+        const isCash = String(r.method).toUpperCase() === 'CASH';
+        return (
+          <span style={{ fontWeight: 700, color: isCash ? '#D97706' : '#2563EB' }}>
+            {isCash ? '💵 Cash Top-Up' : '🏦 Online Bank'}
+          </span>
+        );
+      },
+    },
     {
       key: 'utr',
       label: 'UTR / Ref No.',
@@ -186,137 +203,55 @@ export default function RetailerFundRequestPage() {
           Wallet Top-Up &amp; Fund Load
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-          Pay instantly via Razorpay Online Gateway or submit a manual bank wire UTR request.
+          Select your preferred top-up mode: Cash Handover to Distributor, Online Bank Transfer to Company, or Instant Gateway.
         </p>
       </div>
 
-      {/* Mode Selection Tabs */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+      {/* 3 Prominent Mode Selection Tabs */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => { setActiveTab('cash'); setMethod('CASH'); }}
+          className={`btn ${activeTab === 'cash' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 800, padding: '12px 18px', background: activeTab === 'cash' ? '#059669' : undefined, borderColor: activeTab === 'cash' ? '#059669' : undefined }}
+        >
+          <span>💵</span> Mode 1: Cash Top-Up (Distributor Wallet Transfer)
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('online'); setMethod('ONLINE'); }}
+          className={`btn ${activeTab === 'online' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 800, padding: '12px 18px' }}
+        >
+          <span>🏦</span> Mode 2: Online Company Bank Transfer (Accountant UTR Approval)
+        </button>
+
         <button
           onClick={() => setActiveTab('razorpay')}
           className={`btn ${activeTab === 'razorpay' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 800, padding: '12px 18px' }}
         >
-          <span>⚡</span> Razorpay Instant Auto-Credit
-        </button>
-        <button
-          onClick={() => setActiveTab('manual')}
-          className={`btn ${activeTab === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
-        >
-          <span>🏛️</span> Manual UTR Request
+          <span>⚡</span> Mode 3: Razorpay Instant Gateway
         </button>
       </div>
 
-      {/* 1. RAZORPAY INSTANT PAYMENT CARD */}
-      {activeTab === 'razorpay' && (
-        <div className="card" style={{ maxWidth: '560px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px', border: '1px solid #2563EB', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.12)' }}>
+      {/* 1. CASH TOP-UP FORM (Handover to Distributor) */}
+      {activeTab === 'cash' && (
+        <div className="card" style={{ maxWidth: '600px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px', border: '1px solid #10B981', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.12)' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.12)', color: '#059669', padding: '4px 10px', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '12px' }}>
-            <span>✓</span> INSTANT AUTO-CREDIT (NO APPROVAL DELAY)
+            <span>💵</span> CASH TOP-UP WORKFLOW (DISTRIBUTOR WALLET DEBIT)
           </div>
 
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Instant Razorpay Payment Gateway
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)' }}>
+            Submit Cash Top-Up Request to Distributor
           </h3>
 
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
-            Pay via UPI (GPay/PhonePe/Paytm), Credit/Debit Card, Netbanking or Wallet. Your wallet balance will be credited automatically upon verification.
-          </p>
-
-          <div className="form-group" style={{ marginBottom: '18px' }}>
-            <label className="form-label">Enter Top-Up Amount (₹)</label>
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: 'var(--text-secondary)' }}>₹</span>
-              <input
-                type="number"
-                className="form-input"
-                style={{ paddingLeft: '32px', fontSize: '1.1rem', fontWeight: 800 }}
-                placeholder="e.g. 500"
-                value={razorpayAmount}
-                onChange={(e) => setRazorpayAmount(e.target.value)}
-                min="1"
-              />
-            </div>
+          <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.84rem', color: 'var(--text-primary)', marginBottom: '18px', lineHeight: 1.5 }}>
+            <strong>📌 Rule &amp; Instructions:</strong> Give cash directly to your Upline Distributor. Enter the cash amount below and submit. <strong>Distributor will verify cash and approve this request. Amount will be deducted from Distributor Wallet and credited to your Retailer Wallet instantly.</strong>
           </div>
 
-          {/* Quick Amount Selectors */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            {['100', '500', '1000', '2000', '5000'].map((val) => (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setRazorpayAmount(val)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: razorpayAmount === val ? '2px solid #2563EB' : '1px solid var(--border-color)',
-                  background: razorpayAmount === val ? 'rgba(37, 99, 235, 0.1)' : 'var(--bg-secondary)',
-                  color: razorpayAmount === val ? '#2563EB' : 'var(--text-primary)',
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                +₹{val}
-              </button>
-            ))}
-          </div>
-
-          <RazorpayCheckoutButton
-            amountInRupees={razorpayAmount || 100}
-            buttonText={`Proceed to Pay ₹${Number(razorpayAmount || 0).toLocaleString('en-IN')} with Razorpay`}
-            className="btn btn-primary w-full"
-            buttonStyle={{ padding: '14px', fontSize: '0.95rem', fontWeight: 800 }}
-            onSuccess={(data) => {
-              showToast(`🎉 Success! ₹${data.amount} credited to your wallet via Razorpay (${data.paymentId})`);
-              fetchRequests();
-            }}
-            onFailure={(err) => {
-              showToast(`Payment failed or cancelled: ${err.message}`);
-            }}
-          />
-        </div>
-      )}
-
-      {/* 2. MANUAL UTR SUBMISSION FORM */}
-      {activeTab === 'manual' && (
-        <div className="card" style={{ maxWidth: '560px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '18px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <line x1="2" y1="10" x2="22" y2="10" />
-            </svg>
-            Submit New Manual Fund Deposit Request
-          </h3>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Select Top-Up Mode</label>
-              <select
-                className="form-select"
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-                style={{ fontWeight: 700 }}
-              >
-                <option value="ONLINE">🏦 Online Company Bank Transfer (Accountant Approval via UTR)</option>
-                <option value="CASH">💵 Cash Top-Up (Distributor Wallet Transfer)</option>
-              </select>
-            </div>
-
-            {method === 'ONLINE' ? (
-              <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
-                <strong style={{ color: '#2563EB' }}>🏦 Company Bank Transfer Instructions:</strong><br />
-                Transfer funds to Company Bank Account (HDFC A/c: 50200012345678, IFSC: HDFC0001234). Enter the UTR Number below. <strong>Accountant will verify from bank statement and credit your wallet.</strong>
-              </div>
-            ) : (
-              <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
-                <strong style={{ color: '#059669' }}>💵 Cash Handover to Distributor Instructions:</strong><br />
-                Give cash directly to your Upline Distributor. <strong>Distributor will approve and transfer funds from their wallet to your wallet.</strong>
-              </div>
-            )}
-
-            <div className="form-group">
-              <label className="form-label">Deposit Amount (₹)</label>
+          <form onSubmit={(e) => handleSubmit(e, 'CASH')}>
+            <div className="form-group" style={{ marginBottom: '18px' }}>
+              <label className="form-label">Cash Amount Handed to Distributor (₹)</label>
               <input
                 type="number"
                 className="form-input"
@@ -328,26 +263,113 @@ export default function RetailerFundRequestPage() {
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">{method === 'CASH' ? 'Receipt / Cash Note Reference' : 'UTR / Payment Reference Number'}</label>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label className="form-label">Cash Receipt / Reference Note</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder={method === 'CASH' ? "e.g. Cash handed to Distributor" : "e.g. UTR99812488123"}
+                placeholder="e.g. Cash given at Noida Shop counter"
+                value={utr}
+                onChange={(e) => setUtr(e.target.value)}
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary w-full" style={{ padding: '14px', fontSize: '0.95rem', fontWeight: 800, background: '#059669', borderColor: '#059669' }} disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting Cash Request...' : '💵 Submit Cash Top-Up Request to Distributor'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* 2. ONLINE COMPANY BANK TRANSFER FORM */}
+      {activeTab === 'online' && (
+        <div className="card" style={{ maxWidth: '600px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px', border: '1px solid #2563EB', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.12)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(37, 99, 235, 0.12)', color: '#2563EB', padding: '4px 10px', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '12px' }}>
+            <span>🏦</span> ONLINE COMPANY BANK TRANSFER (ACCOUNTANT VERIFICATION)
+          </div>
+
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)' }}>
+            Submit Online Company Bank UTR Request
+          </h3>
+
+          <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.84rem', color: 'var(--text-primary)', marginBottom: '18px', lineHeight: 1.5 }}>
+            <strong>📌 Rule &amp; Instructions:</strong> Transfer money ONLY to Company Bank Account (HDFC A/c: 50200012345678, IFSC: HDFC0001234). Enter the UTR Number below. <strong>Accountant will verify from bank statement. Upon verification, your wallet will be credited.</strong>
+          </div>
+
+          <form onSubmit={(e) => handleSubmit(e, 'ONLINE')}>
+            <div className="form-group" style={{ marginBottom: '18px' }}>
+              <label className="form-label">Transferred Amount (₹)</label>
+              <input
+                type="number"
+                className="form-input"
+                placeholder="e.g. 20000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+                min="1"
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '18px' }}>
+              <label className="form-label">UTR / Payment Reference Number</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. UTR99812488123"
                 value={utr}
                 onChange={(e) => setUtr(e.target.value)}
                 required
               />
             </div>
 
-            <button type="submit" className="btn btn-primary w-full" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', fontSize: '0.9rem', fontWeight: 800 }} disabled={isSubmitting}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
-              {isSubmitting ? 'Submitting Request...' : method === 'CASH' ? 'Submit Cash Request to Distributor' : 'Submit UTR to Accountant'}
+            <button type="submit" className="btn btn-primary w-full" style={{ padding: '14px', fontSize: '0.95rem', fontWeight: 800 }} disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting UTR...' : '🏦 Submit Online UTR to Accountant'}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* 3. RAZORPAY INSTANT PAYMENT CARD */}
+      {activeTab === 'razorpay' && (
+        <div className="card" style={{ maxWidth: '600px', padding: '24px', borderRadius: 'var(--radius-xl)', marginBottom: '28px', border: '1px solid #7C3AED', boxShadow: '0 4px 14px rgba(124, 58, 237, 0.12)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(124, 58, 237, 0.12)', color: '#7C3AED', padding: '4px 10px', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '12px' }}>
+            <span>⚡</span> INSTANT AUTO-CREDIT (RAZORPAY)
+          </div>
+
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)' }}>
+            Instant Razorpay Payment Gateway
+          </h3>
+
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
+            Pay via UPI (GPay/PhonePe/Paytm), Cards, Netbanking. Balance credited automatically upon payment.
+          </p>
+
+          <div className="form-group" style={{ marginBottom: '18px' }}>
+            <label className="form-label">Enter Top-Up Amount (₹)</label>
+            <input
+              type="number"
+              className="form-input"
+              style={{ fontSize: '1.1rem', fontWeight: 800 }}
+              placeholder="e.g. 500"
+              value={razorpayAmount}
+              onChange={(e) => setRazorpayAmount(e.target.value)}
+              min="1"
+            />
+          </div>
+
+          <RazorpayCheckoutButton
+            amountInRupees={razorpayAmount || 100}
+            buttonText={`Proceed to Pay ₹${Number(razorpayAmount || 0).toLocaleString('en-IN')} with Razorpay`}
+            className="btn btn-primary w-full"
+            buttonStyle={{ padding: '14px', fontSize: '0.95rem', fontWeight: 800, background: '#7C3AED', borderColor: '#7C3AED' }}
+            onSuccess={(data) => {
+              showToast(`🎉 Success! ₹${data.amount} credited to your wallet via Razorpay (${data.paymentId})`);
+              fetchRequests();
+            }}
+            onFailure={(err) => {
+              showToast(`Payment failed or cancelled: ${err.message}`);
+            }}
+          />
         </div>
       )}
 
