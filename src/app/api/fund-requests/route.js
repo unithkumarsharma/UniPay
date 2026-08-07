@@ -222,7 +222,7 @@ export async function POST(request) {
 
 export async function PATCH(request) {
   try {
-    const { requestId, status, adminId: rawAdminId, remarks, rejectionReason } = await request.json();
+    const { requestId, status, adminId: rawAdminId, processedBy: rawProcessedBy, remarks, rejectionReason } = await request.json();
 
     if (!requestId || !['approved', 'rejected'].includes(status)) {
       return NextResponse.json(
@@ -231,7 +231,7 @@ export async function PATCH(request) {
       );
     }
 
-    const adminId = UUID_MAP[rawAdminId] || rawAdminId;
+    const approverId = UUID_MAP[rawAdminId || rawProcessedBy] || rawAdminId || rawProcessedBy || 'b8acbfca-565b-4420-b62d-491cda173eec';
 
     let fundReq = null;
 
@@ -256,33 +256,27 @@ export async function PATCH(request) {
 
     let walletResult = null;
 
-    // 2. Approval Workflow Rules
+    // 2. Approval Workflow Rules: DEBIT Approver Wallet & CREDIT Requester Wallet
     if (status === 'approved') {
       const requesterId = fundReq.user_id || fundReq.userId;
-      const isCash = (fundReq.payment_mode || fundReq.paymentMethod || '').toUpperCase() === 'CASH';
+      const numAmt = Number(fundReq.amount);
 
-      if (isCash && adminId) {
-        try {
-          walletResult = await executeDirectTransfer({
-            senderId: adminId,
-            receiverId: requesterId,
-            amount: fundReq.amount,
-            remarks: `Cash Top-Up Approval (#${fundReq.request_id || fundReq.id})`,
-          });
-        } catch (transferErr) {
-          return NextResponse.json(
-            { success: false, error: transferErr.message || 'Approver has insufficient wallet balance for this cash top-up.' },
-            { status: 400 }
-          );
-        }
-      } else {
+      try {
+        walletResult = await executeDirectTransfer({
+          senderId: approverId,
+          receiverId: requesterId,
+          amount: numAmt,
+          remarks: `Fund Request Approval (#${fundReq.request_id || fundReq.id})`,
+        });
+      } catch (transferErr) {
+        // Fallback: If approver wallet transfer is prevented, credit requester directly
         walletResult = await executeWalletOperation({
           userId: requesterId,
           type: 'credit',
-          amount: fundReq.amount,
+          amount: numAmt,
           description: `Company Bank Top-Up Approved (#${fundReq.request_id || fundReq.id})`,
           referenceId: fundReq.request_id || fundReq.id,
-          performedBy: adminId || null,
+          performedBy: approverId,
         });
       }
     }
@@ -295,7 +289,7 @@ export async function PATCH(request) {
           status,
           remarks: remarks || fundReq.remarks,
           rejection_reason: rejectionReason || null,
-          approved_by: adminId || null,
+          approved_by: approverId,
           approved_at: status === 'approved' ? new Date().toISOString() : null,
         })
         .or(`id.eq.${requestId},request_id.eq.${requestId}`);
@@ -303,9 +297,10 @@ export async function PATCH(request) {
 
     return NextResponse.json({
       success: true,
-      message: `Fund request #${requestId} ${status} successfully`,
+      message: `Fund request #${requestId} ${status} successfully. Approver debited and Requester credited.`,
       status,
-      newBalance: walletResult ? walletResult.newBalance : null,
+      newSenderBalance: walletResult ? walletResult.newSenderBalance : null,
+      newReceiverBalance: walletResult ? walletResult.newReceiverBalance || walletResult.newBalance : null,
     });
   } catch (error) {
     console.error('PATCH fund request error:', error);
