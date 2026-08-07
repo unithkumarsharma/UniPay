@@ -3,62 +3,7 @@ import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const MOCK_ACCOUNTANT_PERIODS = {
-  today: {
-    revenue: '₹62,400',
-    expenses: '₹41,200',
-    profit: '₹21,200',
-    receivables: '₹12,000',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: '14:30 Today' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: '12:15 Today' },
-    ],
-  },
-  yesterday: {
-    revenue: '₹84,500',
-    expenses: '₹55,000',
-    profit: '₹29,500',
-    receivables: '₹18,000',
-    data: [
-      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: '18:45 Yesterday' },
-      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: '15:20 Yesterday' },
-    ],
-  },
-  '7days': {
-    revenue: '₹4,85,000',
-    expenses: '₹3,20,000',
-    profit: '₹1,65,000',
-    receivables: '₹42,000',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
-      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
-      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
-    ],
-  },
-  month: {
-    revenue: '₹18,45,000',
-    expenses: '₹12,30,000',
-    profit: '₹6,15,000',
-    receivables: '₹85,000',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
-      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
-      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
-    ],
-  },
-  custom: {
-    revenue: '₹2,40,000',
-    expenses: '₹1,50,000',
-    profit: '₹90,000',
-    receivables: '₹25,000',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
-    ],
-  },
-};
+const EMPTY_PERIOD = { revenue: '₹0', expenses: '₹0', profit: '₹0', receivables: '₹0', data: [] };
 
 export default function AccountantReportsPage() {
   const [chartMetric, setChartMetric] = useState('revenue');
@@ -67,8 +12,8 @@ export default function AccountantReportsPage() {
   const [toDate, setToDate] = useState('2026-08-02');
 
   const currentDataset = useMemo(() => {
-    return MOCK_ACCOUNTANT_PERIODS[dateRangePreset] || MOCK_ACCOUNTANT_PERIODS.month;
-  }, [dateRangePreset]);
+    return EMPTY_PERIOD;
+  }, []);
 
   const columns = [
     {

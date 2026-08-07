@@ -3,59 +3,7 @@ import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const MOCK_REPORTS_PERIODS = {
-  today: {
-    earning: '₹850',
-    volume: '18 txns',
-    change: '+8% vs yesterday',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: '14:30 Today' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: '12:15 Today' },
-      { id: 'TXN661520', type: 'Electricity Bill BBPS', amount: 2450, commission: '18.00', status: 'success', time: '10:05 Today' },
-    ],
-  },
-  yesterday: {
-    earning: '₹1,200',
-    volume: '28 txns',
-    change: '+5% growth',
-    data: [
-      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: '18:45 Yesterday' },
-      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: '15:20 Yesterday' },
-    ],
-  },
-  '7days': {
-    earning: '₹6,800',
-    volume: '195 txns',
-    change: '+12% weekly avg',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
-      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
-      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
-      { id: 'TXN330911', type: 'Gas Bill Payment', amount: 1100, commission: '8.50', status: 'success', time: 'Jul 29, 11:10' },
-    ],
-  },
-  month: {
-    earning: '₹24,500',
-    volume: '890 txns',
-    change: '+14% growth',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
-      { id: 'TXN551920', type: 'DMT Instant Transfer', amount: 5000, commission: '25.00', status: 'success', time: 'Aug 01, 18:45' },
-      { id: 'TXN441092', type: 'AEPS Cash Withdrawal', amount: 3000, commission: '15.00', status: 'success', time: 'Aug 01, 15:20' },
-    ],
-  },
-  custom: {
-    earning: '₹3,400',
-    volume: '92 txns',
-    change: 'Custom Range Audit',
-    data: [
-      { id: 'TXN882910', type: 'Mobile Prepaid 5G', amount: 299, commission: '11.96', status: 'success', time: 'Aug 02, 14:30' },
-      { id: 'TXN772615', type: 'DTH Premium HD', amount: 500, commission: '20.00', status: 'success', time: 'Aug 02, 12:15' },
-    ],
-  },
-};
+const EMPTY_PERIOD = { earning: '₹0', volume: '0 txns', change: '0% growth', data: [] };
 
 export default function DistReportsPage() {
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
@@ -63,7 +11,7 @@ export default function DistReportsPage() {
   const [toDate, setToDate] = useState('2026-08-02');
 
   const currentDataset = useMemo(() => {
-    return MOCK_REPORTS_PERIODS[dateRangePreset] || MOCK_REPORTS_PERIODS.month;
+    return EMPTY_PERIOD;
   }, [dateRangePreset]);
 
   const columns = [

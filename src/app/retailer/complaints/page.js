@@ -4,38 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 
-const INITIAL_COMPLAINTS = [
-  {
-    id: 'CMP-1001',
-    txnId: 'TXN882910',
-    type: 'Recharge Failed - Debited',
-    message: 'Amount ₹299 debited for Jio recharge but mobile plan not updated.',
-    priority: 'HIGH',
-    status: 'open',
-    date: '2026-08-02 14:30',
-    reply: '',
-  },
-  {
-    id: 'CMP-1002',
-    txnId: 'TXN772615',
-    type: 'BBPS Payment Pending',
-    message: 'Electricity bill payment of ₹1,450 shown pending for 3 hours.',
-    priority: 'MEDIUM',
-    status: 'in_progress',
-    date: '2026-08-02 11:15',
-    reply: 'Our technical team is verifying biller NPCI gateway confirmation.',
-  },
-  {
-    id: 'CMP-1003',
-    txnId: 'TXN551920',
-    type: 'DMT Transfer Delayed',
-    message: 'Money transfer of ₹5,000 to SBI account pending receipt.',
-    priority: 'HIGH',
-    status: 'resolved',
-    date: '2026-08-01 16:45',
-    reply: 'Resolved. Bank IMPS reference UTR998124 generated and credited.',
-  },
-];
+const INITIAL_COMPLAINTS = [];
 
 export default function RetailerComplaintsPage() {
   const { user } = useAuth();

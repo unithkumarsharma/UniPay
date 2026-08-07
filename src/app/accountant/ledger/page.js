@@ -3,57 +3,7 @@ import { useState, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const MOCK_LEDGER_PERIODS = {
-  today: {
-    credit: '₹1,50,000',
-    debit: '₹1,12,500',
-    balance: '₹5,10,650',
-    entries: [
-      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
-      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
-    ],
-  },
-  yesterday: {
-    credit: '₹2,10,000',
-    debit: '₹1,85,000',
-    balance: '₹4,73,150',
-    entries: [
-      { id: 'LDG-9003', date: '2026-08-01 16:45', description: 'Wallet Deposit UPI772615102 (Ankit Kumar)', type: 'credit', amount: 100000, balance: 473150 },
-      { id: 'LDG-9004', date: '2026-08-01 10:20', description: 'Grievance Refund Dispatched Txn TXN441092', type: 'debit', amount: 3000, balance: 373150 },
-    ],
-  },
-  '7days': {
-    credit: '₹12,40,000',
-    debit: '₹9,80,000',
-    balance: '₹5,10,650',
-    entries: [
-      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
-      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
-      { id: 'LDG-9003', date: '2026-08-01 16:45', description: 'Wallet Deposit UPI772615102 (Ankit Kumar)', type: 'credit', amount: 100000, balance: 473150 },
-      { id: 'LDG-9004', date: '2026-08-01 10:20', description: 'Grievance Refund Dispatched Txn TXN441092', type: 'debit', amount: 3000, balance: 373150 },
-    ],
-  },
-  month: {
-    credit: '₹45,20,850',
-    debit: '₹40,10,200',
-    balance: '₹5,10,650',
-    entries: [
-      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
-      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
-      { id: 'LDG-9003', date: '2026-08-01 16:45', description: 'Wallet Deposit UPI772615102 (Ankit Kumar)', type: 'credit', amount: 100000, balance: 473150 },
-      { id: 'LDG-9004', date: '2026-08-01 10:20', description: 'Grievance Refund Dispatched Txn TXN441092', type: 'debit', amount: 3000, balance: 373150 },
-    ],
-  },
-  custom: {
-    credit: '₹6,50,000',
-    debit: '₹5,20,000',
-    balance: '₹5,10,650',
-    entries: [
-      { id: 'LDG-9001', date: '2026-08-02 14:30', description: 'Wallet Credit via Bank Wire UTR998124891 (Suresh Yadav)', type: 'credit', amount: 50000, balance: 510650 },
-      { id: 'LDG-9002', date: '2026-08-02 11:15', description: 'Commission Batch Payout #SET-8001 Dispatched', type: 'debit', amount: 12500, balance: 460650 },
-    ],
-  },
-};
+const EMPTY_PERIOD = { credit: '₹0', debit: '₹0', balance: '₹0', entries: [] };
 
 export default function LedgerPage() {
   const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
@@ -62,7 +12,7 @@ export default function LedgerPage() {
   const [typeFilter, setTypeFilter] = useState('All');
 
   const currentPeriod = useMemo(() => {
-    return MOCK_LEDGER_PERIODS[dateRangePreset] || MOCK_LEDGER_PERIODS.month;
+    return EMPTY_PERIOD;
   }, [dateRangePreset]);
 
   const filteredEntries = useMemo(() => {
