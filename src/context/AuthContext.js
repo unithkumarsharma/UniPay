@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { rtdb, ref, onValue } from '@/lib/firebase';
 
 const AuthContext = createContext();
 
@@ -16,7 +17,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: restore session from sessionStorage (NOT localStorage) — only for session continuity, NOT balance
+  // On mount: restore session from sessionStorage
   useEffect(() => {
     const savedToken = sessionStorage.getItem('unipay-token');
     const savedRole = sessionStorage.getItem('unipay-role');
@@ -24,10 +25,8 @@ export function AuthProvider({ children }) {
 
     if (savedToken && savedUserId) {
       setToken(savedToken);
-      // Immediately fetch fresh user from DB
       fetchUserFromDB(savedToken, savedUserId, savedRole).finally(() => setIsLoading(false));
     } else {
-      // Also check legacy localStorage and migrate
       const legacyToken = localStorage.getItem('unipay-jwt-token');
       const legacyUser = localStorage.getItem('unipay-user');
       if (legacyToken && legacyUser) {
@@ -35,13 +34,11 @@ export function AuthProvider({ children }) {
           const parsed = JSON.parse(legacyUser);
           const uid = parsed.id || parsed.userId;
           const uRole = parsed.role;
-          // Migrate to sessionStorage
           sessionStorage.setItem('unipay-token', legacyToken);
           if (uid) sessionStorage.setItem('unipay-userId', uid);
           if (uRole) sessionStorage.setItem('unipay-role', uRole);
           setToken(legacyToken);
           fetchUserFromDB(legacyToken, uid, uRole).finally(() => {
-            // Clear legacy localStorage
             localStorage.removeItem('unipay-user');
             localStorage.removeItem('unipay-jwt-token');
             localStorage.removeItem('unipay-role');
@@ -58,6 +55,36 @@ export function AuthProvider({ children }) {
       }
     }
   }, []);
+
+  // FIREBASE REALTIME DATABASE LISTENER FOR ZERO-LATENCY BALANCE SYNC
+  useEffect(() => {
+    if (!user) return;
+    const uKey = user.id || user.userId || user.user_id;
+    if (!uKey) return;
+
+    try {
+      const balanceRef = ref(rtdb, `wallets/${uKey}`);
+      const unsubscribe = onValue(balanceRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data && data.balance !== undefined) {
+            const liveBal = Number(data.balance);
+            setUser((prev) => {
+              if (prev && prev.walletBalance !== liveBal) {
+                console.log(`🔥 FIREBASE RTDB LIVE BALANCE SYNC: ₹${liveBal}`);
+                return { ...prev, walletBalance: liveBal };
+              }
+              return prev;
+            });
+          }
+        }
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('Firebase RTDB listener notice:', e.message);
+    }
+  }, [user?.id, user?.userId, user?.user_id]);
 
   // Fetch fresh user profile from Supabase via /api/auth/me
   const fetchUserFromDB = async (authToken, userId, role) => {
@@ -98,7 +125,6 @@ export function AuthProvider({ children }) {
 
       setUser(data.user);
       setToken(data.token);
-      // Save to sessionStorage only
       sessionStorage.setItem('unipay-token', data.token);
       sessionStorage.setItem('unipay-userId', data.user.id || data.user.userId);
       sessionStorage.setItem('unipay-role', data.user.role);
@@ -132,7 +158,6 @@ export function AuthProvider({ children }) {
       if (res.ok && data.success && data.user) {
         setUser(data.user);
         setToken(data.token);
-        // Save to sessionStorage — no localStorage
         sessionStorage.setItem('unipay-token', data.token);
         sessionStorage.setItem('unipay-userId', data.user.id || data.user.userId);
         sessionStorage.setItem('unipay-role', data.user.role);
@@ -154,13 +179,11 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('unipay-token');
     sessionStorage.removeItem('unipay-userId');
     sessionStorage.removeItem('unipay-role');
-    // Also clean any legacy localStorage
     localStorage.removeItem('unipay-user');
     localStorage.removeItem('unipay-jwt-token');
     localStorage.removeItem('unipay-role');
   };
 
-  // Refresh user data directly from Supabase DB — no localStorage
   const refreshUserData = useCallback(async () => {
     const activeToken = token || sessionStorage.getItem('unipay-token');
     const userId = user?.id || user?.userId || sessionStorage.getItem('unipay-userId');
@@ -168,14 +191,11 @@ export function AuthProvider({ children }) {
     await fetchUserFromDB(activeToken, userId, userRole);
   }, [token, user?.id, user?.userId, user?.role]);
 
-  // Update wallet balance: write to DB AND local state simultaneously
   const updateWalletBalance = useCallback(async (newBalance) => {
     if (!user) return;
     const numBal = Number(newBalance);
-    // Update React state immediately for instant UI feedback
     setUser(prev => ({ ...prev, walletBalance: numBal }));
 
-    // Write to Supabase DB in background
     try {
       const userId = user.id || user.userId;
       await fetch('/api/wallet/sync-balance', {
@@ -184,7 +204,7 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ userId, newBalance: numBal }),
       });
     } catch (e) {
-      console.warn('Balance sync to DB notice:', e.message);
+      console.warn('Balance sync notice:', e.message);
     }
   }, [user]);
 

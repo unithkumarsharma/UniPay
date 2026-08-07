@@ -5,6 +5,23 @@ import { supabaseAdmin } from './supabaseAdmin';
  * Handles live atomic transactions, wallet balances, fund requests, and ledger logs.
  */
 
+async function syncToFirebaseRTDB(userId, balance) {
+  if (!userId) return;
+  try {
+    const rtdbUrl = `https://unipay-3b9c6-default-rtdb.firebaseio.com/wallets/${userId}.json`;
+    await fetch(rtdbUrl, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        balance: Number(balance),
+        updatedAt: Date.now(),
+      }),
+    });
+  } catch (e) {
+    console.warn('Firebase RTDB sync notice:', e.message);
+  }
+}
+
 // In-Memory Fallback State for zero-latency UI updates & fallback demo sessions
 let memoryStore = {
   users: [
@@ -69,6 +86,11 @@ export async function executeWalletOperation({ userId, type, amount, description
 
       userObj = { ...dbUser, walletBalance: newBal };
       isSupabaseSuccess = true;
+
+      // Broadcast live to Firebase Realtime Database
+      syncToFirebaseRTDB(dbUser.id, newBal);
+      syncToFirebaseRTDB(dbUser.user_id, newBal);
+      syncToFirebaseRTDB(userId, newBal);
     }
   } catch (e) {
     console.warn('Supabase DB wallet execution notice:', e.message);
@@ -107,6 +129,10 @@ export async function executeWalletOperation({ userId, type, amount, description
     if (!userObj) {
       userObj = { ...memUser, walletBalance: newBal };
     }
+
+    // Broadcast live to Firebase Realtime Database
+    syncToFirebaseRTDB(memUser.id, newBal);
+    syncToFirebaseRTDB(memUser.userId, newBal);
   }
 
   return {
