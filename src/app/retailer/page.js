@@ -66,16 +66,20 @@ function DashboardContent() {
 
   const handleFundSubmit = async (e) => {
     e.preventDefault();
-    if (!fundAmount || !utrNumber) return;
+    if (!fundAmount) return;
+    const payMode = paymentMethod || 'CASH';
     try {
       await fetch('/api/fund-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.id || 'rtl001_fallback',
+          userId: user?.id || user?.userId || 'rtl001_fallback',
+          userRole: user?.role || 'retailer',
           amount: parseFloat(fundAmount),
-          paymentMethod,
-          utrNumber,
+          paymentMethod: payMode,
+          utrNumber: utrNumber || (payMode === 'CASH' ? 'CASH_HANDOVER' : `UTR${Date.now()}`),
+          bankName: payMode === 'CASH' ? 'Distributor Cash Handover' : 'HDFC Escrow',
+          remarks: payMode === 'CASH' ? 'Retailer Cash Top-Up to Distributor' : 'Retailer Online Company Deposit',
         }),
       });
     } catch (e) {}
@@ -895,33 +899,45 @@ function DashboardContent() {
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 6 }}>Payment Mode</label>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 6 }}>Select Top-Up Mode</label>
                   <select 
-                    value={paymentMethod} 
+                    value={paymentMethod || 'CASH'} 
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 700 }}
                   >
-                    <option value="UPI">UPI / QR Code</option>
-                    <option value="IMPS">IMPS Bank Transfer</option>
-                    <option value="NEFT">NEFT / RTGS</option>
+                    <option value="CASH">💵 Cash Top-Up (Handover Cash to Distributor)</option>
+                    <option value="ONLINE">🏦 Online Company Bank Transfer (Accountant Approval via UTR)</option>
+                    <option value="UPI">📱 UPI / QR Code Transfer (Accountant Approval)</option>
                   </select>
                 </div>
 
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 6 }}>Bank Reference / UTR Number</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Enter 12-digit UTR Number" 
-                    value={utrNumber} 
-                    onChange={(e) => setUtrNumber(e.target.value)} 
-                    required 
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
-                  />
-                </div>
+                {(!paymentMethod || paymentMethod === 'CASH') ? (
+                  <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '10px 12px', borderRadius: '8px', fontSize: '0.78rem', color: '#059669', marginBottom: '16px', lineHeight: 1.4 }}>
+                    <strong>💵 Cash Rule:</strong> Hand cash to Upline Distributor. Distributor approves and transfers funds from Distributor Wallet to your Retailer Wallet.
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', padding: '10px 12px', borderRadius: '8px', fontSize: '0.78rem', color: '#2563EB', marginBottom: '16px', lineHeight: 1.4 }}>
+                    <strong>🏦 Online Rule:</strong> Transfer to Company Bank Account &amp; enter UTR. Accountant verifies against bank statement and credits your wallet.
+                  </div>
+                )}
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: 800 }}>
-                  Submit Fund Request ⚡
+                {paymentMethod !== 'CASH' && (
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 6 }}>Bank Reference / UTR Number</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      placeholder="Enter 12-digit UTR Number" 
+                      value={utrNumber} 
+                      onChange={(e) => setUtrNumber(e.target.value)} 
+                      required={paymentMethod !== 'CASH'}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: 800, background: (!paymentMethod || paymentMethod === 'CASH') ? '#059669' : undefined, borderColor: (!paymentMethod || paymentMethod === 'CASH') ? '#059669' : undefined }}>
+                  {(!paymentMethod || paymentMethod === 'CASH') ? '💵 Submit Cash Request to Distributor' : '🏦 Submit UTR to Accountant'}
                 </button>
               </form>
             )}
