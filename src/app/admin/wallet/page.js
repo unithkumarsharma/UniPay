@@ -5,11 +5,12 @@ import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 
 const INITIAL_MOCK_USERS = [
-  { id: 'rtl001_fallback', userId: 'RTL001', name: 'Rohan', role: 'retailer', phone: '9876543214', walletBalance: 2000, status: 'active' },
-  { id: 'rtl002_fallback', userId: 'RTL002', name: 'Mohan', role: 'retailer', phone: '9876543215', walletBalance: 1500, status: 'active' },
-  { id: 'dst001_fallback', userId: 'DST001', name: 'Ram', role: 'distributor', phone: '9876543213', walletBalance: 5000, status: 'active' },
-  { id: 'md001_fallback', userId: 'MD001', name: 'Ajay', role: 'master_distributor', phone: '9876543212', walletBalance: 10000, status: 'active' },
-  { id: 'acc001_fallback', userId: 'ACC001', name: 'Unith', role: 'accountant', phone: '9876543211', walletBalance: 0, status: 'active' },
+  { id: 'adm001_fallback', userId: 'ADM001', name: 'Surya', role: 'admin', phone: '9876543210', walletBalance: 200000, status: 'active' },
+  { id: 'acc001_fallback', userId: 'ACC001', name: 'Unith', role: 'accountant', phone: '9876543211', walletBalance: 150000, status: 'active' },
+  { id: 'md001_fallback', userId: 'MD001', name: 'Ajay', role: 'master_distributor', phone: '9876543212', walletBalance: 100000, status: 'active' },
+  { id: 'dst001_fallback', userId: 'DST001', name: 'Ram', role: 'distributor', phone: '9876543213', walletBalance: 50000, status: 'active' },
+  { id: 'rtl001_fallback', userId: 'RTL001', name: 'Rohan', role: 'retailer', phone: '9876543214', walletBalance: 20000, status: 'active' },
+  { id: 'rtl002_fallback', userId: 'RTL002', name: 'Mohan', role: 'retailer', phone: '9876543215', walletBalance: 20000, status: 'active' },
 ];
 
 export default function AdminWalletPage() {
