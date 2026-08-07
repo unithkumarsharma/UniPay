@@ -110,7 +110,7 @@ export default function Navbar({ onMenuToggle, sidebarCollapsed }) {
             </svg>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
               <span style={{ fontSize: '0.72rem', opacity: 0.85, fontWeight: 800 }}>W:</span>
-              <span className={styles.walletAmount}>{formatBalance(user.balance || user.walletBalance)}</span>
+              <span className={styles.walletAmount}>{formatBalance(user.walletBalance ?? user.wallet_balance ?? 20000)}</span>
             </div>
             <button
               onClick={handleRefresh}
@@ -136,6 +136,22 @@ export default function Navbar({ onMenuToggle, sidebarCollapsed }) {
             </button>
           </div>
         )}
+
+        {/* Voice Soundbox Test Button */}
+        <button 
+          className={styles.notifBtn} 
+          aria-label="Soundbox Audio Alert" 
+          title="Test UniPay Voice Soundbox"
+          onClick={async () => {
+            try {
+              const { announceCreditSoundbox } = await import('@/lib/soundbox');
+              announceCreditSoundbox(user.walletBalance || user.wallet_balance || 20000, user.name);
+            } catch (e) {}
+          }}
+          style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.3)' }}
+        >
+          🔊
+        </button>
 
         {/* Notification Bell Button */}
         <button className={styles.notifBtn} aria-label="Notifications" title="System Alerts & Logs">

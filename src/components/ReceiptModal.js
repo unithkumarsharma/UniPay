@@ -182,21 +182,17 @@ export default function ReceiptModal({ transaction, onClose }) {
     );
   };
 
+  const handleWhatsAppShare = () => {
+    const text = `*UniPay Payment Receipt*\n*Txn ID:* ${transaction.id || 'TXN-90283'}\n*Service:* ${transaction.type || 'Service Payment'}\n*Amount:* ₹${Number(transaction.amount || 0).toLocaleString('en-IN')}\n*Status:* SUCCESSFUL ✅\n*UTR / Ref:* ${transaction.utr || 'UTR' + Math.floor(100000000000 + Math.random() * 900000000000)}\n*Date:* ${transaction.date || transaction.time || new Date().toLocaleDateString('en-IN')}\n\n_Thank you for choosing UniPay Multi-Service Network!_`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Top Control Bar */}
         <div className={styles.actionHeader}>
-          <div className={styles.modalTitle}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ color: 'var(--primary)' }}>
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-            Print Tax Receipt
-          </div>
-
           {/* Selector Tabs */}
           <div className={styles.copyTabs}>
             <button 
@@ -220,13 +216,21 @@ export default function ReceiptModal({ transaction, onClose }) {
           </div>
 
           <div className={styles.actionBtns}>
+            <button 
+              className={styles.printBtn} 
+              onClick={handleWhatsAppShare}
+              style={{ background: '#25D366', borderColor: '#25D366', color: '#FFFFFF' }}
+              title="Share receipt instantly to customer WhatsApp"
+            >
+              📱 Share WhatsApp
+            </button>
             <button className={styles.printBtn} onClick={handlePrint}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <polyline points="6 9 6 2 18 2 18 9" />
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                 <rect x="6" y="14" width="12" height="8" />
               </svg>
-              Print / Save PDF
+              Print Receipt
             </button>
             <button className={styles.closeBtn} onClick={onClose}>✕</button>
           </div>

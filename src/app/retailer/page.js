@@ -142,6 +142,13 @@ function DashboardContent() {
       };
 
       setTxnResult(newTxn);
+      
+      // Trigger Voice Soundbox Alert
+      try {
+        const { playBeepSound } = await import('@/lib/soundbox');
+        playBeepSound('success');
+      } catch (audioErr) {}
+
       if (data.success && data.newBalance !== undefined && data.newBalance !== null) {
         updateWalletBalance(data.newBalance);
       } else if (refreshUserData) {
