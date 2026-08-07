@@ -295,8 +295,8 @@
   font-weight: 600;
 }
 
-/* Responsive Hide Rules */
-@media (max-width: 900px) {
+/* Responsive Hide & Mobile Rules */
+@media (max-width: 1024px) {
   .helpBadge {
     display: none;
   }
@@ -304,23 +304,61 @@
 
 @media (max-width: 768px) {
   .navbar {
-    left: 0;
-    padding: 0 16px;
+    left: 0 !important;
+    padding: 0 12px;
   }
 
   .navbar.expanded {
-    left: 0;
+    left: 0 !important;
+  }
+
+  .left {
+    gap: 8px;
+  }
+
+  .right {
+    gap: 6px;
   }
 
   .searchBox {
-    display: none;
+    max-width: 150px;
+  }
+
+  .searchInput {
+    padding: 7px 10px 7px 32px;
+    font-size: 0.75rem;
+  }
+
+  .searchIcon {
+    left: 10px;
   }
 
   .profileInfo {
     display: none;
   }
 
+  .walletBadge {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    gap: 6px;
+  }
+
   .walletAmount {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchBox {
+    display: none;
+  }
+
+  .navbar {
+    padding: 0 10px;
+  }
+
+  .walletBadge {
+    padding: 4px 8px;
+    font-size: 0.72rem;
   }
 }

@@ -236,6 +236,11 @@ export default function Sidebar({ collapsed, onToggle }) {
                 href={item.path}
                 className={`${styles.navItem} ${isActive ? styles.active : ''}`}
                 title={item.label}
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.innerWidth <= 768 && !collapsed) {
+                    onToggle();
+                  }
+                }}
               >
                 <span className={styles.navIcon} style={{ background: isActive ? 'var(--primary-light)' : 'var(--bg-secondary)', color: 'var(--primary)' }}>
                   {iconSvg}

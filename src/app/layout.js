@@ -8,6 +8,14 @@ export const metadata = {
   keywords: "UniPay, recharge, bill payment, money transfer, AEPS, PAN card, fintech",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#2563EB",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
