@@ -16,7 +16,7 @@ export async function POST() {
 
     const defaultUsers = [
       {
-        name: 'Rahul Sharma (Admin)',
+        name: 'Surya (Admin)',
         email: 'admin@unipay.com',
         phone: '9876543210',
         password: hashedPassword,
@@ -26,7 +26,7 @@ export async function POST() {
         state: 'Delhi',
       },
       {
-        name: 'Priya Gupta (Accountant)',
+        name: 'Unith (Accountant)',
         email: 'accountant@unipay.com',
         phone: '9876543211',
         password: hashedPassword,
@@ -36,8 +36,8 @@ export async function POST() {
         state: 'Delhi',
       },
       {
-        name: 'Vikram Singh (MD)',
-        email: 'vikramsingh@unipay.com',
+        name: 'Ajay (MD)',
+        email: 'ajay@unipay.com',
         phone: '9876543212',
         password: hashedPassword,
         role: 'master_distributor',
@@ -46,8 +46,8 @@ export async function POST() {
         state: 'Delhi',
       },
       {
-        name: 'Ankit Kumar (Distributor)',
-        email: 'ankitkumar@unipay.com',
+        name: 'Ram (Distributor)',
+        email: 'ram@unipay.com',
         phone: '9876543213',
         password: hashedPassword,
         role: 'distributor',
@@ -56,13 +56,24 @@ export async function POST() {
         state: 'UP',
       },
       {
-        name: 'Suresh Yadav (Retailer)',
-        email: 'sureshyadav@unipay.com',
+        name: 'Rohan (Retailer)',
+        email: 'rohan@unipay.com',
         phone: '9876543214',
         password: hashedPassword,
         role: 'retailer',
-        shopName: 'Suresh Mobile Point',
+        shopName: 'Rohan Mobile Point',
         walletBalance: 2000,
+        city: 'Noida',
+        state: 'UP',
+      },
+      {
+        name: 'Mohan (Retailer)',
+        email: 'mohan@unipay.com',
+        phone: '9876543215',
+        password: hashedPassword,
+        role: 'retailer',
+        shopName: 'Mohan Digital Seva',
+        walletBalance: 1500,
         city: 'Noida',
         state: 'UP',
       },

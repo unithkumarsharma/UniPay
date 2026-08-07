@@ -10,9 +10,9 @@ const FALLBACK_USERS = {
     id: 'adm001_fallback',
     user_id: 'ADM001',
     userId: 'ADM001',
-    name: 'Rahul Sharma (Admin)',
+    name: 'Surya (Admin)',
     email: 'admin@unipay.com',
-    phone: '9999900001',
+    phone: '9876543210',
     role: 'admin',
     wallet_balance: 50000,
     walletBalance: 50000,
@@ -24,9 +24,9 @@ const FALLBACK_USERS = {
     id: 'acc001_fallback',
     user_id: 'ACC001',
     userId: 'ACC001',
-    name: 'Priya Gupta (Accountant)',
+    name: 'Unith (Accountant)',
     email: 'accountant@unipay.com',
-    phone: '9999900002',
+    phone: '9876543211',
     role: 'accountant',
     wallet_balance: 0,
     walletBalance: 0,
@@ -38,9 +38,9 @@ const FALLBACK_USERS = {
     id: 'md001_fallback',
     user_id: 'MD001',
     userId: 'MD001',
-    name: 'Vikram Singh (MD)',
-    email: 'vikramsingh@unipay.com',
-    phone: '9999900003',
+    name: 'Ajay (MD)',
+    email: 'ajay@unipay.com',
+    phone: '9876543212',
     role: 'master_distributor',
     wallet_balance: 10000,
     walletBalance: 10000,
@@ -52,9 +52,9 @@ const FALLBACK_USERS = {
     id: 'dst001_fallback',
     user_id: 'DST001',
     userId: 'DST001',
-    name: 'Ankit Kumar (Distributor)',
-    email: 'ankitkumar@unipay.com',
-    phone: '9999900004',
+    name: 'Ram (Distributor)',
+    email: 'ram@unipay.com',
+    phone: '9876543213',
     role: 'distributor',
     wallet_balance: 5000,
     walletBalance: 5000,
@@ -66,13 +66,28 @@ const FALLBACK_USERS = {
     id: 'rtl001_fallback',
     user_id: 'RTL001',
     userId: 'RTL001',
-    name: 'Suresh Yadav (Retailer)',
-    email: 'sureshyadav@unipay.com',
-    phone: '9999900005',
+    name: 'Rohan (Retailer)',
+    email: 'rohan@unipay.com',
+    phone: '9876543214',
     role: 'retailer',
-    shopName: 'Suresh Mobile Point',
+    shopName: 'Rohan Mobile Point',
     wallet_balance: 2000,
     walletBalance: 2000,
+    status: 'active',
+    city: 'Noida',
+    state: 'UP',
+  },
+  retailer_mohan: {
+    id: 'rtl002_fallback',
+    user_id: 'RTL002',
+    userId: 'RTL002',
+    name: 'Mohan (Retailer)',
+    email: 'mohan@unipay.com',
+    phone: '9876543215',
+    role: 'retailer',
+    shopName: 'Mohan Digital Seva',
+    wallet_balance: 1500,
+    walletBalance: 1500,
     status: 'active',
     city: 'Noida',
     state: 'UP',
@@ -82,35 +97,28 @@ const FALLBACK_USERS = {
 // Map name-based and role-based emails to exact user roles
 const EMAIL_ALIAS_TO_ROLE = {
   // Admin
-  'rahulsharma@unipay.com': 'admin',
-  'rahul@unipay.com': 'admin',
+  'surya@unipay.com': 'admin',
   'admin@unipay.com': 'admin',
 
   // Accountant
-  'priyagupta@unipay.com': 'accountant',
-  'priya@unipay.com': 'accountant',
+  'unith@unipay.com': 'accountant',
   'accountant@unipay.com': 'accountant',
 
   // Master Distributor
-  'vikramsingh@unipay.com': 'master_distributor',
-  'vikram@unipay.com': 'master_distributor',
+  'ajay@unipay.com': 'master_distributor',
   'masterdistributor@unipay.com': 'master_distributor',
   'md@unipay.com': 'master_distributor',
+  'vikramsingh@unipay.com': 'master_distributor',
 
   // Distributor
-  'ankitkumar@unipay.com': 'distributor',
-  'ankit@unipay.com': 'distributor',
+  'ram@unipay.com': 'distributor',
   'distributor@unipay.com': 'distributor',
-  'rohitsharma@unipay.com': 'distributor',
-  'gauravmishra@unipay.com': 'distributor',
+  'ankitkumar@unipay.com': 'distributor',
 
   // Retailer
-  'sureshyadav@unipay.com': 'retailer',
-  'suresh@unipay.com': 'retailer',
+  'rohan@unipay.com': 'retailer',
+  'mohan@unipay.com': 'retailer',
   'retailer@unipay.com': 'retailer',
-  'rameshverma@unipay.com': 'retailer',
-  'amitpal@unipay.com': 'retailer',
-  'deepakjha@unipay.com': 'retailer',
 };
 
 export async function POST(request) {
@@ -173,7 +181,11 @@ export async function POST(request) {
 
     // 3. Fallback for quick demo login if DB user not found
     if (!user) {
-      user = FALLBACK_USERS[selectedRole] || FALLBACK_USERS.admin;
+      if (inputClean.toLowerCase() === 'mohan@unipay.com') {
+        user = FALLBACK_USERS.retailer_mohan;
+      } else {
+        user = FALLBACK_USERS[selectedRole] || FALLBACK_USERS.admin;
+      }
     }
 
     // 4. Status check

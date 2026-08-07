@@ -7,7 +7,7 @@ import Modal from '@/components/Modal';
 const INITIAL_ADMIN_COMPLAINTS = [
   {
     id: 'CMP-1001',
-    user: 'Rahul Sharma (Retailer)',
+    user: 'Rohan (Retailer)',
     role: 'RETAILER',
     txnId: 'TXN882910',
     type: 'Recharge Failed - Debited',
@@ -19,7 +19,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
   },
   {
     id: 'CMP-1002',
-    user: 'Amit Gupta (Distributor)',
+    user: 'Ram (Distributor)',
     role: 'DISTRIBUTOR',
     txnId: 'TXN772615',
     type: 'BBPS Payment Pending',
@@ -31,7 +31,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
   },
   {
     id: 'CMP-1003',
-    user: 'Vikram Singh (Master Dist)',
+    user: 'Ajay (Master Dist)',
     role: 'MASTER DISTRIBUTOR',
     txnId: 'TXN551920',
     type: 'DMT Transfer Delayed',
@@ -43,7 +43,7 @@ const INITIAL_ADMIN_COMPLAINTS = [
   },
   {
     id: 'CMP-1004',
-    user: 'Pooja Verma (Retailer)',
+    user: 'Mohan (Retailer)',
     role: 'RETAILER',
     txnId: 'TXN441092',
     type: 'AEPS Withdrawal Dispute',

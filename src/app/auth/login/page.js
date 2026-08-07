@@ -7,11 +7,11 @@ import ThemeToggle from '@/components/ThemeToggle';
 import styles from './login.module.css';
 
 const ROLES = [
-  { key: 'admin', label: 'Admin', icon: '👑', desc: 'Full system control', defaultEmail: 'admin@unipay.com', defaultPhone: '9999900001' },
-  { key: 'accountant', label: 'Accountant', icon: '📊', desc: 'Financial management', defaultEmail: 'accountant@unipay.com', defaultPhone: '9999900002' },
-  { key: 'master_distributor', label: 'Master Distributor', icon: '🏛️', desc: 'Vikram Singh', defaultEmail: 'vikramsingh@unipay.com', defaultPhone: '9999900003' },
-  { key: 'distributor', label: 'Distributor', icon: '🏪', desc: 'Ankit Kumar', defaultEmail: 'ankitkumar@unipay.com', defaultPhone: '9999900004' },
-  { key: 'retailer', label: 'Retailer', icon: '🛒', desc: 'Suresh Yadav', defaultEmail: 'sureshyadav@unipay.com', defaultPhone: '9999900005' },
+  { key: 'admin', label: 'Admin', icon: '👑', desc: 'Surya', defaultEmail: 'admin@unipay.com', defaultPhone: '9876543210' },
+  { key: 'accountant', label: 'Accountant', icon: '📊', desc: 'Unith', defaultEmail: 'accountant@unipay.com', defaultPhone: '9876543211' },
+  { key: 'master_distributor', label: 'Master Distributor', icon: '🏛️', desc: 'Ajay', defaultEmail: 'ajay@unipay.com', defaultPhone: '9876543212' },
+  { key: 'distributor', label: 'Distributor', icon: '🏪', desc: 'Ram', defaultEmail: 'ram@unipay.com', defaultPhone: '9876543213' },
+  { key: 'retailer', label: 'Retailer', icon: '🛒', desc: 'Rohan & Mohan', defaultEmail: 'rohan@unipay.com', defaultPhone: '9876543214' },
 ];
 
 export default function LoginPage() {
