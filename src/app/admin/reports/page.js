@@ -142,12 +142,35 @@ const categoryDatasets = {
 
 export default function AdminReportsPage() {
   const [datePreset, setDatePreset] = useState('Today');
-  const [fromDate, setFromDate] = useState('2026-08-01');
-  const [toDate, setToDate] = useState('2026-08-02');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [appliedCustomLabel, setAppliedCustomLabel] = useState('');
   const [serviceFilter, setServiceFilter] = useState('All Services');
   const [chartMetric, setChartMetric] = useState('gross'); // 'gross' | 'profit'
+  const [dbTxns, setDbTxns] = useState([]);
+
+  // Reset state to fresh default 'Today' whenever page mounts
+  useEffect(() => {
+    setDatePreset('Today');
+    setIsCustomMode(false);
+    setFromDate('');
+    setToDate('');
+    setServiceFilter('All Services');
+  }, []);
+
+  useEffect(() => {
+    async function fetchTxns() {
+      try {
+        const res = await fetch('/api/transactions');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.transactions)) {
+          setDbTxns(data.transactions);
+        }
+      } catch (e) {}
+    }
+    fetchTxns();
+  }, []);
 
   const activeDataset = isCustomMode
     ? financialDatasets['Custom Range']

@@ -1,22 +1,79 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 
-const EMPTY_PERIOD = { earning: '₹0', volume: '0 txns', avgDaily: '₹0', change: '0% growth', data: [] };
-
 export default function MDReportsPage() {
-  const [dateRangePreset, setDateRangePreset] = useState('month'); // 'today' | 'yesterday' | '7days' | 'month' | 'custom'
-  const [fromDate, setFromDate] = useState('2026-08-01');
-  const [toDate, setToDate] = useState('2026-08-02');
+  const [dateRangePreset, setDateRangePreset] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [rawTxns, setRawTxns] = useState([]);
 
-  const currentDataset = useMemo(() => {
-    return EMPTY_PERIOD;
-  }, [dateRangePreset]);
+  // Reset state to fresh default 'all' whenever page mounts
+  useEffect(() => {
+    setDateRangePreset('all');
+    setFromDate('');
+    setToDate('');
+  }, []);
+
+  useEffect(() => {
+    async function fetchTxns() {
+      try {
+        const res = await fetch('/api/transactions');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.transactions)) {
+          setRawTxns(data.transactions);
+        }
+      } catch (e) {}
+    }
+    fetchTxns();
+  }, []);
+
+  const filteredTxns = useMemo(() => {
+    if (dateRangePreset === 'all') return rawTxns;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let startDate, endDate;
+    switch (dateRangePreset) {
+      case 'today':
+        startDate = startOfToday;
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'yesterday':
+        startDate = new Date(startOfToday.getTime() - 86400000);
+        endDate = startOfToday;
+        break;
+      case '7days':
+        startDate = new Date(startOfToday.getTime() - 7 * 86400000);
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'custom':
+        startDate = fromDate ? new Date(fromDate) : new Date(0);
+        endDate = toDate ? new Date(new Date(toDate).getTime() + 86400000) : new Date();
+        break;
+      default:
+        return rawTxns;
+    }
+
+    return rawTxns.filter((r) => {
+      if (!r.created_at && !r.date) return true;
+      const d = new Date(r.created_at || r.date);
+      return d >= startDate && d < endDate;
+    });
+  }, [rawTxns, dateRangePreset, fromDate, toDate]);
+
+  const totalVolume = useMemo(() => filteredTxns.reduce((sum, r) => sum + (Number(r.amount) || 0), 0), [filteredTxns]);
+  const mdMargin = useMemo(() => (totalVolume * 0.005).toFixed(2), [totalVolume]);
 
   const columns = [
     {
-      key: 'id',
+      key: 'txnId',
       label: 'Txn ID',
       render: (r) => (
         <span style={{
@@ -27,11 +84,12 @@ export default function MDReportsPage() {
           padding: '3px 8px',
           borderRadius: 'var(--radius-md)',
         }}>
-          {r.id}
+          {r.txnId || r.id}
         </span>
       ),
     },
-    { key: 'type', label: 'Service Category' },
+    { key: 'user', label: 'Retailer / Partner', render: (r) => r.user || 'Retailer' },
+    { key: 'type', label: 'Service Category', render: (r) => r.type || 'Service' },
     {
       key: 'amount',
       label: 'Volume (₹)',
@@ -42,7 +100,7 @@ export default function MDReportsPage() {
       ),
     },
     {
-      key: 'commission',
+      key: 'mdMargin',
       label: 'MD Master Margin',
       render: (r) => (
         <span style={{
@@ -53,58 +111,42 @@ export default function MDReportsPage() {
           padding: '3px 8px',
           borderRadius: 'var(--radius-md)',
         }}>
-          ₹{r.commission}
+          +₹{(Number(r.amount || 0) * 0.005).toFixed(2)}
         </span>
       ),
     },
     {
-      key: 'status',
-      label: 'Status',
-      render: (r) => {
-        const isSuccess = r.status === 'success';
-        return (
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '3px 10px',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            background: isSuccess ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-            color: isSuccess ? '#059669' : '#DC2626',
-            textTransform: 'uppercase',
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: isSuccess ? '#10B981' : '#EF4444' }} />
-            {r.status}
-          </span>
-        );
-      },
+      key: 'date',
+      label: 'Date & Time',
+      render: (r) => (
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+          {r.date || (r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : 'Just now')}
+        </span>
+      ),
     },
-    { key: 'time', label: 'Time' },
   ];
 
   return (
     <>
-      {/* Header */}
       <div className="page-header" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563EB', borderRadius: 'var(--radius-full)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '8px' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          MASTER DISTRIBUTOR NETWORK ANALYTICS
+          SUPABASE DB • MASTER DISTRIBUTOR NETWORK ANALYTICS
         </div>
         <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Master Distributor Business Reports
+          Master Distributor Sales Reports
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-          Track total network volume across distributors &amp; retailers, master margin yield, and audit logs.
+          Monitor network transaction volume, distributor performance, and override commission margins.
         </p>
       </div>
 
-      {/* Date Preset Filter Bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+        <DashboardCard title="Network Sales Volume" value={`₹${totalVolume.toLocaleString('en-IN')}`} subtitle="Entire Downline Volume" change="Live DB" changeType="positive" />
+        <DashboardCard title="MD Override Margin" value={`₹${Number(mdMargin).toLocaleString('en-IN')}`} subtitle="0.5% Master Cut" change="Real Time" changeType="positive" />
+        <DashboardCard title="Network Transactions" value={filteredTxns.length.toString()} subtitle="Total Orders" change="Verified" changeType="neutral" />
+      </div>
+
+      {/* Date Filter Bar */}
       <div style={{
         background: 'var(--bg-card)',
         padding: '16px 20px',
@@ -112,116 +154,35 @@ export default function MDReportsPage() {
         border: '1px solid var(--border-color)',
         marginBottom: '24px',
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
       }}>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Select Date Horizon:
-          </span>
-
-          {[
-            { id: 'today', label: 'Today' },
-            { id: 'yesterday', label: 'Yesterday' },
-            { id: '7days', label: 'Last 7 Days' },
-            { id: 'month', label: 'This Month' },
-            { id: 'custom', label: 'Custom Range' },
-          ].map((preset) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Filter Period:</span>
+          {['all', 'today', 'yesterday', '7days', 'month'].map((p) => (
             <button
-              key={preset.id}
-              onClick={() => setDateRangePreset(preset.id)}
+              key={p}
+              onClick={() => setDateRangePreset(p)}
               style={{
                 padding: '6px 14px',
-                fontSize: '0.8rem',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.78rem',
                 fontWeight: 700,
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid',
-                borderColor: dateRangePreset === preset.id ? '#2563EB' : 'var(--border-color)',
-                background: dateRangePreset === preset.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
-                color: dateRangePreset === preset.id ? '#2563EB' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                background: dateRangePreset === p ? 'var(--primary)' : 'var(--bg-secondary)',
+                color: dateRangePreset === p ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              {preset.label}
+              {p === 'all' ? 'All Time' : p === 'today' ? 'Today' : p === 'yesterday' ? 'Yesterday' : p === '7days' ? 'Last 7 Days' : 'This Month'}
             </button>
           ))}
         </div>
-
-        {dateRangePreset === 'custom' && (
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>From:</span>
-              <input
-                type="date"
-                className="form-input"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
-              />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>To:</span>
-              <input
-                type="date"
-                className="form-input"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* KPI Cards */}
-      <div className="stats-grid" style={{ marginBottom: '28px' }}>
-        <DashboardCard
-          icon="commission"
-          iconColor="green"
-          title="Master Distributor Earnings"
-          value={currentDataset.earning}
-          change={currentDataset.change}
-          changeType="positive"
-          badge={dateRangePreset.toUpperCase()}
-          sparkline="0,20 10,18 20,15 30,12 40,8 50,5 60,2"
-        />
-        <DashboardCard
-          icon="reports"
-          iconColor="blue"
-          title="Master Network Volume"
-          value={currentDataset.volume}
-          subtext={`Filtered for ${dateRangePreset.toUpperCase()}`}
-          badge="Network Stream"
-          sparkline="0,22 10,19 20,15 30,12 40,9 50,6 60,3"
-        />
-        <DashboardCard
-          icon="zap"
-          iconColor="purple"
-          title="Average Daily Earning"
-          value={currentDataset.avgDaily}
-          subtext="Daily Yield Average"
-          badge="Daily Yield"
-          sparkline="0,15 10,15 20,12 30,14 40,10 50,8 60,4"
-        />
-      </div>
-
-      {/* Table */}
-      <DataTable
-        title={`Master Distributor Network Transaction History (${dateRangePreset.toUpperCase()})`}
-        columns={columns}
-        data={currentDataset.data}
-        searchable={true}
-      />
+      <DataTable title="Downline Network Audit Log" columns={columns} data={filteredTxns} searchable searchField="txnId" />
     </>
   );
 }

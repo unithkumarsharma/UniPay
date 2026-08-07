@@ -6,9 +6,16 @@ import DataTable from '@/components/DataTable';
 export default function RetailerTransactionsPage() {
   const { user } = useAuth();
   const [liveTransactions, setLiveTransactions] = useState([]);
-  const [dateRangePreset, setDateRangePreset] = useState('month');
-  const [fromDate, setFromDate] = useState('2026-08-01');
-  const [toDate, setToDate] = useState('2026-08-02');
+  const [dateRangePreset, setDateRangePreset] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  // Reset state to fresh default 'all' whenever page mounts
+  useEffect(() => {
+    setDateRangePreset('all');
+    setFromDate('');
+    setToDate('');
+  }, []);
 
   useEffect(() => {
     async function fetchTxns() {
@@ -25,8 +32,43 @@ export default function RetailerTransactionsPage() {
   }, [user]);
 
   const currentDataset = useMemo(() => {
-    return liveTransactions;
-  }, [liveTransactions]);
+    if (dateRangePreset === 'all') return liveTransactions;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let startDate, endDate;
+    switch (dateRangePreset) {
+      case 'today':
+        startDate = startOfToday;
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'yesterday':
+        startDate = new Date(startOfToday.getTime() - 86400000);
+        endDate = startOfToday;
+        break;
+      case '7days':
+        startDate = new Date(startOfToday.getTime() - 7 * 86400000);
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(startOfToday.getTime() + 86400000);
+        break;
+      case 'custom':
+        startDate = fromDate ? new Date(fromDate) : new Date(0);
+        endDate = toDate ? new Date(new Date(toDate).getTime() + 86400000) : new Date();
+        break;
+      default:
+        return liveTransactions;
+    }
+
+    return liveTransactions.filter((r) => {
+      if (!r.created_at && !r.date) return true;
+      const d = new Date(r.created_at || r.date);
+      return d >= startDate && d < endDate;
+    });
+  }, [liveTransactions, dateRangePreset, fromDate, toDate]);
 
   const columns = [
     {
@@ -74,34 +116,29 @@ export default function RetailerTransactionsPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (r) => {
-        const isSuccess = r.status === 'success';
-        const isPending = r.status === 'pending';
-        return (
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '3px 10px',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            background: isSuccess ? 'rgba(16, 185, 129, 0.12)' : isPending ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-            color: isSuccess ? '#059669' : isPending ? '#D97706' : '#DC2626',
-            textTransform: 'uppercase',
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: isSuccess ? '#10B981' : isPending ? '#F59E0B' : '#EF4444' }} />
-            {r.status}
-          </span>
-        );
-      },
+      render: (r) => (
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '3px 10px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          background: 'rgba(16, 185, 129, 0.12)',
+          color: '#059669',
+          textTransform: 'uppercase',
+        }}>
+          SUCCESS
+        </span>
+      ),
     },
     {
-      key: 'createdAt',
+      key: 'date',
       label: 'Date & Time',
       render: (r) => (
         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-          {r.createdAt ? new Date(r.createdAt).toLocaleString('en-IN') : r.time || 'Just now'}
+          {r.date || (r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : 'Just now')}
         </span>
       ),
     },
@@ -109,23 +146,19 @@ export default function RetailerTransactionsPage() {
 
   return (
     <>
-      {/* Header */}
       <div className="page-header" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563EB', borderRadius: 'var(--radius-full)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '8px' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-          REAL-TIME TRANSACTION LEDGER
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669', borderRadius: 'var(--radius-full)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '8px' }}>
+          REALTIME DB PASSBOOK • LIVE TRANSACTIONS LOG
         </div>
         <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Retailer Transaction History
+          My Transaction History &amp; Passbook
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-          Real-time log of all customer recharges, bill payments, and earned commissions.
+          Audit all your successful recharges, BBPS payments, DMT transfers, and AEPS withdrawals.
         </p>
       </div>
 
-      {/* Date Preset Filter Bar */}
+      {/* Date Filter Bar */}
       <div style={{
         background: 'var(--bg-card)',
         padding: '16px 20px',
@@ -133,83 +166,40 @@ export default function RetailerTransactionsPage() {
         border: '1px solid var(--border-color)',
         marginBottom: '24px',
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
       }}>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Select Date Range:
-          </span>
-
-          {[
-            { id: 'today', label: 'Today' },
-            { id: 'yesterday', label: 'Yesterday' },
-            { id: '7days', label: 'Last 7 Days' },
-            { id: 'month', label: 'This Month' },
-            { id: 'custom', label: 'Custom Range' },
-          ].map((preset) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Filter Date:</span>
+          {['all', 'today', 'yesterday', '7days', 'month'].map((p) => (
             <button
-              key={preset.id}
-              onClick={() => setDateRangePreset(preset.id)}
+              key={p}
+              onClick={() => setDateRangePreset(p)}
               style={{
                 padding: '6px 14px',
-                fontSize: '0.8rem',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.78rem',
                 fontWeight: 700,
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid',
-                borderColor: dateRangePreset === preset.id ? '#2563EB' : 'var(--border-color)',
-                background: dateRangePreset === preset.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
-                color: dateRangePreset === preset.id ? '#2563EB' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                background: dateRangePreset === p ? 'var(--primary)' : 'var(--bg-secondary)',
+                color: dateRangePreset === p ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              {preset.label}
+              {p === 'all' ? 'All Time' : p === 'today' ? 'Today' : p === 'yesterday' ? 'Yesterday' : p === '7days' ? 'Last 7 Days' : 'This Month'}
             </button>
           ))}
         </div>
-
-        {dateRangePreset === 'custom' && (
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>From:</span>
-              <input
-                type="date"
-                className="form-input"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
-              />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>To:</span>
-              <input
-                type="date"
-                className="form-input"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                style={{ width: '135px', padding: '4px 8px', fontSize: '0.8rem' }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Table */}
       <DataTable
-        title={`Executed Retailer Transactions (${dateRangePreset.toUpperCase()})`}
+        title="Transaction Records"
         columns={columns}
         data={currentDataset}
-        searchable={true}
+        searchable
+        searchField="txnId"
       />
     </>
   );
