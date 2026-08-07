@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { syncBalanceDualDB } from '@/lib/dualDatabase';
 import bcrypt from 'bcryptjs';
+
+const ROLE_PREFIX_MAP = {
+  master_distributor: 'MD',
+  distributor: 'DST',
+  retailer: 'RTL',
+  accountant: 'ACC',
+  admin: 'ADM',
+};
 
 export async function GET(request) {
   try {
@@ -57,12 +66,12 @@ export async function POST(request) {
       );
     }
 
-    // Check existing
+    // Check existing phone
     const { data: existing } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('phone', phone)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       return NextResponse.json(
@@ -72,7 +81,9 @@ export async function POST(request) {
     }
 
     const hashedPassword = await bcrypt.hash(password || '123456', 10);
-    const userIdTag = `${role}${Date.now().toString().slice(-4)}`;
+    const prefix = ROLE_PREFIX_MAP[role] || 'USR';
+    const userIdTag = `${prefix}${Date.now().toString().slice(-4)}`;
+    const startBalance = parseFloat(initialBalance) || 0;
 
     const { data: newUser, error } = await supabaseAdmin
       .from('users')
@@ -89,7 +100,7 @@ export async function POST(request) {
           city: city || '',
           state: state || '',
           address: address || '',
-          wallet_balance: parseFloat(initialBalance) || 0,
+          wallet_balance: startBalance,
           status: 'active',
         },
       ])
@@ -100,10 +111,18 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
+    // Broadcast initial balance to Dual-Database Engine
+    await syncBalanceDualDB(newUser.id, startBalance);
+    await syncBalanceDualDB(newUser.user_id, startBalance);
+
     return NextResponse.json({
       success: true,
-      message: 'User created successfully in Supabase Database',
-      user: newUser,
+      message: `${role.toUpperCase().replace('_', ' ')} account ${name} (${userIdTag}) created successfully`,
+      user: {
+        ...newUser,
+        userId: userIdTag,
+        walletBalance: startBalance,
+      },
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

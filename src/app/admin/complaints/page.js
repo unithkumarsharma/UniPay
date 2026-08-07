@@ -72,11 +72,14 @@ export default function AdminComplaintsPage() {
     try {
       const res = await fetch('/api/complaints');
       const data = await res.json();
-      if (data.success && Array.isArray(data.complaints)) {
+      if (data.success && Array.isArray(data.complaints) && data.complaints.length > 0) {
         setComplaintList(data.complaints);
+      } else {
+        setComplaintList(INITIAL_ADMIN_COMPLAINTS);
       }
     } catch (e) {
       console.warn('Complaints API fetch error:', e.message);
+      setComplaintList(INITIAL_ADMIN_COMPLAINTS);
     }
   };
 
