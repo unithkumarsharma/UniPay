@@ -1,118 +1,93 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { executeWalletOperation, executeDirectTransfer, getMemoryStore } from '@/lib/walletStore';
+import { createFundRequestDualDB, fetchFundRequestsDualDB, syncBalanceDualDB } from '@/lib/dualDatabase';
+
+const UUID_MAP = {
+  // Master Distributor
+  'md001_fallback': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'MD001': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'ajay@unipay.com': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'master_distributor': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+
+  // Distributor
+  'dst001_fallback': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'DST001': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'ram@unipay.com': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'distributor': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+
+  // Retailer
+  'rtl001_fallback': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'RTL001': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'rohan@unipay.com': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'retailer': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+
+  // Accountant
+  'acc001_fallback': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'ACC001': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'accountant@unipay.com': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'accountant': 'b8acbfca-565b-4420-b62d-491cda173eec',
+
+  // Admin
+  'adm001_fallback': '3d790ac7-850b-4377-b540-83dc9ce29829',
+  'ADM001': '3d790ac7-850b-4377-b540-83dc9ce29829',
+  'admin@unipay.com': '3d790ac7-850b-4377-b540-83dc9ce29829',
+  'admin': '3d790ac7-850b-4377-b540-83dc9ce29829',
+};
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const rawUserId = searchParams.get('userId');
     const userRole = searchParams.get('userRole');
     const targetRole = searchParams.get('targetRole');
     const status = searchParams.get('status');
 
+    const userId = UUID_MAP[rawUserId] || rawUserId;
+
     let formattedRequests = [];
 
-    // Try Supabase fetch
-    try {
-      let query = supabaseAdmin
-        .from('fund_requests')
-        .select(`
-          *,
-          users!fund_requests_user_id_fkey(id, user_id, name, role, phone, city)
-        `)
-        .order('created_at', { ascending: false });
+    // 1. Dual-DB Fetch
+    const dualReqs = await fetchFundRequestsDualDB({ status });
 
+    if (Array.isArray(dualReqs) && dualReqs.length > 0) {
+      // Lookup users for enrichments
+      const { data: allUsers } = await supabaseAdmin.from('users').select('id, user_id, name, role');
+      const userMap = new Map((allUsers || []).map(u => [u.id, u]));
+
+      formattedRequests = dualReqs.map((r) => {
+        const u = userMap.get(r.user_id) || (typeof r.userId === 'object' ? r.userId : null);
+        return {
+          ...r,
+          requestId: r.request_id || r.requestId || r.id,
+          user_id: r.user_id,
+          userId: u ? { id: u.id, userId: u.user_id, name: u.name, role: u.role } : r.userId,
+          user: u?.name || r.user || 'Partner',
+          userCode: u?.user_id || r.userCode || 'USR',
+          role: u?.role || r.role || 'partner',
+          amount: Number(r.amount),
+          paymentMethod: r.payment_mode || r.paymentMethod,
+          utrNumber: r.reference_no || r.utrNumber,
+        };
+      });
+
+      // Filter by userId if specified
       if (userId) {
-        // Find exact UUID or user_id tag
-        const { data: uObj } = await supabaseAdmin
-          .from('users')
-          .select('id')
-          .or(`id.eq.${userId},user_id.eq.${userId}`)
-          .maybeSingle();
-        const searchId = uObj ? uObj.id : userId;
-        query = query.eq('user_id', searchId);
+        formattedRequests = formattedRequests.filter(r => r.user_id === userId || r.user_id === rawUserId || r.userId?.id === userId || r.userId?.userId === rawUserId);
       }
-
-      if (status) query = query.eq('status', status);
-
-      const { data: requests, error } = await query;
-      if (!error && Array.isArray(requests) && requests.length > 0) {
-        formattedRequests = requests.map((req) => ({
-          ...req,
-          requestId: req.request_id || req.id,
-          userId: req.users ? {
-            id: req.users.id,
-            userId: req.users.user_id,
-            name: req.users.name,
-            role: req.users.role,
-          } : null,
-          user: req.users?.name || 'Partner',
-          userCode: req.users?.user_id || 'USR',
-          role: req.users?.role || 'partner',
-          amount: Number(req.amount),
-          paymentMethod: req.payment_mode,
-          utrNumber: req.reference_no,
-        }));
-      } else {
-        // Fallback plain query if foreign key join returns no rows
-        let plainQuery = supabaseAdmin
-          .from('fund_requests')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (status) plainQuery = plainQuery.eq('status', status);
-
-        const { data: plainReqs } = await plainQuery;
-        if (plainReqs && plainReqs.length > 0) {
-          // Fetch user details for all requests
-          const { data: allUsers } = await supabaseAdmin.from('users').select('id, user_id, name, role');
-          const userMap = new Map((allUsers || []).map(u => [u.id, u]));
-
-          formattedRequests = plainReqs.map(r => {
-            const u = userMap.get(r.user_id);
-            return {
-              ...r,
-              requestId: r.request_id || r.id,
-              userId: u ? { id: u.id, userId: u.user_id, name: u.name, role: u.role } : null,
-              user: u?.name || 'Partner',
-              userCode: u?.user_id || 'USR',
-              role: u?.role || 'partner',
-              amount: Number(r.amount),
-              paymentMethod: r.payment_mode,
-              utrNumber: r.reference_no,
-            };
-          });
-        }
-      }
-    } catch (e) {
-      console.warn('DB fetch fund requests notice:', e.message);
     }
 
+    // 2. Memory store fallback
     if (formattedRequests.length === 0) {
       const store = getMemoryStore();
       let allReqs = store.fundRequests;
 
-      if (userId) {
-        allReqs = allReqs.filter(r => r.user_id === userId || r.userId?.id === userId);
-      } else if (targetRole) {
-        allReqs = allReqs.filter(r => r.target_approver_role === targetRole || r.targetRole === targetRole);
-      } else if (userRole) {
-        const approverMap = {
-          distributor: 'distributor',
-          master_distributor: 'master_distributor',
-          accountant: 'accountant',
-          admin: 'admin',
-        };
-        const neededTarget = approverMap[userRole];
-        if (neededTarget) {
-          allReqs = allReqs.filter(r => r.target_approver_role === neededTarget || r.user_id === userId);
-        }
+      if (rawUserId || userId) {
+        allReqs = allReqs.filter(r => r.user_id === userId || r.user_id === rawUserId || r.userId?.id === userId);
       }
-
       if (status) {
         allReqs = allReqs.filter(r => r.status === status);
       }
-
       formattedRequests = allReqs;
     }
 
@@ -124,25 +99,25 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { userId, userRole, amount, paymentMethod, utrNumber, bankName, remarks, receiptUrl } = await request.json();
+    const { userId: rawUserId, userRole, amount, paymentMethod, utrNumber, bankName, remarks, receiptUrl } = await request.json();
 
     const numAmount = parseFloat(amount);
-    if (!userId || isNaN(numAmount) || numAmount <= 0) {
+    if (!rawUserId || isNaN(numAmount) || numAmount <= 0) {
       return NextResponse.json(
         { success: false, error: 'User ID, valid amount, and payment method required' },
         { status: 400 }
       );
     }
 
-    // Resolve userId string to actual Supabase UUID
-    let actualUuid = userId;
+    // Resolve userId string to exact Supabase UUID using UUID_MAP or DB query
+    let actualUuid = UUID_MAP[rawUserId] || rawUserId;
     let actualRole = userRole || 'retailer';
 
     try {
       const { data: matchedUser } = await supabaseAdmin
         .from('users')
         .select('id, user_id, role, name')
-        .or(`id.eq.${userId},user_id.eq.${userId},email.eq.${userId}`)
+        .or(`id.eq.${actualUuid},user_id.eq.${rawUserId},email.eq.${rawUserId}`)
         .maybeSingle();
 
       if (matchedUser) {
@@ -198,35 +173,18 @@ export async function POST(request) {
       created_at: new Date().toISOString(),
     };
 
+    // 1. Always keep memory store updated
     getMemoryStore().fundRequests.unshift(newReq);
 
-    // DB Insert into Supabase with actualUuid
-    try {
-      const { error: dbErr } = await supabaseAdmin.from('fund_requests').insert([{
-        request_id: requestId,
-        user_id: actualUuid,
-        amount: numAmount,
-        payment_mode: payMode,
-        reference_no: refNo,
-        bank_name: bankName || 'Company HDFC Escrow',
-        remarks: newReq.remarks,
-        receipt_url: receiptUrl || null,
-        status: 'pending',
-      }]);
-
-      if (dbErr) {
-        console.error('Supabase DB fund request insert error:', dbErr.message);
-      } else {
-        console.log(`✅ Fund Request #${requestId} inserted successfully to Supabase DB for user ${actualUuid}!`);
-      }
-    } catch (e) {
-      console.warn('DB create fund request notice:', e.message);
-    }
+    // 2. Dual-Database Write (Supabase + Firebase RTDB)
+    const dualRes = await createFundRequestDualDB(newReq);
 
     return NextResponse.json({
       success: true,
-      message: `Fund request submitted to ${targetName} (${isCash ? 'Cash Top-Up' : 'Company Bank Online'}) successfully`,
+      message: `Fund request #${requestId} submitted to ${targetName} (${isCash ? 'Cash Top-Up' : 'Company Bank Online'}) successfully`,
       request: newReq,
+      supabaseSaved: dualRes.supabaseSuccess,
+      firebaseSaved: dualRes.firebaseSuccess,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message || 'Submission failed' }, { status: 400 });
@@ -235,7 +193,7 @@ export async function POST(request) {
 
 export async function PATCH(request) {
   try {
-    const { requestId, status, adminId, remarks, rejectionReason } = await request.json();
+    const { requestId, status, adminId: rawAdminId, remarks, rejectionReason } = await request.json();
 
     if (!requestId || !['approved', 'rejected'].includes(status)) {
       return NextResponse.json(
@@ -244,19 +202,14 @@ export async function PATCH(request) {
       );
     }
 
+    const adminId = UUID_MAP[rawAdminId] || rawAdminId;
+
     let fundReq = null;
 
-    // 1. Supabase lookup
-    try {
-      const { data } = await supabaseAdmin
-        .from('fund_requests')
-        .select('*')
-        .or(`id.eq.${requestId},request_id.eq.${requestId}`)
-        .single();
-      fundReq = data;
-    } catch (e) {}
+    // 1. Dual DB lookup
+    const dualReqs = await fetchFundRequestsDualDB({});
+    fundReq = dualReqs.find(r => r.id === requestId || r.request_id === requestId);
 
-    // 2. Memory store lookup
     const store = getMemoryStore();
     const memReq = store.fundRequests.find(r => r.id === requestId || r.request_id === requestId);
     if (!fundReq && memReq) {
@@ -274,10 +227,10 @@ export async function PATCH(request) {
 
     let walletResult = null;
 
-    // 3. Approval Workflow Rules
+    // 2. Approval Workflow Rules
     if (status === 'approved') {
       const requesterId = fundReq.user_id || fundReq.userId;
-      const isCash = (fundReq.payment_mode || '').toUpperCase() === 'CASH';
+      const isCash = (fundReq.payment_mode || fundReq.paymentMethod || '').toUpperCase() === 'CASH';
 
       if (isCash && adminId) {
         try {
@@ -305,7 +258,7 @@ export async function PATCH(request) {
       }
     }
 
-    // 4. Update Supabase DB
+    // 3. Update Supabase DB
     try {
       await supabaseAdmin
         .from('fund_requests')

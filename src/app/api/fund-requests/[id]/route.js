@@ -1,13 +1,28 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { executeWalletOperation, executeDirectTransfer, getMemoryStore } from '@/lib/walletStore';
+import { fetchFundRequestsDualDB } from '@/lib/dualDatabase';
+
+const UUID_MAP = {
+  'md001_fallback': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'MD001': '133d4683-ad2b-40ca-822c-2483d3eeadcb',
+  'dst001_fallback': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'DST001': '40832945-bc1c-44dd-b2ea-79098b5c2214',
+  'rtl001_fallback': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'RTL001': '34a7fb3f-caa3-4275-b0b4-db1bd67a8275',
+  'acc001_fallback': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'ACC001': 'b8acbfca-565b-4420-b62d-491cda173eec',
+  'adm001_fallback': '3d790ac7-850b-4377-b540-83dc9ce29829',
+  'ADM001': '3d790ac7-850b-4377-b540-83dc9ce29829',
+};
 
 async function handleUpdate(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
     const action = body.action || (body.status === 'approved' ? 'approve' : 'reject');
-    const processedBy = body.processedBy || body.adminId;
+    const rawProcessedBy = body.processedBy || body.adminId;
+    const processedBy = UUID_MAP[rawProcessedBy] || rawProcessedBy;
     const rejectionReason = body.rejectionReason;
 
     if (!['approve', 'reject'].includes(action)) {
@@ -17,17 +32,10 @@ async function handleUpdate(request, { params }) {
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
     let fundReq = null;
 
-    // 1. Supabase lookup
-    try {
-      const { data } = await supabaseAdmin
-        .from('fund_requests')
-        .select('*')
-        .or(`id.eq.${id},request_id.eq.${id}`)
-        .single();
-      fundReq = data;
-    } catch (e) {}
+    // 1. Dual DB lookup
+    const dualReqs = await fetchFundRequestsDualDB({});
+    fundReq = dualReqs.find(r => r.id === id || r.request_id === id);
 
-    // 2. Memory store lookup
     const store = getMemoryStore();
     const memReq = store.fundRequests.find(r => r.id === id || r.request_id === id);
     if (!fundReq && memReq) {
@@ -39,17 +47,17 @@ async function handleUpdate(request, { params }) {
       if (rejectionReason) memReq.rejection_reason = rejectionReason;
     }
 
-    const requesterId = body.userId || fundReq?.user_id || fundReq?.userId || memReq?.user_id;
+    const rawRequesterId = body.userId || fundReq?.user_id || fundReq?.userId || memReq?.user_id;
+    const requesterId = UUID_MAP[rawRequesterId] || rawRequesterId;
     const amount = Number(body.amount || fundReq?.amount || memReq?.amount || 0);
-    const payMode = (fundReq?.payment_mode || memReq?.payment_mode || body.paymentMethod || '').toUpperCase();
+    const payMode = (fundReq?.payment_mode || fundReq?.paymentMethod || memReq?.payment_mode || '').toUpperCase();
     const isCash = payMode === 'CASH';
 
     let walletRes = null;
 
-    // 3. Approval Workflow Rules
+    // 2. Approval Workflow Rules
     if (action === 'approve') {
       if (isCash && processedBy) {
-        // Cash Top-Up approval: Debit Upline Approver & Credit Downline Requester
         try {
           walletRes = await executeDirectTransfer({
             senderId: processedBy,
@@ -64,7 +72,6 @@ async function handleUpdate(request, { params }) {
           );
         }
       } else {
-        // Online Bank Top-Up (Company Bank Transfer): Credit Requester Wallet directly
         walletRes = await executeWalletOperation({
           userId: requesterId,
           type: 'credit',
@@ -76,7 +83,7 @@ async function handleUpdate(request, { params }) {
       }
     }
 
-    // 4. Update Supabase DB
+    // 3. Update Supabase DB
     try {
       await supabaseAdmin
         .from('fund_requests')
