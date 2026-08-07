@@ -1,22 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
-
-async function syncToFirebaseRTDB(userId, balance) {
-  if (!userId) return;
-  try {
-    const rtdbUrl = `https://unipay-3b9c6-default-rtdb.firebaseio.com/wallets/${userId}.json`;
-    await fetch(rtdbUrl, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        balance: Number(balance),
-        updatedAt: Date.now(),
-      }),
-    });
-  } catch (e) {
-    console.warn('Firebase RTDB REST sync notice:', e.message);
-  }
-}
+import { syncBalanceDualDB } from '@/lib/dualDatabase';
 
 export async function POST(request) {
   try {
@@ -31,20 +14,15 @@ export async function POST(request) {
 
     const numBal = Number(newBalance);
 
-    // 1. Update Supabase DB directly
-    const { error } = await supabaseAdmin
-      .from('users')
-      .update({ wallet_balance: numBal })
-      .or(`id.eq.${userId},user_id.eq.${userId}`);
+    // Dual-Database Sync (Supabase + Firebase RTDB Failover)
+    const result = await syncBalanceDualDB(userId, numBal);
 
-    if (error) {
-      console.error('Supabase balance sync error:', error.message);
-    }
-
-    // 2. Real-time broadcast to Firebase Realtime Database
-    await syncToFirebaseRTDB(userId, numBal);
-
-    return NextResponse.json({ success: true, newBalance: numBal });
+    return NextResponse.json({
+      success: true,
+      newBalance: numBal,
+      supabaseSynced: result.supabaseSuccess,
+      firebaseSynced: result.firebaseSuccess,
+    });
   } catch (error) {
     console.error('Balance sync API error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

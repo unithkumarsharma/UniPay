@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import jwt from 'jsonwebtoken';
 import { getMemoryStore } from '@/lib/walletStore';
+import { readFromFirebase } from '@/lib/dualDatabase';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'unipay-super-secret-key';
 
@@ -60,6 +61,18 @@ export async function GET(request) {
       } catch (e) {
         console.warn('/api/auth/me DB lookup notice:', e.message);
       }
+    }
+
+    // 1b. Failover to Firebase RTDB if Supabase profile not found
+    if (targetId && (!userObj || userObj.walletBalance === undefined)) {
+      try {
+        const fbWallet = await readFromFirebase(`wallets/${targetId}`);
+        if (fbWallet && fbWallet.balance !== undefined) {
+          if (userObj) {
+            userObj.walletBalance = Number(fbWallet.balance);
+          }
+        }
+      } catch (e) {}
     }
 
     // 2. Memory store sync fallback
