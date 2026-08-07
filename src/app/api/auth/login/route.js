@@ -143,14 +143,20 @@ export async function POST(request) {
 
     let user = null;
 
-    // 1. Query Supabase for User
+    // 1. Query Supabase for User with 1.2s timeout safeguard
     try {
-      const { data, error } = await supabaseAdmin
+      const dbPromise = supabaseAdmin
         .from('users')
         .select('*')
         .or(`phone.eq.${inputClean},email.eq.${inputClean.toLowerCase()}`)
         .limit(1)
         .maybeSingle();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('DB Timeout')), 1200)
+      );
+
+      const { data, error } = await Promise.race([dbPromise, timeoutPromise]);
 
       if (!error && data) {
         user = data;
