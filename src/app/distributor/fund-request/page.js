@@ -342,6 +342,31 @@ export default function DistFundRequestPage() {
 
             <form onSubmit={handleSubmitMyRequest}>
               <div className="form-group">
+                <label className="form-label">Select Top-Up Mode</label>
+                <select
+                  className="form-select"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value)}
+                  style={{ fontWeight: 700 }}
+                >
+                  <option value="ONLINE">🏦 Online Company Bank Transfer (Accountant Approval via UTR)</option>
+                  <option value="CASH">💵 Cash Top-Up (Master Distributor Wallet Transfer)</option>
+                </select>
+              </div>
+
+              {method === 'ONLINE' ? (
+                <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <strong style={{ color: '#2563EB' }}>🏦 Company Bank Transfer Instructions:</strong><br />
+                  Transfer funds to Company Bank Account. Enter UTR. <strong>Accountant will verify from bank statement and credit your wallet.</strong>
+                </div>
+              ) : (
+                <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <strong style={{ color: '#059669' }}>💵 Cash Handover to MD Instructions:</strong><br />
+                  Give cash directly to your Upline Master Distributor (MD). <strong>MD will approve and transfer funds from MD wallet to your wallet.</strong>
+                </div>
+              )}
+
+              <div className="form-group">
                 <label className="form-label">Requested Amount (₹)</label>
                 <input
                   type="number"
@@ -355,24 +380,11 @@ export default function DistFundRequestPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Payment Method</label>
-                <select
-                  className="form-select"
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                >
-                  <option value="RTGS / NEFT Transfer">RTGS / NEFT Transfer</option>
-                  <option value="UPI Transfer">UPI Transfer</option>
-                  <option value="Cheque / DD">Company Cheque / DD</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">UTR / Reference Number</label>
+                <label className="form-label">{method === 'CASH' ? 'Receipt / Cash Note Reference' : 'UTR / Reference Number'}</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. UTR991823719"
+                  placeholder={method === 'CASH' ? "e.g. Cash handed to MD" : "e.g. UTR991823719"}
                   value={utr}
                   onChange={(e) => setUtr(e.target.value)}
                   required
@@ -380,7 +392,7 @@ export default function DistFundRequestPage() {
               </div>
 
               <button type="submit" className="btn btn-primary w-full" style={{ padding: '12px', fontWeight: 800 }} disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit Request to MD'}
+                {isSubmitting ? 'Submitting...' : method === 'CASH' ? 'Submit Cash Request to MD' : 'Submit UTR to Accountant'}
               </button>
             </form>
           </div>

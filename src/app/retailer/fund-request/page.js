@@ -291,6 +291,31 @@ export default function RetailerFundRequestPage() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
+              <label className="form-label">Select Top-Up Mode</label>
+              <select
+                className="form-select"
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                style={{ fontWeight: 700 }}
+              >
+                <option value="ONLINE">🏦 Online Company Bank Transfer (Accountant Approval via UTR)</option>
+                <option value="CASH">💵 Cash Top-Up (Distributor Wallet Transfer)</option>
+              </select>
+            </div>
+
+            {method === 'ONLINE' ? (
+              <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                <strong style={{ color: '#2563EB' }}>🏦 Company Bank Transfer Instructions:</strong><br />
+                Transfer funds to Company Bank Account (HDFC A/c: 50200012345678, IFSC: HDFC0001234). Enter the UTR Number below. <strong>Accountant will verify from bank statement and credit your wallet.</strong>
+              </div>
+            ) : (
+              <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                <strong style={{ color: '#059669' }}>💵 Cash Handover to Distributor Instructions:</strong><br />
+                Give cash directly to your Upline Distributor. <strong>Distributor will approve and transfer funds from their wallet to your wallet.</strong>
+              </div>
+            )}
+
+            <div className="form-group">
               <label className="form-label">Deposit Amount (₹)</label>
               <input
                 type="number"
@@ -304,24 +329,11 @@ export default function RetailerFundRequestPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Payment Method</label>
-              <select
-                className="form-select"
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-              >
-                <option value="UPI Transfer">UPI Transfer (PhonePe / GPay / Paytm)</option>
-                <option value="Bank Transfer (IMPS)">Bank Transfer (IMPS / NEFT)</option>
-                <option value="Cash (Offline)">Cash Deposit at Branch</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">UTR / Payment Reference Number</label>
+              <label className="form-label">{method === 'CASH' ? 'Receipt / Cash Note Reference' : 'UTR / Payment Reference Number'}</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. UTR99812488123"
+                placeholder={method === 'CASH' ? "e.g. Cash handed to Distributor" : "e.g. UTR99812488123"}
                 value={utr}
                 onChange={(e) => setUtr(e.target.value)}
                 required
@@ -333,7 +345,7 @@ export default function RetailerFundRequestPage() {
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
-              {isSubmitting ? 'Submitting Request...' : 'Submit Request to Distributor'}
+              {isSubmitting ? 'Submitting Request...' : method === 'CASH' ? 'Submit Cash Request to Distributor' : 'Submit UTR to Accountant'}
             </button>
           </form>
         </div>

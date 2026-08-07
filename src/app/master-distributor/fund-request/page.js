@@ -270,6 +270,31 @@ export default function MDFundRequestPage() {
             <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 16 }}>New Corporate Fund Request</h3>
             <form onSubmit={handleSubmitMyRequest}>
               <div className="form-group">
+                <label className="form-label">Select Top-Up Mode</label>
+                <select
+                  className="form-select"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value)}
+                  style={{ fontWeight: 700 }}
+                >
+                  <option value="ONLINE">🏦 Online Company Bank Transfer (Accountant Approval via UTR)</option>
+                  <option value="CASH">💵 Cash Top-Up (Company Cash Handover)</option>
+                </select>
+              </div>
+
+              {method === 'ONLINE' ? (
+                <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <strong style={{ color: '#2563EB' }}>🏦 Company Bank Transfer Instructions:</strong><br />
+                  Transfer funds to Company Bank Account. Enter UTR. <strong>Accountant will verify from bank statement and credit your MD wallet.</strong>
+                </div>
+              ) : (
+                <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 14px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <strong style={{ color: '#059669' }}>💵 Cash Handover to Company Instructions:</strong><br />
+                  Give cash to Company/Admin. <strong>Accountant/Admin will approve and credit your MD wallet.</strong>
+                </div>
+              )}
+
+              <div className="form-group">
                 <label className="form-label">Amount (₹)</label>
                 <input
                   type="number"
@@ -281,29 +306,19 @@ export default function MDFundRequestPage() {
                   min="1"
                 />
               </div>
+
               <div className="form-group">
-                <label className="form-label">Payment Method</label>
-                <select
-                  className="form-select"
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                >
-                  <option value="bank_transfer">Bank Transfer (RTGS/NEFT)</option>
-                  <option value="upi">UPI</option>
-                  <option value="cash">Company Cheque</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">UTR / Reference Number</label>
+                <label className="form-label">{method === 'CASH' ? 'Receipt / Cash Note Reference' : 'UTR / Reference Number'}</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Enter UTR or reference number"
+                  placeholder={method === 'CASH' ? "e.g. Cash handed to Admin/Company" : "Enter UTR number"}
                   value={utrNumber}
                   onChange={(e) => setUtrNumber(e.target.value)}
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label className="form-label">Remarks (Optional)</label>
                 <input
